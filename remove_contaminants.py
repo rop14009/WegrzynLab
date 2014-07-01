@@ -5,7 +5,9 @@ from Bio import SeqIO
 #Import list of header lines.
 headerlines=[]
 with open('clean_hits.names', 'r') as namefile:
-	lines = namefile.read().splitlines()
+	headerlines = namefile.read().splitlines()
+	#Checked to see if above code works, it does. 
+	#print headerlines
 
 #Go through each record in the fasta file and if a record's header line matches, add it to a list.
 matches=[]
