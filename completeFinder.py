@@ -1,7 +1,9 @@
 ## Script Name: completeFinder.py
 ## Purpose: Find complete FASTA-format sequences
-## Date Created: 6/30/2014
-## Author: James Pickett
+##
+## Created by James Pickett
+## University of Connecticut
+##
 ## Version: 1.0
 ## Last Edit 7/7/2014
 ## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
