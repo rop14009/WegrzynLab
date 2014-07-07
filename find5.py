@@ -1,8 +1,14 @@
-##Find five largest FASTA-format sequences
+## Script Name: find5.py
+## Purpose: Find five largest FASTA-format sequences
+## Date Created: 6/30/2014
+## Author: James Pickett
+## Version: 1.0
+## Last Edit 7/7/2014
+## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
 
 import numpy as np
 
-target = raw_input("Enter the name of the file to be parsed ")
+target = raw_input("Enter the name of the file to be parsed ") #Asks user to input a filename, and stores the name input
 geneSeq = open(target,'r')  #Retrieve file contents
 storageFile = open('FiveLongestSequences.txt','w')
 
@@ -29,19 +35,20 @@ geneSeqString = geneSeq.read() #Store file contents as a single string
 while notReachedEnd:
 
 
-	nameStart = geneSeqString.find('>', pos)
-	if(nameStart == -1):
+	nameStart = geneSeqString.find('>', pos) #Stores the index of the first '>' character in nameStart. '>' signifies the start of a FASTA-format sequence, 'pos' indicates the position to start searching from, and is 0 at first run
+
+	if(nameStart == -1): #Python returns a -1 if the character is not found in the string, indicating there are no more occurences and running again is unnecessary
 		notReachedEnd = False
 		break
 
-	nameEnd = str.find(geneSeqString,'\n', nameStart)
+	nameEnd = str.find(geneSeqString,'\n', nameStart) #Finds the first newline character after the index stored above, which indicates the end of the FASTA sequence description and beginning of sequence data
 
-	name = geneSeqString[nameStart:nameEnd]
-	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>',nameEnd) - 1]
+	name = geneSeqString[nameStart:nameEnd] #Stores the entire sequence desription as name
+	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>',nameEnd) - 1] #Stores the sequence between the indices already declared
 
 
 	if(nameStart == -1):
-		sequence = geneSeqString[geneSeqString.find('\n',pos) + 1:-1]
+		sequence = geneSeqString[geneSeqString.find('\n',pos) + 1:-1] #If there are no more sequences, the rest of the file is the current sequence
 
 	runOne = False
 
@@ -60,10 +67,7 @@ while notReachedEnd:
 	lastNameEnd = nameEnd
 	pos = nameStart + 1
 
-	if(nameStart == -1):
-		notReachedEnd = False
-
-for x in range(1,6):
+for x in range(1,6): #Writes stored sequences to previously specified file
 	storageFile.write(fiveSeqs[fiveLengths.index(sorted(fiveLengths)[5 - x])])
 	storageFile.write("     ")
 	storageFile.write(str(sorted(fiveLengths)[5 - x]))
