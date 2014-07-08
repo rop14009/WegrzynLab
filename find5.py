@@ -4,11 +4,9 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.0
+## Version: 1.0.1
 ## Last Edit 7/7/2014
 ## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
-
-import numpy as np
 
 target = raw_input("Enter the name of the file to be parsed ") #Asks user to input a filename, and stores the name input
 geneSeq = open(target,'r')  #Retrieve file contents

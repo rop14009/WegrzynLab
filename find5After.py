@@ -4,14 +4,12 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.0
+## Version: 1.0.1
 ## Last Edit 7/7/2014
 ##
 ## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
 ## Note: This script functions exactly as find5.py, but stores the resulting strings with a
 ## 		different filename, so it can be run on multiple sources in the same directory
-
-import numpy as np
 
 target = raw_input("Enter the name of the file to be parsed ") #Asks user to input a filename, and stores the name input
 geneSeq = open(target,'r')  #Retrieve file contents
@@ -80,5 +78,3 @@ for x in range(1,6): #Writes stored sequences to previously specified file
 	storageFile.write("     ")
 	storageFile.write(str(sorted(fiveLengths)[5 - x]))
 	storageFile.write("\n")
-print fiveSeqs
-print fiveLengths
