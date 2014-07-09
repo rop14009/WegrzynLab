@@ -4,8 +4,8 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.0.1
-## Last Edit 7/7/2014
+## Version: 1.1.0
+## Last Edit 7/9/2014
 ## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
 
 import math
@@ -16,6 +16,7 @@ storageFile = open('CompleteSequences.txt','w') #Declares a file to store the co
 statsFile = open('CompleteSequencesStats.txt', 'w') #Declares a file to record statistics on the completed sequences in, file is write-only
 
 completeSeqs = []
+sequences = []
 completeLengths = []
 
 currLen = 0
@@ -61,6 +62,8 @@ while notReachedEnd:
 	if(geneSeqString.find('>', nameEnd) == -1): #Checks if there is another sequence following the current one
 		sequence = geneSeqString[geneSeqString.find('\n',nameEnd) + 1:] #If there are no more sequences, the rest of the file is the current sequence
 
+	sequences.append(sequence)
+
 	completeLengths.append(len(sequence)) #Stores the length of the parsed sequence
 	if(len(sequence) > lengthMax): #Checks if the current length is longer than the previous record, and if so, assigns the current as the new high water mark
 		lengthMax = len(sequence)
@@ -76,12 +79,18 @@ if(len(completeLengths) % 2 != 0): #If statement to find median sequence length
 	median = sorted(completeLengths)[len(completeLengths) / 2] #If the number of sequences is odd, the sequence in the middle is the median
 else:
 	median = (sorted(completeLengths)[len(completeLengths) / 2 - 1] + sorted(completeLengths)[len(completeLengths) / 2]) / 2 #If the number is even, the median is the average of the middle two
-
-for x in range (0, len(completeSeqs)): #For loop to write 
-	storageFile.write(completeSeqs[x])
-	storageFile.write("     ")
-	storageFile.write(str(completeLengths[x]))
-	storageFile.write("\n")
+with open("completeSequences.fasta", "w") as fastaFile:
+	for x in range (0, len(completeSeqs)): #For loop to write 
+		storageFile.write(completeSeqs[x])
+		storageFile.write("     ")
+		storageFile.write(str(completeLengths[x]))
+		storageFile.write("\n")
+		storageFile.write(sequences[x])
+		storageFile.write("\n")
+		fastaFile.write(completeSeqs[x])
+		fastaFile.write("\n")
+		fastaFile.write(sequences[x])
+		fastaFile.write("\n")
 
 statsFile.write("Max: ")				#Writes to statistics file in order of: max sequence length, min length, mean and median lengths, and count of complete sequences, each on a seperate line
 statsFile.write(str(lengthMax))
