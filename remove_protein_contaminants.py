@@ -5,9 +5,9 @@
 ## Computational Genomics Lab, University of Connecticut
 ##
 ##Last Update 7/10/14
- 
-from Bio import SeqIO
 print "Getting started..."
+from Bio import SeqIO
+
 originalprotseq = raw_input("Enter the path of the contaminated protein FASTA file (relative is OK!): ")
 contaminantsfile = raw_input("Enter the path of the contaminants job.py out file (relative is OK!): ")
 
