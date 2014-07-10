@@ -1,6 +1,6 @@
-#Purpose: Removes seqs annotated as contaminants from full length genes file. 
-#Script relies on a list of uncontaminated names. See remove_contaminants_pipe.sh
-#Computational Genomics Lab, University of Connecticut, Storrs 
+##Purpose: Removes seqs annotated as contaminants from full length genes file. 
+##Script relies on a list of uncontaminated names. See remove_contaminants_pipe.sh
+##Computational Genomics Lab, University of Connecticut, Storrs 
 from Bio import SeqIO
 
 #Import list of header lines.
