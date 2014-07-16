@@ -4,14 +4,21 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.0.1
+## Version: 1.1.0
 ## Last Edit 7/7/2014
 ##
 ## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
 ## Note: This script functions exactly as find5.py, but stores the resulting strings with a
 ## 		different filename, so it can be run on multiple sources in the same directory
 
-target = raw_input("Enter the name of the file to be parsed ") #Asks user to input a filename, and stores the name input
+import glob
+import sys
+
+cmdInput = sys.argv[len(sys.argv) - 1]
+target = glob.glob(cmdInput)[0]
+if(cmdInput == sys.argv[0]):
+	target = glob.glob(raw_input("Enter the name of the file to be parsed "))[0]
+
 geneSeq = open(target,'r')  #Retrieve file contents
 storageFile = open('FiveLongestSequencesAfter.txt','w') #Change this line and save to make another "version", enabling another source from the same directory
 

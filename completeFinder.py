@@ -4,13 +4,19 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.1.0
+## Version: 1.2.0
 ## Last Edit 7/9/2014
 ## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
 
 import math
+import glob
+import sys
 
-target = raw_input("Enter the name of the file to be parsed ") #Asks user to input a filename, and stores the name input
+cmdInput = sys.argv[len(sys.argv) - 1]
+target = glob.glob(cmdInput)[0]
+if(cmdInput == sys.argv[0]):
+	target = glob.glob(raw_input("Enter the name of the file to be parsed "))[0]
+
 geneSeq = open(target,'r')  #Retrieve file contents *Only works with exact filenames* retrieval is read-only
 storageFile = open('CompleteSequences.txt','w') #Declares a file to store the completed sequences in, file is write-only
 statsFile = open('CompleteSequencesStats.txt', 'w') #Declares a file to record statistics on the completed sequences in, file is write-only

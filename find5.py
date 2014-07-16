@@ -4,11 +4,18 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.0.1
-## Last Edit 7/7/2014
+## Version: 1.1.0
+## Last Edit 7/16/2014
 ## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
 
-target = raw_input("Enter the name of the file to be parsed ") #Asks user to input a filename, and stores the name input
+import glob
+import sys
+
+cmdInput = sys.argv[len(sys.argv) - 1]
+target = glob.glob(cmdInput)[0]
+if(cmdInput == sys.argv[0]):
+	target = glob.glob(raw_input("Enter the name of the file to be parsed "))[0]
+
 geneSeq = open(target,'r')  #Retrieve file contents
 storageFile = open('FiveLongestSequences.txt','w')
 
