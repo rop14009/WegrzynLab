@@ -15,7 +15,7 @@ import sys
 cmdInput = sys.argv[len(sys.argv) - 1]
 target = glob.glob(cmdInput)[0]
 if(cmdInput == sys.argv[0]):
-	target = glob.glob(raw_input("Enter the name of the file to be parsed "))[0]
+	target = glob.glob(raw_input("Enter the name of the file to be parsed (Relative and wildcards OK) \n"))[0]
 
 geneSeq = open(target,'r')  #Retrieve file contents *Only works with exact filenames* retrieval is read-only
 storageFile = open('CompleteSequences.txt','w') #Declares a file to store the completed sequences in, file is write-only

@@ -17,7 +17,7 @@ import sys
 cmdInput = sys.argv[len(sys.argv) - 1]
 target = glob.glob(cmdInput)[0]
 if(cmdInput == sys.argv[0]):
-	target = glob.glob(raw_input("Enter the name of the file to be parsed "))[0]
+	target = glob.glob(raw_input("Enter the name of the file to be parsed (Relative and wildcards OK) \n"))[0]
 
 geneSeq = open(target,'r')  #Retrieve file contents
 storageFile = open('FiveLongestSequencesAfter.txt','w') #Change this line and save to make another "version", enabling another source from the same directory
