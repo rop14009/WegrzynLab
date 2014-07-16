@@ -6,7 +6,7 @@
 ##
 ## Version: 1.1.0
 ## Last Edit 7/16/2014
-## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
+## Usage: Run from terminal, filename can be included in line or a query will appear on run (Wildcard and Relative OK)
 
 import glob
 import sys
@@ -25,7 +25,6 @@ fiveLengths = [0,0,0,0,0];
 currMax = 0
 currLen = 0
 lastNameEnd = 0
-temp2 = 0
 pos = 0
 addedSeqs = 0
 
@@ -41,17 +40,16 @@ geneSeqString = geneSeq.read() #Store file contents as a single string
 
 while notReachedEnd:
 
-
 	nameStart = geneSeqString.find('>', pos) #Stores the index of the first '>' character in nameStart. '>' signifies the start of a FASTA-format sequence, 'pos' indicates the position to start searching from, and is 0 at first run
 
 	if(nameStart == -1): #Python returns a -1 if the character is not found in the string, indicating there are no more occurences and running again is unnecessary
 		notReachedEnd = False
 		break
 
-	nameEnd = str.find(geneSeqString,'\n', nameStart) #Finds the first newline character after the index stored above, which indicates the end of the FASTA sequence description and beginning of sequence data
+	nameEnd = geneSeqString.find('\n', nameStart) #Finds the first newline character after the index stored above, which indicates the end of the FASTA sequence description and beginning of sequence data
 
 	name = geneSeqString[nameStart:nameEnd] #Stores the entire sequence desription as name
-	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>',nameEnd) - 1] #Stores the sequence between the indices already declared
+	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>',nameEnd) - 1] #Stores the sequence
 
 
 	if(nameStart == -1):

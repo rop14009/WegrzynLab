@@ -6,7 +6,7 @@
 ##
 ## Version: 1.2.0
 ## Last Edit 7/9/2014
-## Usage: Run from command prompt, and when prompted enter the name of the FASTA file exactly
+## Usage: Run from terminal, filename can be included in line or a query will appear on run (Wildcard and Relative OK)
 
 import math
 import glob
@@ -62,7 +62,7 @@ while notReachedEnd:
 		pos = nameStart + 1
 		continue
 
-	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>', nameEnd) - 1] #Stores the sequence between the indices already declared
+	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>', nameEnd) - 1] #Stores the sequence
 
 
 	if(geneSeqString.find('>', nameEnd) == -1): #Checks if there is another sequence following the current one
