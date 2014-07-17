@@ -8,6 +8,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=eagbaker@ucdavis.edu
 
+#NOTE: THIS SOFTWARE IS STILL BEING TESTED.MAY HAVE BUGS.
 #PURPOSE: Runs entire trinotate pipeline. Requires Trinity.fasta and transdecoder.pep (with removed contaminants file) to be in same dir from where script will be run. 
 #Based on the Trinotate documentation at http://http://trinotate.sourceforge.net/ 
 #Ethan Baker, Computational Genomics Lab, University of Connecticut
