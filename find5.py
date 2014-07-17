@@ -22,7 +22,6 @@ storageFile = open('FiveLongestSequences.txt','w')
 fiveSeqs = ['','','','','']
 fiveLengths = [0,0,0,0,0];
 
-currMax = 0
 currLen = 0
 lastNameEnd = 0
 pos = 0
@@ -68,7 +67,6 @@ while notReachedEnd:
 		fiveSeqs.append(name)
 		addedSeqs += 1
 
-	currMax += 1
 	lastNameEnd = nameEnd
 	pos = nameStart + 1
 
