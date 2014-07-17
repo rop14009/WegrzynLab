@@ -28,7 +28,7 @@ module load rnammer
 module load tmhmm
 module load SQLite
 
-
+#Since blastp runs faster than blastx, may want to give blastx more CPU than blastp?
 blastx -query Trinity.fasta -db /share/databases/uniprot_sprot.fasta -num_threads 14 -max_target_seqs 1 -outfmt 6 > blastx.outfmt6 &
 blastp -query transdecoder.pep -db /share/databases/uniprot_sprot.fasta -num_threads 14 -max_target_seqs 1 -outfmt 6 > blastp.outfmt6
 wait && echo "Blast complete."
