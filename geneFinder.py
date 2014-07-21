@@ -66,7 +66,7 @@ while True:
 	lastNameEnd = nameEnd
 	pos = nameStart + 1
 
-with open('longSequences.fasta', 'w') as storageFile:
+with open('Genes.fasta', 'w') as storageFile:
 	for key in cgDic:
 		storageFile.write(fastaNameDic[key])
 		storageFile.write('\n')
