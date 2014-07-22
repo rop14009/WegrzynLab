@@ -19,4 +19,8 @@ fastaGrabber.py
 
 longestGeneFinder.py
 
-	Script to find the longest sequences for each gene in a FASTA file (genes determined by c#)
+	Script to find the longest sequences for each gene in a 	FASTA file (genes determined by c#)
+
+chloroplastFinder.py
+
+	Script to find genes labelled as Chloroplasts from the 	job.py output

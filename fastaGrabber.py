@@ -19,26 +19,22 @@ if(cmdInput == sys.argv[0]):
 geneSeq = open(target,'r')  #Retrieve file contents
 #storageFile = open('FiveLongestSequences.txt','w')     ##Commented out to avoid needless runs,  uncomment and change filename and print statements for full functionality
 
-lastNameEnd = 0
 pos = 0
 
 name = ''
 sequence = ''
 
-notReachedEnd = True
-runOne = True
 
 geneSeqString = geneSeq.read() #Store file contents as a single string
 
 
 
-while notReachedEnd:
+while True:
 
 
 	nameStart = geneSeqString.find('>', pos) #Stores the index of the first '>' character in nameStart. '>' signifies the start of a FASTA-format sequence, 'pos' indicates the position to start searching from, and is 0 at first run
 
 	if(nameStart == -1): #Python returns a -1 if the character is not found in the string, indicating there are no more occurences and running again is unnecessary
-		notReachedEnd = False
 		break
 
 	nameEnd = geneSeqString.find('\n', nameStart) #Finds the first newline character after the index stored above, which indicates the end of the FASTA sequence description and beginning of sequence data
@@ -50,9 +46,6 @@ while notReachedEnd:
 	if(nameStart == -1):
 		sequence = geneSeqString[geneSeqString.find('\n',pos) + 1:-1] #If there are no more sequences, the rest of the file is the current sequence
 
-	runOne = False
-
-	lastNameEnd = nameEnd
 	pos = nameStart + 1
 
 # for x in range(1,6): #Writes stored sequences to previously specified file       ##Comemented out for same reason as storageFile line
