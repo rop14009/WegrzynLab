@@ -32,9 +32,7 @@ cgDic = {}
 geneSeqString = geneSeq.read() #Store file contents as a single string
 
 
-
 while True:
-
 
 	nameStart = geneSeqString.find('>', pos) #Stores the index of the first '>' character in nameStart. '>' signifies the start of a FASTA-format sequence, 'pos' indicates the position to start searching from, and is 0 at first run
 

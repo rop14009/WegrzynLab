@@ -4,8 +4,8 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.0.0
-## Last Edit 7/21/2014
+## Version: 1.1.0
+## Last Edit 7/25/2014
 ## Usage: Run from terminal, filename can be included in line or a query will appear on run (Wildcard and Relative OK)
 
 import re
@@ -18,57 +18,74 @@ target = glob.glob(cmdInput)[0]
 if(cmdInput == sys.argv[0]):
 	target = glob.glob(raw_input("Enter the name of the file to be parsed (Wildcard and Relative OK) \n"))[0]
 
-geneSeq = open(target,'r')  #Retrieve file contents
+print "Filename wildcarded to %s"%target
+fileType = target[target.rfind('.'):]
+if(fileType == '.cds'):
+	destination = 'longestNucleotideSequences.fasta'
+	proteinTarget = target[:target.rfind('.')] + '.pep'
+elif(fileType == '.pep'):
+	destination = 'longestProteinSequences.fasta'
+	proteinTarget = target[:target.rfind('.')] + '.cds'
 
-lastNameEnd = 0
-pos = 0
+for i in range(2):
+	try:
+		geneSeq = open(target,'r')  #Retrieve file contents
+	except IOError:
+		print "It seems the script can't access the file '%s', make sure you have both the peptide and nucleotide sequences in the directory"%target
 
-name = ''
-sequence = ''
+	lastNameEnd = 0
+	pos = 0
 
-fastaNameDic = {}
-cgDic = {}
+	name = ''
+	sequence = ''
 
-geneSeqString = geneSeq.read() #Store file contents as a single string
+	fastaNameDic = {}
+	cgDic = {}
+
+	geneSeqString = geneSeq.read() #Store file contents as a single string
 
 
+	while True:
+		nameStart = geneSeqString.find('>', pos) #Stores the index of the first '>' character in nameStart. '>' signifies the start of a FASTA-format sequence, 'pos' indicates the position to start searching from, and is 0 at first run
 
-while True:
+		if(nameStart == -1): #Python returns a -1 if the character is not found in the string, indicating there are no more occurences and running again is unnecessary
+			break
 
+		nameEnd = geneSeqString.find('\n', nameStart) #Finds the first newline character after the index stored above, which indicates the end of the FASTA sequence description and beginning of sequence data
 
-	nameStart = geneSeqString.find('>', pos) #Stores the index of the first '>' character in nameStart. '>' signifies the start of a FASTA-format sequence, 'pos' indicates the position to start searching from, and is 0 at first run
+		name = geneSeqString[nameStart:nameEnd] #Stores the entire sequence desription as name
 
-	if(nameStart == -1): #Python returns a -1 if the character is not found in the string, indicating there are no more occurences and running again is unnecessary
-		break
+		cNum = str(re.search(r"c[0-9]+", name).group(0))
+		gNum = str(re.search(r"g[0-9]+", name).group(0))
+		geneTypeID = name.find('complete')
+		cgID = cNum + gNum
 
-	nameEnd = geneSeqString.find('\n', nameStart) #Finds the first newline character after the index stored above, which indicates the end of the FASTA sequence description and beginning of sequence data
+		sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>',nameEnd) - 1] #Stores the sequence
 
-	name = geneSeqString[nameStart:nameEnd] #Stores the entire sequence desription as name
-
-	cNum = str(re.search(r"c[0-9]*", name).group(0))
-	gNum = str(re.search(r"g[0-9]*", name).group(0))
-	geneTypeID = name.find('complete')
-	cgID = cNum + gNum
-
-	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>',nameEnd) - 1] #Stores the sequence
-
-	if(cgID in cgDic):
-		if(geneTypeID != -1):
+		if(cgID in cgDic):
+			if(geneTypeID != -1):
+				cgDic[cgID] = sequence
+				fastaNameDic[cgID] = name
+			elif(len(sequence) > len(cgDic[cgID])):
+				cgDic[cgID] = sequence
+				fastaNameDic[cgID] = name
+		else:
 			cgDic[cgID] = sequence
 			fastaNameDic[cgID] = name
-		elif(len(sequence) > len(cgDic[cgID])):
-			cgDic[cgID] = sequence
-			fastaNameDic[cgID] = name
-	else:
-		cgDic[cgID] = sequence
-		fastaNameDic[cgID] = name
 
-	lastNameEnd = nameEnd
-	pos = nameStart + 1
+		lastNameEnd = nameEnd
+		pos = nameStart + 1
 
-with open('Genes.fasta', 'w') as storageFile:
-	for key in cgDic:
-		storageFile.write(fastaNameDic[key])
-		storageFile.write('\n')
-		storageFile.write(cgDic[key])
-		storageFile.write('\n')
+	target = proteinTarget
+
+	with open(destination, 'w') as storageFile:
+		for key in cgDic:
+			storageFile.write(fastaNameDic[key])
+			storageFile.write('\n')
+			storageFile.write(cgDic[key])
+			storageFile.write('\n')
+
+	if(fileType == '.cds'):
+		destination = 'longestProteinSequences.fasta'
+	elif(fileType == '.pep'):
+		destination = 'longestNucleotideSequences.fasta'

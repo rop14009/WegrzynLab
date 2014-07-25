@@ -40,6 +40,9 @@ while True:
 	if(isChloro == -1):
 		continue
 
+	name = geneSeqString[0:geneSeqString.find('\t')]
+
+	storageFile.write(name)
 	storageFile.write('%s \n'%geneSeqString)
 
 
