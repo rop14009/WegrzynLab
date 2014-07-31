@@ -1,4 +1,4 @@
-## Script Name: geneFinder.py
+## Script Name: transcoderSelectBestFrame.py
 ## Purpose: Find longest sequence for each gene if none are labelled as complete
 ##
 ## Created by James Pickett
