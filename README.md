@@ -17,7 +17,7 @@ fastaGrabber.py
 
 	Skeleton code to grab FASTA files contigs
 
-longestGeneFinder.py
+trinityGeneFinder.py
 
 	Script to find the longest sequences for each gene in a 	FASTA file (genes determined by c#)
 

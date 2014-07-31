@@ -1,4 +1,4 @@
-## Script Name: trinityGeneFunder.py
+## Script Name: trinityGeneFinder.py
 ## Purpose: Find longest sequence for each gene
 ##
 ## Created by James Pickett
