@@ -24,3 +24,7 @@ trinityGeneFinder.py
 chloroplastFinder.py
 
 	Script to find genes labelled as Chloroplasts from the 	job.py output
+
+interproAppender.py
+
+	Script to append interpro information into annotation file
