@@ -3,7 +3,7 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.1.0
+## Version: 1.1.1
 ## Last Edit 8/6/2014
 ## Usage: Run from terminal, filename can be included in line or a query will appear on run (Wildcard and Relative OK)
 
@@ -44,6 +44,8 @@ for i in range(len(modInterArray) - 1):
 		pos = targets.index(modInterArray[i][0])
 	except ValueError:
 		misses.append(modInterArray[i][0])
+		for j in range(len(modAnnoArray[0]) - 1):
+			misses[len(misses) - 1] += '\t'
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 3])
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 9])
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 2])
