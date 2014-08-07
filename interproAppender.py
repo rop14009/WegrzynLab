@@ -3,7 +3,7 @@
 ## Created by James Pickett
 ## University of Connecticut
 ##
-## Version: 1.0.0
+## Version: 1.1.0
 ## Last Edit 8/6/2014
 ## Usage: Run from terminal, filename can be included in line or a query will appear on run (Wildcard and Relative OK)
 
@@ -22,6 +22,7 @@ modAnnoArray = []
 modInterArray = []
 sequencePFams = []
 targets = []
+misses = []
 
 for fields in annoArray:
 	fields = fields.split('\t')
@@ -42,6 +43,11 @@ for i in range(len(modInterArray) - 1):
 	try:
 		pos = targets.index(modInterArray[i][0])
 	except ValueError:
+		misses.append(modInterArray[i][0])
+		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 3])
+		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 9])
+		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 2])
+		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 1])
 		continue
 
 	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 3])
@@ -53,3 +59,8 @@ output = raw_input("Enter filename you would like output stored in (Relative and
 with open(output,'w') as outputFile:
 	for fields in modAnnoArray:
 		outputFile.write('%s\n'%'\t'.join(fields))
+
+	outputFile.write('END OF ANNOTATION FILE. INTERPRO MISMATCHES LISTED BELOW.\n')
+
+	for fields in misses:
+		outputFile.write('%s\n'%fields)
