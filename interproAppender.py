@@ -32,7 +32,10 @@ for fields in interArray:
 	modInterArray.append(fields.split('\t'))
 
 for fields in modInterArray:
-	fields[0] = fields[0][7:]
+	fields[0] = fields[0][fields[0].find('.') + 1:]
+	if len(fields) < 13:
+		for i in range(13 - len(fields)):
+			fields.append('')
 
 
 for i in range(len(modInterArray) - 1):
@@ -40,10 +43,11 @@ for i in range(len(modInterArray) - 1):
 		pos = targets.index(modInterArray[i][0])
 	except ValueError:
 		continue
-	modAnnoArray[pos].append(modInterArray[i][11])
-	modAnnoArray[pos].append(modInterArray[i][5])
-	modAnnoArray[pos].append(modInterArray[i][12])
-	modAnnoArray[pos].append(modInterArray[i][13])
+
+	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 3])
+	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 9])
+	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 2])
+	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 1])
 
 output = raw_input("Enter filename you would like output stored in (Relative and wildcards OK, include filetype) \n")
 with open(output,'w') as outputFile:
