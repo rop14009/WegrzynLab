@@ -28,3 +28,7 @@ chloroplastFinder.py
 interproAppender.py
 
 	Script to append interpro information into annotation file
+
+fastaSorter.py
+
+	Script to seperate sequences of input file into those 	above and below a threshold set by the user
