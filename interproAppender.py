@@ -9,8 +9,8 @@
 
 import glob
 
-target = glob.glob(raw_input("Enter the name of the annotation file (Relative and wildcards OK) \n"))[0]
-jobInput = glob.glob(raw_input("Enter the name of the interpro output file (Relative and wildcards OK) \n"))[0]
+target = glob.glob(raw_input('Enter the name of the annotation file (Relative and wildcards OK) \n'))[0]
+jobInput = glob.glob(raw_input('Enter the name of the interpro output file (Relative and wildcards OK) \n'))[0]
 
 with open(target,'r') as inputFile:
 	annoArray = inputFile.read().split('\n')
@@ -23,6 +23,8 @@ modInterArray = []
 sequencePFams = []
 targets = []
 misses = []
+lastContents = []
+addContents = []
 
 for fields in annoArray:
 	fields = fields.split('\t')
@@ -38,7 +40,6 @@ for fields in modInterArray:
 		for i in range(13 - len(fields)):
 			fields.append('')
 
-
 for i in range(len(modInterArray) - 1):
 	try:
 		pos = targets.index(modInterArray[i][0])
@@ -52,12 +53,26 @@ for i in range(len(modInterArray) - 1):
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 1])
 		continue
 
-	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 3])
-	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 9])
-	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 2])
-	modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 1])
+	addContents.append(modInterArray[i][len(modInterArray[i]) - 3])
+	addContents.append(modInterArray[i][len(modInterArray[i]) - 9])
+	addContents.append(modInterArray[i][len(modInterArray[i]) - 2])
+	addContents.append(modInterArray[i][len(modInterArray[i]) - 1])
 
-output = raw_input("Enter filename you would like output stored in (Relative and wildcards OK, include filetype) \n")
+	for fields in addContents:
+		if fields in lastContents:
+			pass
+		else:
+			modAnnoArray[pos].append(fields)
+
+	lastContents = addContents
+	addContents = []
+	# modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 3])
+	# modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 9])
+	# modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 2])
+	# modAnnoArray[pos].append(modInterArray[i][len(modInterArray[i]) - 1])
+	#print (len(modInterArray) - 1 - i)
+
+output = raw_input('Enter filename you would like output stored in (Relative and wildcards OK, include filetype) \n')
 with open(output,'w') as outputFile:
 	for fields in modAnnoArray:
 		outputFile.write('%s\n'%'\t'.join(fields))
