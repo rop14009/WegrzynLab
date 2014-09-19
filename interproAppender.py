@@ -10,7 +10,9 @@
 import glob
 
 target = glob.glob(raw_input('Enter the name of the annotation file (Relative and wildcards OK) \n'))[0]
-jobInput = glob.glob(raw_input('Enter the name of the interpro output file (Relative and wildcards OK) \n'))[0]
+print "Annotation file being used is %s\n"%target
+jobInput = glob.glob(raw_input('Enter the name of the InterPro output file (Relative and wildcards OK) \n'))[0]
+print "InterPro file being used is %s\n"%jobInput
 
 with open(target,'r') as inputFile:
 	annoArray = inputFile.read().split('\n')
@@ -43,7 +45,6 @@ for fields in modInterArray:
 		for i in range(13 - len(fields)):
 			fields.append('')
 
-addedCount = 0
 for i in range(len(modInterArray)):
 	try:
 		pos = targets.index(modInterArray[i][0])
@@ -55,7 +56,6 @@ for i in range(len(modInterArray)):
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 9])
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 2])
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 1])
-		addedCount += 1
 		continue
 
 	addContents.append(modInterArray[i][len(modInterArray[i]) - 3])
@@ -69,19 +69,16 @@ for i in range(len(modInterArray)):
 		else:
 			modAnnoArray[pos].append(fields.strip('\n'))
 
-	addedCount += 1
-
 
 	lastContents = addContents
 	addContents = []
 
-print addedCount
 
 output = raw_input('Enter filename you would like output stored in (Relative and wildcards OK, include filetype) \n')
 
 with open(output,'w') as outputFile:
 	for fields in modAnnoArray:
-	 	outputFile.write('\t'.join(fields)+'\n')
+	 	outputFile.write('%s\n'%'\t'.join(fields))
 
 	outputFile.write('END OF ANNOTATION FILE. INTERPRO MISMATCHES LISTED BELOW.\n')
 
