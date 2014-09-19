@@ -4,7 +4,7 @@
 ## University of Connecticut
 ##
 ## Version: 1.2.0
-## Last Edit 9/17/2014
+## Last Edit 9/19/2014
 ## Usage: Run from terminal, filename can be included in line or a query will appear on run (Wildcard and Relative OK)
 
 import glob
@@ -20,6 +20,7 @@ with open(jobInput,'r') as inputFile:
 
 modAnnoArray = []
 modInterArray = []
+sequencePFams = []
 targets = []
 misses = []
 lastContents = []
@@ -61,8 +62,8 @@ for i in range(len(modInterArray) - 1):
 		if fields in lastContents:
 			pass
 		else:
-
 			modAnnoArray[pos].append(fields.strip('\n'))
+
 
 	lastContents = addContents
 	addContents = []
@@ -71,7 +72,7 @@ output = raw_input('Enter filename you would like output stored in (Relative and
 
 with open(output,'w') as outputFile:
 	for fields in modAnnoArray:
-	 	outputFile.write('%s\n'%fields)
+	 	outputFile.write('\t'.join(fields)+'\n')
 
 	outputFile.write('END OF ANNOTATION FILE. INTERPRO MISMATCHES LISTED BELOW.\n')
 
