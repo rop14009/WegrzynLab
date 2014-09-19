@@ -34,13 +34,17 @@ for fields in annoArray:
 for fields in interArray:
 	modInterArray.append(fields.split('\t'))
 
+interList = []
+
 for fields in modInterArray:
 	fields[0] = fields[0][fields[0].find('.') + 1:]
+	interList.append(fields[0])
 	if len(fields) < 13:
 		for i in range(13 - len(fields)):
 			fields.append('')
 
-for i in range(len(modInterArray) - 1):
+addedCount = 0
+for i in range(len(modInterArray)):
 	try:
 		pos = targets.index(modInterArray[i][0])
 	except ValueError:
@@ -51,6 +55,7 @@ for i in range(len(modInterArray) - 1):
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 9])
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 2])
 		misses[len(misses) - 1] += '\t' + (modInterArray[i][len(modInterArray[i]) - 1])
+		addedCount += 1
 		continue
 
 	addContents.append(modInterArray[i][len(modInterArray[i]) - 3])
@@ -59,14 +64,18 @@ for i in range(len(modInterArray) - 1):
 	addContents.append(modInterArray[i][len(modInterArray[i]) - 1])
 
 	for fields in addContents:
-		if fields in lastContents:
+		if fields in modAnnoArray[pos]:
 			pass
 		else:
 			modAnnoArray[pos].append(fields.strip('\n'))
 
+	addedCount += 1
+
 
 	lastContents = addContents
 	addContents = []
+
+print addedCount
 
 output = raw_input('Enter filename you would like output stored in (Relative and wildcards OK, include filetype) \n')
 
