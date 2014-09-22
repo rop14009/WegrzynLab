@@ -19,11 +19,12 @@ except IndexError:
 	threshold = raw_input("Enter the length you would like to sort sequences by \n")
 threshold = int(threshold)
 target = str(target)
-print 'Target FASTA file: ', target
+print 'Using FASTA file: ', target
 print 'Sorting threshold: ', threshold
 
 
 geneSeq = open(target,'r')  #Retrieve file contents
+
 aboveList = []
 belowList = []
 
@@ -49,17 +50,20 @@ while True:
 
 	name = geneSeqString[nameStart:nameEnd] #Stores the entire sequence desription as name
 	sequence = geneSeqString[nameEnd + 1:geneSeqString.find('>',nameEnd) - 1] #Stores the sequence
-	if(len(sequence) > threshold):
+	if(len(sequence) >= threshold):
 		aboveList.append(name)
 		aboveList.append(sequence)
 	else:
-		belowList += {name,sequence}
+		belowList.append(name)
+		belowList.append(sequence)
 
 
 	if(nameStart == -1):
 		sequence = geneSeqString[geneSeqString.find('\n',pos) + 1:-1] #If there are no more sequences, the rest of the file is the current sequence
 
 	pos = nameStart + 1
+
+print belowList[:10]
 
 with open('largeSequences.fasta','w') as storage:
 	for index in range(len(aboveList)):
