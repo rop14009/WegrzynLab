@@ -63,9 +63,9 @@ if __name__ == '__main__':
     start_time = time.clock()
     
 
-    file_path_combined_anno = os.path.dirname(os.path.realpath(__file__)) + '\\input\\annotation.tsv'
-    file_path_blast2go_walnut = os.path.dirname(os.path.realpath(__file__)) + '\\input\\blast2go.txt'
-    file_path_walnut_interpro = os.path.dirname(os.path.realpath(__file__)) + '\\input\\interpro.raw'
+    file_path_combined_anno = os.path.dirname(os.path.realpath(__file__)) + '//input//annotation.tsv'
+    file_path_blast2go_walnut = os.path.dirname(os.path.realpath(__file__)) + '//input//blast2go.txt'
+    file_path_walnut_interpro = os.path.dirname(os.path.realpath(__file__)) + '//input//interpro.raw'
 
     #first make dicts for walnut interpro and blast2go for easier searching based off of IDs
     walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
