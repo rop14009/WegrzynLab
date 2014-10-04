@@ -75,7 +75,7 @@ if __name__ == '__main__':
     #then go through old combined anno and line by line make new anno file from previous data
        
     with open(file_path_combined_anno,'r') as tsv_old, \
-    open(os.path.dirname(os.path.realpath(__file__)) + '\\output\\combined_annotation.tsv', 'w') as tsv_new:
+    open(os.path.dirname(os.path.realpath(__file__)) + '//output//combined_annotation.tsv', 'w') as tsv_new:
         tsv_new = csv.writer(tsv_new, delimiter='\t')
         tsv_old = csv.reader(tsv_old, delimiter='\t')
         row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
