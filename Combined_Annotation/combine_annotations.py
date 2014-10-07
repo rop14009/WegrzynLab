@@ -63,6 +63,8 @@ def make_walnut_interpro_dict(file_name):
 			value_list = list()
 	return walnut_interpro_data
 
+'''
+legacy code from older version may/may not add back in later
 def print_usage():
 	print("To run this script use at least one of the following flags:")
 	print("--blast2go --interpro")
@@ -70,64 +72,92 @@ def print_usage():
 	print("EX: py combine_annotations.py --interpro annotation.tsv interpro.raw")
 	print("EX: py combine_annotations.py --blast2go annotation.tsv blast2go.txt output_file_name.tsv")
 	sys.exit(-1)
+'''	
+
+#helper method for parse_flags
+def parse_input_params(param_list):
+	input = []
+	previous_param = ""
+	for param in param_list:
+		if param[:2] == "--" and param != "--input":
+			if param == "--output":
+				return input
+			else:
+				previous_param = param
+				input.append(param)
+		elif previous_param == "--blast2go" or previous_param == "--interpro":
+			input.append(param)
+	return input
+	
+#helper method for parse_flags
+def parse_output_param(param_list):
+	output = []
+	prev_param = ""
+	for param in param_list:
+		if param == "--output":
+			output.append(param)
+			prev_param = param
+		elif prev_param == "--output":
+			output.append(param)
+			return output
+	return ""
+	
+#helper method for parse_flags
+def determine_blast_or_interpro_input(input):
+	for param in input:
+		if param == "--interpro":
+			return "interpro"
+		if param == "--blast2go":
+			return "blast2go"
+	return ""
+	
 
 def parse_flags(param_list):
-	blast2go = 0
-	interpro = 0
-	custom_output_name = 0
-	for param in param_list:
-		if param == "--h":
-			print_usage()
-		elif param == "--blast2go":
-			blast2go += 1
-		elif param == "--interpro":
-			interpro += 1
-		elif param == "--o":
-			custom_output_name += 1
+	#parse input paramters first
+	input = parse_input_params(param_list)
+	#check if --output flag is present
+	output = parse_output_param(param_list)
 	
-	if interpro == 1 and blast2go == 1:
-		if custom_output_name == 1:
+	print(input)
+	
+	if len(output) != 2: #this means use default output
+		if len(input) == 4: #all params
+			return "all_params"
+		elif len(input) == 2: #either 1 or the other, so do a quick check
+			if determine_blast_or_interpro_input(param_list) == "blast2go":
+				return "blast2go"
+			else:
+				return "interpro"
+	else: #custom output
+		if len(input) == 4: #all params
 			return "all_params_custom_output"
-		return "all_params"
-	elif interpro == 1 and blast2go == 0:
-		if custom_output_name == 1:
-			return "interpro_custom_output"
-		return "interpro"
-	elif interpro == 0 and blast2go == 1:
-		if custom_output_name == 1:
-			return "blast2go_custom_output"
-		return "blast2go"
-	else:
-		print_usage()
-		return "incorrect_parameters"
-
-
+		elif len(input) == 2: #either 1 or the other, so do a quick check
+			if determine_blast_or_interpro_input(param_list) == "blast2go":
+				return "blast2go_custom_output"
+			elif determine_blast_or_interpro_input(param_list) == "interpro":
+				return "interpro_custom_output"	
 		
 if __name__ == '__main__':
 	start_time = time.clock()
 	arguments_list = sys.argv
 	params = parse_flags(arguments_list)
-	print (arguments_list)
-	
-	
+	print (params)
 	if params == "all_params" or params == "all_params_custom_output":
-	
-	
 		if params == "all_params_custom_output":
 			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[4]
-			file_path_blast2go_walnut = arguments_list[5]
+			file_path_combined_anno = arguments_list[2]
+			file_path_blast2go_walnut = arguments_list[4]
 			file_path_walnut_interpro = arguments_list[6]
 			
 			if output == file_path_walnut_interpro or output == file_path_combined_anno or output == file_path_blast2go_walnut:
 				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
-				print_usage()
+				#print_usage()
 				sys.exit(-1)
 		else:
 			output = "combine_annotations.tsv"
-			file_path_combined_anno = arguments_list[3]
+			file_path_combined_anno = arguments_list[2]
 			file_path_blast2go_walnut = arguments_list[4]
-			file_path_walnut_interpro = arguments_list[5]
+			file_path_walnut_interpro = arguments_list[6]
 		
 
 		
@@ -157,31 +187,27 @@ if __name__ == '__main__':
 					
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
-				
+	
 	elif params == "interpro" or params == "interpro_custom_output":
-		
-		print (arguments_list[len(arguments_list) - 1])
-		
+		print("interpro custom output")
 		if params == "interpro_custom_output":
 			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[3]
+			file_path_combined_anno = arguments_list[2]
 			file_path_walnut_interpro = arguments_list[4]
 			if output == file_path_walnut_interpro or output == file_path_combined_anno:
 				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
-				print_usage()
+				#print_usage()
 				sys.exit(-1)
 			
 		else:
 			output = "combine_annotations.tsv"
 			file_path_combined_anno = arguments_list[2]
-			file_path_walnut_interpro = arguments_list[3]
+			file_path_walnut_interpro = arguments_list[4]
 		
-		print (output)
 		file_path_blast2go_walnut = "None"
 		
 		#first make dicts for walnut interpro and blast2go for easier searching based off of IDs
 		walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
-		
 		with open(file_path_combined_anno,'r') as tsv_old, \
 		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
 			print(os.path.realpath(__file__) + "//" + output)
@@ -205,16 +231,16 @@ if __name__ == '__main__':
 		
 		if params == "blast2go_custom_output":
 			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[3]
+			file_path_combined_anno = arguments_list[2]
 			file_path_blast2go_walnut = arguments_list[4]
 			if output == file_path_blast2go_walnut or output == file_path_combined_anno:
 				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
-				print_usage()
+				#print_usage()
 				sys.exit(-1)
 		else:
 			output = "combine_annotations.tsv"
 			file_path_combined_anno = arguments_list[2]
-			file_path_blast2go_walnut = arguments_list[3]
+			file_path_blast2go_walnut = arguments_list[4]
 		
 	
 		file_path_walnut_interpro = ""
@@ -237,13 +263,12 @@ if __name__ == '__main__':
 				walnut_results_blast2go = blast2go_hastable.get(id)
 				
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
-					walnut_results_blast2go = "N/A"
+					walnut_results_blast2go = ["N/A"]
 					
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
-	elif params == "incorrect_parameters":
-		sys.exit(-1)
-		
 
+		
+	
 	print (str(time.clock() - start_time) + " seconds")
 	print("complete -- annotation file now available")
