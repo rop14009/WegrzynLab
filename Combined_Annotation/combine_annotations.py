@@ -25,14 +25,21 @@ def combined_anno_id_parser(id):
     return return_string
 
 def parse_blast2go_column(row):
-    return_string = "";
-    split_string = row[7].split(";") # splits the column by ;
-    #print(split_string)
-    for string in split_string:
-        string = string.strip()
-        if string[:2] == "P:" or string[:2] == "F:" or string[:2] == "C:":
-            return_string = return_string + string + "; " #if the string begins with the proper beginning, add it to the return_string
-    return return_string[:-2] # substring taken to just remove the last ; deliminator for aesthetic reasons
+	process = list()
+	function = list()
+	component = list()
+	return_string = ""
+	split_string = row[7].split(";") # splits the column by ;
+	#print(split_string)
+	for string in split_string:
+		string = string.strip()
+		if string[:2] == "P:":
+			process.append(string)
+		elif string[:2] == "F:":
+			function.append(string)
+		elif string[:2] == "C:":
+			component.append(string)
+	return [" ".join(process), " ".join(function), " ".join(component)]
 
 def make_blast2go_walnut_combined_dict(file_name):
 	blast2go_data = dict()
@@ -46,7 +53,6 @@ def make_blast2go_walnut_combined_dict(file_name):
 def make_walnut_interpro_dict(file_name):
 	walnut_interpro_data = dict()
 	value_list = list()
-	print (file_name)
 	with open(file_name,'r') as tsv_old:
 		for row in csv.reader(tsv_old, delimiter='\t'):
 			id = row[0][8:] #get the key
@@ -95,6 +101,8 @@ def parse_flags(param_list):
 		print_usage()
 		return "incorrect_parameters"
 
+
+		
 if __name__ == '__main__':
 	start_time = time.clock()
 	arguments_list = sys.argv
@@ -132,7 +140,7 @@ if __name__ == '__main__':
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
-			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process_column"]
+			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
 				id = combined_anno_id_parser(row[0])
@@ -145,9 +153,9 @@ if __name__ == '__main__':
 				walnut_results_blast2go = blast2go_hastable.get(id)
 				
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
-					walnut_results_blast2go = "N/A"
+					walnut_results_blast2go = ["N/A","N/A","N/A"]
 					
-				combined_row = row + walnut_results_interpro + [walnut_results_blast2go]
+				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
 				
 	elif params == "interpro" or params == "interpro_custom_output":
@@ -180,7 +188,7 @@ if __name__ == '__main__':
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
-			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process_column"]
+			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
 				id = combined_anno_id_parser(row[0])
@@ -190,7 +198,7 @@ if __name__ == '__main__':
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
 					
-				combined_row = row + walnut_results_interpro + ["N/A"]
+				combined_row = row + walnut_results_interpro + ["N/A","N/A","N/A"]
 				tsv_new.writerow(combined_row)		
 		
 	elif params == "blast2go" or params == "blast2go_custom_output":
@@ -219,7 +227,7 @@ if __name__ == '__main__':
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
-			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process_column"]
+			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
 				id = combined_anno_id_parser(row[0])
@@ -231,7 +239,7 @@ if __name__ == '__main__':
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
 					walnut_results_blast2go = "N/A"
 					
-				combined_row = row + walnut_results_interpro + [walnut_results_blast2go]
+				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
 	elif params == "incorrect_parameters":
 		sys.exit(-1)
