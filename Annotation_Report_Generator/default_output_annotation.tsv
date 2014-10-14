@@ -1,0 +1,5 @@
+Query	Subject_id	Identity(%)	Alignment_length	Mismatches	Number of gap opens	Query_start	Query_end	Subject_start	Subject_end	E-value	Bit_score	Subject Description	Species	has GFF3 data	GFF3 start	GFF3 stop	GFF3 ORF
+CL1225Contig1_03-10551_Pila(213)	gi|351728043|ref|NP_001238461.1|	44.8	67	36	0	11	208	64	130	8.4e-11	67.4	uninformative 	Glycine max
+comp30714_c0(len=301)totalseq=1(avg_len=301.00)	gi|351734460|ref|NP_001235512.1|	46.8	47	25	0	251	111	459	505	0.00083	44.7	disease resistance protein 	Glycine max
+comp22794_c0(len=308)totalseq=1(avg_len=308.00)	gi|351722115|ref|NP_001235953.1|	40.4	52	31	0	279	124	78	129	0.0028	42.4	uninformative 	Glycine max
+isogroup18856(len=698)totaltranscripts=1(avg_len=698.00)totalexons=1	gi|351720674|ref|NP_001238208.1|	47.2	53	21	0	31	168	123	175	0.0017	43.9	uninformative 	Glycine max

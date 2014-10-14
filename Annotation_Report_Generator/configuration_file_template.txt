@@ -1,0 +1,20 @@
+Path to query FASTA:
+Source Databases (1/2/3)
+Sequence Search Application: (usearch/ncbi)
+Query Organism: (plant/animal/other)
+
+Path to formatted database1:
+Path to FASTA-version of database1:
+Path to search results from database1:
+
+Path to formatted database2 (organism-specific):
+Path to FASTA-version of database2:
+Path to search results from database2:
+
+Path to formatted database3 (full length): 
+Path to FASTA-version of database3:
+Path to search results from database3:
+Full-length coverage requirement: (default 70)
+Minimum Evalue: (default .0001)
+
+Generate XML for Blast2GO: (yes/no)

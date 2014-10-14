@@ -1,0 +1,16 @@
+Path to query FASTA: something
+Source Databases: 1
+Sequence Search Application: ncbi
+Query Organism:
+Path to formatted database1:
+Path to FASTA-version of database1:pila.blast6.plantprot2.out
+Path to search results from database1:plant.protein
+Path to formatted database2 (organism-specific):
+Path to FASTA-version of database2:
+Path to search results from database2:
+Path to formatted database3 (full length): 
+Path to FASTA-version of database3:
+Path to search results from database3:
+Full-length coverage requirement: 
+Minimum Evalue:
+Generate XML for Blast2GO:
