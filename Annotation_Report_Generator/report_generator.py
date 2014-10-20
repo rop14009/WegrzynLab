@@ -88,12 +88,10 @@ def multi_fasta_parse(file_name):
 					current_species = ""
 				
 				current_gi =  get_gi_num_from_string(get_gi_string(line))
-				if db_type == "ncbi":
-					current_desc = line[line.find(" "):].strip()
-					current_species = line[line.find("[")+1:line.find("]")]
-				else: #this info is not included in usearch fasta seq
-					current_desc = ""
-					current_species = ""
+				
+				current_desc = line[line.find(" "):].strip()
+				current_species = line[line.find("[")+1:line.find("]")]
+				
 			else:
 				current_protein_seq += line
 	return [fasta_db, fasta_db_description, fasta_db_species]
