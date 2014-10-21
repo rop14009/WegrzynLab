@@ -96,7 +96,88 @@ def multi_fasta_parse(file_name):
 				current_protein_seq += line
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
+'''
+[12:34:19 PM] Jill Wegrzyn: Yes for the e-value to make this decision on when to accept the "next best" hit where one would increment through 
+contaminants and no hits in the top five list - I would set a default e-value to 1e-5 in the configuration file but the user could modify this if they would like in such a file.
+[12:34:54 PM] Jill Wegrzyn: Within that e-value set, I would search through the list to find an informative, non-contaminant where possible.  
+When not available - the top hit should be used and marked accordingly.
+[12:35:47 PM] Sam Ginzburg: What should be done if there are no e values less than 1e-5?
+[12:36:33 PM] Sam Ginzburg: and if there are two elements left with identical e values and one is contaminated and the other uninformative which one is chosen as the better hit?
+[12:41:23 PM] Jill Wegrzyn: I would select the contaminant one as it is a better known in that case
+[12:41:37 PM] Jill Wegrzyn: if no evalue are less than 1e-5, then we select the top hit
+	
+Hi Sam, a couple of other notes on the annotation approach - for assigning a contaminated hit, we want to first see if there is another hit that is a non-contam 
+in the top five or so that has an evalue within acceptable limits and select this preferentially (the same is true for a noninformative hit).  
+Some of this logic was built in for non-informative hits in the prior scripts and I wanted to see what it looks like presently	
+	
+'''	
+def find_best_query_result(query_db):
 
+	global fasta_db
+	global fasta_db_description
+	global fasta_db_species
+	
+	global e_value
+	
+	current_best_gi = ""
+	current_best_line = ""
+	current_best_e = 999
+	
+	#step 1 attempt to find an informative, non-contaminant with lowest e value
+	
+	for element in query_db:
+		if not query_db[element] in contaminants and not is_uninformative(fasta_db_description[element]):
+			if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e: #check if less than threshold AND if the lowest E in list
+				current_best_gi = element
+				current_best_line = query_db[element]
+				current_best_e = parse_e_value(query_db[element][10])
+			elif parse_e_value(query_db[element][10]) < current_best_e: #returns the highest e value that is informative, and not a contaminant, even if above threshold
+				current_best_gi = element
+				current_best_line = query_db[element]
+				current_best_e = parse_e_value(query_db[element][10])
+				
+	#step 2 check if a best result has been found
+	if not current_best_gi is None:
+		return [current_best_gi, current_best_line]
+	else: #else now check for best possible contaminant in list
+		for element in query_db:
+			if query_db[element] in contaminants and not is_uninformative(fasta_db_description[element]):	
+				if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e: #check if less than threshold AND if the lowest E in list
+					current_best_gi = element
+					current_best_line = query_db[element]
+					current_best_e = parse_e_value(query_db[element][10])
+				elif parse_e_value(query_db[element][10]) < current_best_e:
+					current_best_gi = element
+					current_best_line = query_db[element]
+					current_best_e = parse_e_value(query_db[element][10])
+		#now check to see if a best possible contaminant with lowest possible e-value
+		if not current_best_gi is None:
+			return [current_best_gi, current_best_line]
+		else: #step 3, at this step the only possible option is to search for the best possible uninformative hit
+			for element in query_db:
+				if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e:
+					current_best_gi = element
+					current_best_line = query_db[element]
+					current_best_e = parse_e_value(query_db[element][10])
+				elif parse_e_value(query_db[element][10]) < current_best_e: 
+					current_best_gi = element
+					current_best_line = query_db[element]
+					current_best_e = parse_e_value(query_db[element][10])
+			#at this point check if a value has been found, if there is still no best match, then return None (an error has occured)
+			if not current_best_gi is None:
+				return [current_best_gi, current_best_line]	
+	return None #this should not be reached, ever
+	
+def parse_e_value(e_val):
+	number = 0
+	exp = 0
+	
+	number = int(number[:e_val.find("e")])
+	exp = int(number[e_val.find("e")+1:])
+	
+	return (10 ** exp) * number
+	
+	
 '''
 NCBI format
 Field 1: query label
@@ -114,12 +195,23 @@ Field 12: bit score
 '''	
 def ncbi_format_db_parse(file_name):
 	ncbi_db = dict()
+	temp_query_group= dict()
+	current_query = ""
 	global num_queries
+	
+	
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
+		
 		for line in file_tsv:
-			ncbi_db[ get_gi_num_from_string(line[1])] = line
-			num_queries += 1
+			if current_query != line[0]:
+				#add the best query from the previous group of queries
+				[best_query_gi, best_query] = find_best_query_result(temp_query_group)
+				ncbi_db[best_query_gi] = best_query
+				temp_query_group = dict() # start a new group of matching queries
+				num_queries += 1
+			else:
+				temp_query_group[get_gi_num_from_string(line[1])] =  line
 	return ncbi_db
 	
 	
@@ -230,15 +322,20 @@ def write_contaminants_log(element,log_name):
 			file.close()
 	
 	
-def match_fasta(fasta, fasta_desc, fasta_species, db):
-        global num_queries_informative_hit #1 or more informative hits
-        global num_queries_no_hit #no hits
-        global num_queries_uninformative
+def match_fasta(db):
+	global num_queries_informative_hit #1 or more informative hits
+	global num_queries_no_hit #no hits
+	global num_queries_uninformative
 
-	for element in fasta:
+	global fasta_db
+	global fasta_db_description
+	global fasta_db_species
+	
+	
+	for element in fasta_db:
 		#check for contaminants
-		if fasta_species[element] in contaminants:
-			print("contaminants found: " + fasta_species[element])
+		if fasta_db_species[element] in contaminants:
+			print("contaminants found: " + fasta_db_species[element])
 			
 			#append multiple contaminants per query
 			if contaminants_found[element] is None and not db.get(element) is None:
@@ -254,13 +351,13 @@ def match_fasta(fasta, fasta_desc, fasta_species, db):
 		if not db.get(element) is None:
 			#returns true if "uninformative"
 			#then if uninformative changes desc to uninformative
-			if is_uninformative(fasta_desc[element]):
-				fasta_desc[element] = "uninformative" + fasta_desc[element][fasta_desc[element].find("[")-1:]
+			if is_uninformative(fasta_db_description[element]):
+				fasta_db_description[element] = "uninformative" + fasta_db_description[element][fasta_db_description[element].find("[")-1:]
 				num_queries_uninformative += 1
 			else:
 				num_queries_informative_hit += 1
 
-			get = db.get(element) + [fasta_desc[element][:fasta_desc[element].find("[")]] + [fasta_species[element]]
+			get = db.get(element) + [fasta_db_description[element][:fasta_db_description[element].find("[")]] + [fasta_db_species[element]]
 			if type(get) is list:
 				tsv_new.writerow(get)
 			else:
@@ -285,6 +382,12 @@ if __name__ == '__main__':
 	global counter
 	global contaminants_found
 	
+	global fasta_db
+	global fasta_db_description
+	global fasta_db_species
+	
+	global e_value # this constant refers to the threshold to use for determining a "best match" in terms of queries
+	e_value = 0.00001 
 	#The following global variables are used to record statistical data in order to generate a log
 	
 	#query length variables
@@ -343,6 +446,7 @@ if __name__ == '__main__':
 		
 		if number_db == 1: #database/fasta pair 1
 			print("1 database/fasta pair")
+			
 			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[6])
 			
 			db_time = time.clock()
@@ -351,7 +455,7 @@ if __name__ == '__main__':
 			else:
 				db = usearch_format_db_parse(settings[5])
 			print (str(time.clock() - db_time) + " seconds")	
-			match_fasta(fasta_db, fasta_db_description, fasta_db_species, db)
+			match_fasta(db)
 				
 			#after parsing of all fasta elements add all missed hits to nohits file
 			for key in db:
@@ -379,6 +483,6 @@ if __name__ == '__main__':
 		file.write("num_queries: " + num_queries + "\n")
 		file.write("num_queries_informative_hit: " + num_queries_informative_hit + "\n")
 		file.write("num_queries_no_hit: " + num_queries_no_hit + "\n")
-                file.write("num_queries_uninformative: " + num_queries_uninformative + "\n")
+		file.write("num_queries_uninformative: " + num_queries_uninformative + "\n")
 		file.close()
 		print ("log files complete -- exiting")
