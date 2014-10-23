@@ -34,7 +34,7 @@ The following shows the index in list of settings
 13) Full-length coverage requirement: asd
 14) Minimum Evalue:asdf
 15) Generate XML for Blast2GO:ASD
-	'''
+'''
 def parse_config_file(file_path):
 	count = 0 # to keep track of which option is currently being parsed
 	config_file = open(file_path, "r" )
@@ -112,7 +112,7 @@ Some of this logic was built in for non-informative hits in the prior scripts an
 	
 '''	
 def find_best_query_result(query_db):
-
+	#print (query_db)
 	global fasta_db
 	global fasta_db_description
 	global fasta_db_species
@@ -125,8 +125,14 @@ def find_best_query_result(query_db):
 	
 	#step 1 attempt to find an informative, non-contaminant with lowest e value
 	
+
 	for element in query_db:
-		if not query_db[element] in contaminants and not is_uninformative(fasta_db_description[element]):
+		#print(query_db[element])
+		#element = int(element)
+		#print (element)
+		#print (parse_e_value(query_db[element][10]))
+		#print (fasta_db_description[element])
+		if not fasta_db_species[element] in contaminants and not is_uninformative(fasta_db_description[element]):
 			if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e: #check if less than threshold AND if the lowest E in list
 				current_best_gi = element
 				current_best_line = query_db[element]
@@ -141,7 +147,7 @@ def find_best_query_result(query_db):
 		return [current_best_gi, current_best_line]
 	else: #else now check for best possible contaminant in list
 		for element in query_db:
-			if query_db[element] in contaminants and not is_uninformative(fasta_db_description[element]):	
+			if fasta_db_species[element] in contaminants and not is_uninformative(fasta_db_description[element]):	
 				if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e: #check if less than threshold AND if the lowest E in list
 					current_best_gi = element
 					current_best_line = query_db[element]
@@ -166,17 +172,32 @@ def find_best_query_result(query_db):
 			#at this point check if a value has been found, if there is still no best match, then return None (an error has occured)
 			if not current_best_gi is None:
 				return [current_best_gi, current_best_line]	
+	print ("an error has occured :: returning null")
 	return None #this should not be reached, ever
 	
 def parse_e_value(e_val):
-	number = 0
-	exp = 0
+	number = e_val
+	exp = ""
+	#print (e_val)
+	e_val = "".join(e_val)
+	#print (e_val)
+
+	#print (e_val.find("e"))
+	#print (e_val.find("e")+2)
 	
-	number = int(number[:e_val.find("e")])
-	exp = int(number[e_val.find("e")+1:])
-	
-	return (10 ** exp) * number
-	
+	#print (number[:e_val.find("e")])
+
+		
+	base = number[:e_val.find("e")]
+	exp = number[e_val.find("e")+2:]
+
+	#print ([base] + ["  :::::    "] +  [exp])
+	try:
+		return (10 ** float(exp)) * float(base)
+	except ValueError:
+		print ("e_val ::: " + e_val)	
+		print ("exp :::  " + exp)
+		print ("base ::: " + base)	
 	
 '''
 NCBI format
@@ -199,17 +220,23 @@ def ncbi_format_db_parse(file_name):
 	current_query = ""
 	global num_queries
 	
-	
+	first_row = 1	
+
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
 		
 		for line in file_tsv:
+			if first_row:
+				temp_query_group[get_gi_num_from_string(line[1])] =  line
+				first_row += 1
+		
 			if current_query != line[0]:
 				#add the best query from the previous group of queries
 				[best_query_gi, best_query] = find_best_query_result(temp_query_group)
 				ncbi_db[best_query_gi] = best_query
 				temp_query_group = dict() # start a new group of matching queries
 				num_queries += 1
+				current_query = line[0]
 			else:
 				temp_query_group[get_gi_num_from_string(line[1])] =  line
 	return ncbi_db
@@ -221,13 +248,37 @@ find later
 '''	
 def usearch_format_db_parse(file_name):
 	usearch_db = dict()
+	temp_query_group = dict()
+	current_query = ""
+	first_row = 1
+	
 	global num_queries
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
 		for line in file_tsv:
-			#print(get_gi_num_from_string(line[1]))
-			num_queries += 1
-			usearch_db[get_gi_num_from_string(line[1])] = line
+			if first_row == 1:
+				temp_query_group[get_gi_num_from_string(line[1])] =  line
+				current_query = line[0]
+				#print ("first line reached")
+			
+			if current_query != line[0]:
+				#print (current_query)
+				#add the best query from the previous group of queries
+				#print (temp_query_group)
+				[best_query_gi, best_query] = find_best_query_result(temp_query_group)
+				#print(best_query_gi)
+				#print(best_query)
+				usearch_db[best_query_gi] = best_query
+				temp_query_group = dict() # start a new group of matching queries
+				num_queries += 1
+				current_query = line[0]
+				temp_query_group[get_gi_num_from_string(line[1])] =  line
+			elif not first_row == 1:
+				temp_query_group[get_gi_num_from_string(line[1])] =  line
+			else:
+				if first_row == 1: # make sure that first line only reached once
+					#print ("incrementing counter --  no longer on first row")
+					first_row = 2
 	return usearch_db
 	
 
@@ -448,7 +499,7 @@ if __name__ == '__main__':
 			print("1 database/fasta pair")
 			
 			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[6])
-			
+			print ("multi fasta file done")
 			db_time = time.clock()
 			if settings[2] == "ncbi":
 				db = ncbi_format_db_parse(settings[5])

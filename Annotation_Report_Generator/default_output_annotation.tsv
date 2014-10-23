@@ -1,1 +1,1 @@
-Query	Subject_id	Identity(%)	Alignment_length	Mismatches	Number of gap opens	Query_start	Query_end	Subject_start	Subject_end	E-value	Bit_score	Subject Description	Species	has GFF3 data	GFF3 start	GFF3 stop	GFF3 ORF
+Query	Subject_id	Identity(%)	Alignment_length	Mismatches	Number of gap opens	Query_start	Query_end	Subject_start	Subject_end	E-value	Bit_score	Subject Description	Species	has GFF3 data	GFF3 start	GFF3 stop	GFF3 ORF
