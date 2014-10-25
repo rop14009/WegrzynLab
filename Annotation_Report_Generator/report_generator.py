@@ -109,108 +109,52 @@ When not available - the top hit should be used and marked accordingly.
 Hi Sam, a couple of other notes on the annotation approach - for assigning a contaminated hit, we want to first see if there is another hit that is a non-contam 
 in the top five or so that has an evalue within acceptable limits and select this preferentially (the same is true for a noninformative hit).  
 Some of this logic was built in for non-informative hits in the prior scripts and I wanted to see what it looks like presently	
-	
 '''	
-def find_best_query_result(query_db):
-	#print (query_db)
+
+
+def find_best_query_result(query1, query2):
+	#note: query1 is the pre-existing value in db
+	#these variables are needed to determine informative/contaminant hits
 	global fasta_db
 	global fasta_db_description
 	global fasta_db_species
-	
-	global e_value
-	
-	current_best_gi = ""
-	current_best_line = ""
-	current_best_e = 999
-	
-	
-	if query_db is None:
-		print ("query_db is empty")
-	
 
-	#step 1 attempt to find an informative, non-contaminant with lowest e value
+	global e_value # 1e-5 / 0.00001 
 	
-
-	for element in query_db:
-		#print(query_db[element])
-		#element = int(element)
-		#print (element)
-		#print (parse_e_value(query_db[element][10]))
-		#print (fasta_db_description[element])
-		if not fasta_db_species[element] in contaminants and not is_uninformative(fasta_db_description[element]):
-			if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e: #check if less than threshold AND if the lowest E in list
-				current_best_gi = element
-				current_best_line = query_db[element]
-				current_best_e = parse_e_value(query_db[element][10])
-			elif parse_e_value(query_db[element][10]) < current_best_e: #returns the highest e value that is informative, and not a contaminant, even if above threshold
-				current_best_gi = element
-				current_best_line = query_db[element]
-				current_best_e = parse_e_value(query_db[element][10])
-				
-	#step 2 check if a best result has been found
-	if not current_best_gi is "":
-		print ("best result:::  ")
-		
-		#if current_best_gi is "":
-		#	print (query_db)
-		print ([current_best_gi, current_best_line])
-		return [current_best_gi, current_best_line]
-	else: #else now check for best possible contaminant in list
-		for element in query_db:
-			if fasta_db_species[element] in contaminants and not is_uninformative(fasta_db_description[element]):	
-				if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e: #check if less than threshold AND if the lowest E in list
-					current_best_gi = element
-					current_best_line = query_db[element]
-					current_best_e = parse_e_value(query_db[element][10])
-				elif parse_e_value(query_db[element][10]) < current_best_e:
-					current_best_gi = element
-					current_best_line = query_db[element]
-					current_best_e = parse_e_value(query_db[element][10])
-		#now check to see if a best possible contaminant with lowest possible e-value
-		if not current_best_gi is "":
-			print ("second best result::: ")
-			#print (query_db)
-			print ([current_best_gi, current_best_line])
-
-			return [current_best_gi, current_best_line]
-		else: #step 3, at this step the only possible option is to search for the best possible uninformative hit
-			for element in query_db:
-				if parse_e_value(query_db[element][10]) < e_value and parse_e_value(query_db[element][10]) < current_best_e:
-					current_best_gi = element
-					current_best_line = query_db[element]
-					current_best_e = parse_e_value(query_db[element][10])
-				elif parse_e_value(query_db[element][10]) < current_best_e: 
-					current_best_gi = element
-					current_best_line = query_db[element]
-					current_best_e = parse_e_value(query_db[element][10])
-			#at this point check if a value has been found, if there is still no best match, then return None (an error has occured)
-			if not current_best_gi is "":
-				print ("an error has occured --  no best match")
-				#print (query_db)
-				print ([current_best_gi, current_best_line])
-				return [current_best_gi, current_best_line]	
-	#print ("an error has occured :: returning null")
-	#print (query_db)
-	print("error has occured and null was returned")
+	#attempt 1) find a query that is not a contaminant and informative, with lowest e-value
+	
+	if not fasta_db_species[query1[1]] in contaminants and not fasta_db_species[query2[1]] in contaminants:
+		if not is_uninformative(fasta_db_description[query1[1]] and not is_uninformative(fasta_db_description[query2[1]]:
+			if parse_e_value(query1) < parse_e_value(query2):
+				return query1
+			else:
+				return query2
+	
+	#attempt 2) find a contaminated query with lowest possible e-value and return that
+	if not is_uninformative(fasta_db_description[query1[1]] and not is_uninformative(fasta_db_description[query2[1]]:
+		if parse_e_value(query1) < parse_e_value(query2):
+			return query1
+		else:
+			return query2
+			
+	#attempt 3) as a final resort, simply return the query with lowest possible e-value (this result will be both contaminated and uninformative)
+	
+	if parse_e_value(query1) < parse_e_value(query2):
+		return query1
+	else:
+		return query2
+	
+	
+	print ("error in find_best_query_result(query1, query2) this should not ever be reached")
 	return ["",""] #this should not be reached, ever
 	
 def parse_e_value(e_val):
 	number = e_val
 	exp = ""
-	#print (e_val)
 	e_val = "".join(e_val)
-	#print (e_val)
 
-	#print (e_val.find("e"))
-	#print (e_val.find("e")+2)
-	
-	#print (number[:e_val.find("e")])
-
-		
 	base = number[:e_val.find("e")]
 	exp = number[e_val.find("e")+2:]
-
-	#print ([base] + ["  :::::    "] +  [exp])
 	try:
 		return (10 ** float(exp)) * float(base)
 	except ValueError:
@@ -272,33 +216,15 @@ def usearch_format_db_parse(file_name):
 	first_row = 1
 	
 	global num_queries
+	
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
 		for line in file_tsv:
-			if first_row == 1:
-				temp_query_group[get_gi_num_from_string(line[1])] =  line
-				current_query = line[0]
-				#print ("first line reached")
-			
-			if current_query != line[0]:
-				#print (current_query)
-				#add the best query from the previous group of queries
-				#print (temp_query_group)
-				[best_query_gi, best_query] = find_best_query_result(temp_query_group)
-				#print(best_query_gi)
-				#print(best_query)
-				usearch_db[best_query_gi] = best_query
-				temp_query_group = dict() # start a new group of matching queries
-				num_queries += 1
-				current_query = line[0]
-				temp_query_group[get_gi_num_from_string(line[1])] =  line
-			elif not first_row == 1:
-				temp_query_group[get_gi_num_from_string(line[1])] =  line
+			if not line[1] in usearch_db:
+				usearch_db[line[1]] = line
 			else:
-				if first_row == 1: # make sure that first line only reached once
-					#print ("incrementing counter --  no longer on first row")
-					first_row = 2
-	return usearch_db
+				usearch_db[line[1]] = find_best_query_result(usearch_db[line[1]], line)
+		return usearch_db
 	
 
 #this function loads the list of 'uninformative' filter hits into memory for searching later on
