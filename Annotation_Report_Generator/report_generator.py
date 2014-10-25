@@ -123,6 +123,11 @@ def find_best_query_result(query_db):
 	current_best_line = ""
 	current_best_e = 999
 	
+	
+	if query_db is None:
+		print ("query_db is empty")
+	
+
 	#step 1 attempt to find an informative, non-contaminant with lowest e value
 	
 
@@ -143,7 +148,12 @@ def find_best_query_result(query_db):
 				current_best_e = parse_e_value(query_db[element][10])
 				
 	#step 2 check if a best result has been found
-	if not current_best_gi is None:
+	if not current_best_gi is "":
+		print ("best result:::  ")
+		
+		#if current_best_gi is "":
+		#	print (query_db)
+		print ([current_best_gi, current_best_line])
 		return [current_best_gi, current_best_line]
 	else: #else now check for best possible contaminant in list
 		for element in query_db:
@@ -157,7 +167,11 @@ def find_best_query_result(query_db):
 					current_best_line = query_db[element]
 					current_best_e = parse_e_value(query_db[element][10])
 		#now check to see if a best possible contaminant with lowest possible e-value
-		if not current_best_gi is None:
+		if not current_best_gi is "":
+			print ("second best result::: ")
+			#print (query_db)
+			print ([current_best_gi, current_best_line])
+
 			return [current_best_gi, current_best_line]
 		else: #step 3, at this step the only possible option is to search for the best possible uninformative hit
 			for element in query_db:
@@ -170,10 +184,15 @@ def find_best_query_result(query_db):
 					current_best_line = query_db[element]
 					current_best_e = parse_e_value(query_db[element][10])
 			#at this point check if a value has been found, if there is still no best match, then return None (an error has occured)
-			if not current_best_gi is None:
+			if not current_best_gi is "":
+				print ("an error has occured --  no best match")
+				#print (query_db)
+				print ([current_best_gi, current_best_line])
 				return [current_best_gi, current_best_line]	
-	print ("an error has occured :: returning null")
-	return None #this should not be reached, ever
+	#print ("an error has occured :: returning null")
+	#print (query_db)
+	print("error has occured and null was returned")
+	return ["",""] #this should not be reached, ever
 	
 def parse_e_value(e_val):
 	number = e_val
@@ -198,7 +217,7 @@ def parse_e_value(e_val):
 		print ("e_val ::: " + e_val)	
 		print ("exp :::  " + exp)
 		print ("base ::: " + base)	
-	
+		return float(e_val)	
 '''
 NCBI format
 Field 1: query label
