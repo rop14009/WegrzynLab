@@ -186,10 +186,14 @@ def parse_e_value(e_val):
 		#print ("base ::: " + base)	
 		return float(e_val)	
 
+
+
 # helper method used to create list of lengths
 def insert_in_order(median_list, element):
-	count = 0;
-	while element < median_list.get(count):
+	count = 0
+	#print (len(median_list))
+	#print (count)
+	while count < len(median_list) and element < median_list[count]:
 		count += 1
 	median_list.insert(element, count)
 	
@@ -216,15 +220,19 @@ def ncbi_format_db_parse(file_name):
 	ncbi_db = dict()
 	temp_query_group= dict()
 	current_query = ""
-	global num_queries
-	
+		
 	first_row = 1	
+        
+	global longest_query_length
+	global shortest_query_length
+	global median_query_length
+	global avg_length_query_sequences
+	global num_queries
+
+
 
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
-		length = int(ncbi[get_gi_num_from_string(line[1])][7]) - int(ncbi[get_gi_num_from_string(line[1])][8])
-		
-
 		for line in file_tsv:
 			num_queries += 1	
 			[key, in_db] = is_query_in_db(line[0], ncbi_db)
@@ -233,6 +241,17 @@ def ncbi_format_db_parse(file_name):
 				ncbi_db[key] = find_best_query_result(ncbi_db[key], line)
 			else:
 				ncbi_db[get_gi_num_from_string(line[1])] = line
+		
+
+		length = int(line[7]) - int(line[8])
+		avg_length_query_sequence = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
+		insert_in_order(median_query_length, length)
+	
+		if length > longest_query_length:
+			longest_query_length = length
+		if length < shortest_query_length:
+			shortest_query_length = length	
+
 		return ncbi_db
 	
 	
@@ -252,9 +271,9 @@ def usearch_format_db_parse(file_name):
 	global avg_length_query_sequences
 	global num_queries
 	
-	median_query_length = 0
+	#median_query_length = 0
 
-	median_query_length = list()
+	#median_query_length = list()
 	
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
@@ -270,10 +289,10 @@ def usearch_format_db_parse(file_name):
 			else:
 				usearch_db[get_gi_num_from_string(line[1])] = line
 		
-			length = int(usearch_db[get_gi_num_from_string(line[1])][7]) - int(usearch_db[get_gi_num_from_string(line[1])][8])
+			length = int(line[7]) - intline[8])
 			print (length)
-			avg_length_query_sequence = (avg_length_query_sequences * (num_queries-1) + length) / num_queries
-			print (avg_length_query_sequence)
+			avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
+			print (avg_length_query_sequences)
 			insert_in_order(median_query_length, length)
 		
 			if length > longest_query_length:
@@ -447,12 +466,12 @@ def parse_fasta_no_gi(file_name):
 def get_n50_statistic(lengths):
 	temp = list()
 	for element in lengths:
-		for i in range(0, int(element))
+		for i in range(0, int(element)):
 			temp.append(element)
-	if len(temp) % 2 ==0
-		return (temp.get(len(temp)/2 + 1) + temp.get(len(temp)/2 - 1)) / 2
+	if len(temp) % 2 == 0:
+		return (temp[((len(temp)/2) + 1)] + temp[(len(temp)/2) - 1]) / 2
 	else:
-		return temp.get(len(temp)/2)
+		return temp[(len(temp)/2)]
 
 
 			
@@ -488,7 +507,7 @@ if __name__ == '__main__':
 	
 	longest_query_length = -2147483648
 	shortest_query_length = 2147483647
-	median_query_length = 0
+	median_query_length = list()
 
 	global avg_length_query_sequences
 	
@@ -504,8 +523,8 @@ if __name__ == '__main__':
 	num_queries_informative_hit = 0
 	num_queries_no_hit = 0
 	num_queries_uninformative = 0
-	print (num_queries)
 	global db_type
+
 	db_type = settings[2]
 	filter_list = load_filter_list("filter_list.txt")
 	contaminants = build_contaminants_db()
@@ -562,7 +581,7 @@ if __name__ == '__main__':
 			print("3 database/fasta pair")
 	
 		n50_statistic = get_n50_statistic(median_query_length)
-		print ("n50 ::  " + str(n50_statistic))
+		
 
 		if len(number_queries) % 2 == 0:
 			median_query_length = (median_query_length.get((len(number_queries) / 2) - 1) + median_query_length.get((len(number_queries) / 2) + 1)) / 2
@@ -599,6 +618,7 @@ if __name__ == '__main__':
 			tsv_log.writerow("average query length: " + str(avg_length_query_sequences) + "\n")
 			tsv_log.writerow("shortest query length: " + str(shortest_query_length) + "\n")
 			tsv_log.writerow("longest query length: " + str(longest_query_length) + "\n")
+			tsv_log.writerow("n50 statistic: " + str(n50_statistic + "\n"))
 			tsv_log.writerow("num_queries_informative_hit: " + str(num_queries_informative_hit) + "\n")
 			tsv_log.writerow("num_queries_no_hit: " + str(num_queries_no_hit) + "\n")
 			tsv_log.writerow("num_queries_uninformative: " + str(num_queries_uninformative) + "\n")
