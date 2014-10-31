@@ -2,9 +2,9 @@ Path to query FASTA: something
 Source Databases: 1
 Sequence Search Application:usearch
 Query Organism:
-Path to formatted database1:
-Path to FASTA-version of database1:/home/dgi/question/resultsusearh
-Path to search results from database1:/share/nealedata/databases/downloadDir/refseq_protein.fasta
+Path to formatted database1:/home/dgi/question/sequence2_refseq_protein
+Path to FASTA-version of database1:/share/nealedata/databases/downloadDir/refseq_protein.fasta
+Path to search results from database1:/home/dgi/question/sequence2.fasta
 Path to formatted database2 (organism-specific):
 Path to FASTA-version of database2:
 Path to search results from database2:

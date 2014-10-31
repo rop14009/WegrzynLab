@@ -13,7 +13,7 @@ def parse_config_line(line):
 			return_string += char
 		if char == ":":
 			count += 1
-	return return_string
+	return return_string.strip()
 		
 
 '''
@@ -79,7 +79,7 @@ def multi_fasta_parse(file_name):
 		for line in file:
 			if line[:1] == ">": # line contains description of sequence
 				if current_protein_seq != "":
-					#print (current_gi)
+					#print (fasta_db)
 					fasta_db[current_gi] = current_protein_seq
 					fasta_db_description[current_gi] = current_desc
 					fasta_db_species[current_gi] = current_species
@@ -94,6 +94,7 @@ def multi_fasta_parse(file_name):
 				
 			else:
 				current_protein_seq += line
+	#print (fasta_db)
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
 '''
@@ -111,42 +112,64 @@ in the top five or so that has an evalue within acceptable limits and select thi
 Some of this logic was built in for non-informative hits in the prior scripts and I wanted to see what it looks like presently	
 '''	
 
-
 def find_best_query_result(query1, query2):
-	#note: query1 is the pre-existing value in db
-	#these variables are needed to determine informative/contaminant hits
-	global fasta_db
-	global fasta_db_description
-	global fasta_db_species
+        #note: query1 is the pre-existing value in db
+        #these variables are needed to determine informative/contaminant hits
+        global fasta_db
+        global fasta_db_description
+        global fasta_db_species
+	
+	global contaminants_found
 
-	global e_value # 1e-5 / 0.00001 
-	
-	#attempt 1) find a query that is not a contaminant and informative, with lowest e-value
-	
-	if not fasta_db_species[query1[1]] in contaminants and not fasta_db_species[query2[1]] in contaminants:
-		if not is_uninformative(fasta_db_description[query1[1]] and not is_uninformative(fasta_db_description[query2[1]]:
-			if parse_e_value(query1) < parse_e_value(query2):
-				return query1
-			else:
-				return query2
-	
-	#attempt 2) find a contaminated query with lowest possible e-value and return that
-	if not is_uninformative(fasta_db_description[query1[1]] and not is_uninformative(fasta_db_description[query2[1]]:
-		if parse_e_value(query1) < parse_e_value(query2):
+	#global num_queries_informative_hit #1 or more informative hits
+	#global num_queries_no_hit #no hits
+	global num_queries_uninformative
+
+
+        global e_value # 1e-5 / 0.00001
+
+        query1_gi = get_gi_num_from_string(query1[1])
+        query2_gi = get_gi_num_from_string(query2[1])
+
+
+        #attempt 1) find a query that is not a contaminant and informative, with lowest e-value
+        try:
+
+                if not fasta_db_species[query1_gi] in contaminants and not fasta_db_species[query2_gi] in contaminants:
+                        if not is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
+                                if parse_e_value(query1[10]) < parse_e_value(query2[10]):
+                                        return query1
+                                else:
+                                        return query2
+
+                #attempt 2) find a contaminated query with lowest possible e-value and return that
+                if not is_uninformative(fasta_db_description[query1[1]]) and not is_uninformative(fasta_db_description[query2[1]]):
+                        if parse_e_value(query1[10]) < parse_e_value(query2[10]):
+				contaminants_found[query1_gi] = query1
+                                return query1
+                        else:
+				contaminants_found[query2_gi] = query2
+                                return query2
+
+        except KeyError:
+                #attempt 3) as a final resort, simply return the query with lowest possible e-value (this result will be both contaminated and uninformative)
+
+                if parse_e_value(query1[10]) < parse_e_value(query2[10]):
+			contaminants_found[query1_gi] = query1
+			fasta_db_description[query1_gi] = "uninformative" + fasta_db_description[query1_gi][fasta_db_description[query1_gi].find("[")-1:]
+			num_queries_uninformative += 1
 			return query1
-		else:
-			return query2
+                else:
+			contaminants_found[query2_gi] = query2
+                        fasta_db_description[query2_gi] = "uninformative" + fasta_db_description[query2_gi][fasta_db_description[query2_gi].find("[")-1:]
+                        num_queries_uninformative += 1
 			
-	#attempt 3) as a final resort, simply return the query with lowest possible e-value (this result will be both contaminated and uninformative)
-	
-	if parse_e_value(query1) < parse_e_value(query2):
-		return query1
-	else:
-		return query2
-	
-	
-	print ("error in find_best_query_result(query1, query2) this should not ever be reached")
-	return ["",""] #this should not be reached, ever
+			return query2
+
+
+        print ("error in find_best_query_result(query1, query2) this should not ever be reached")
+        return ["",""] #this should not be reached, ever
+
 	
 def parse_e_value(e_val):
 	number = e_val
@@ -158,9 +181,9 @@ def parse_e_value(e_val):
 	try:
 		return (10 ** float(exp)) * float(base)
 	except ValueError:
-		print ("e_val ::: " + e_val)	
-		print ("exp :::  " + exp)
-		print ("base ::: " + base)	
+		#print ("e_val ::: " + e_val)	
+		#print ("exp :::  " + exp)
+		#print ("base ::: " + base)	
 		return float(e_val)	
 '''
 NCBI format
@@ -170,7 +193,8 @@ Field 3: percent identity
 Field 4: alignment mismatches
 Field 5: number of mismatches
 Field 6: number of gap opens
-Field 7: 1-based position of start in query
+F ield 7: 1-based position of start in queryH promoter plus cDNA', 'gi|547235765|ref|WP_021971974.1|', '35.7', '42', '24', '1', '1250', '1134', '364', '405', '31', '33.5']
+creating contaminants log with name: contaminants
 Field 8: 1-based position of end in query
 Field 9: 1-based position of start in target
 Field 10: 1-based position of end in target
@@ -220,12 +244,33 @@ def usearch_format_db_parse(file_name):
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
 		for line in file_tsv:
-			if not line[1] in usearch_db:
-				usearch_db[line[1]] = line
-			else:
-				usearch_db[line[1]] = find_best_query_result(usearch_db[line[1]], line)
-		return usearch_db
+			#print (get_gi_num_from_string(line[1]))
+			[key, in_db] = is_query_in_db(line[0], usearch_db)		
 	
+			if in_db:
+				#print (usearch_db[key] )
+				#print (line)
+				usearch_db[key] = find_best_query_result(usearch_db[key], line)
+			else:
+				usearch_db[get_gi_num_from_string(line[1])] = line
+				#print("first entry")
+			#print (usearch_db)
+			#print ("\n")
+			#print ("end current db \n")
+		#print (usearch_db)
+		return usearch_db
+
+
+
+def is_query_in_db(query, db):
+	key = ""
+	for key,value in db.items():
+		if value[0] == query:
+			#print ("true")
+			return key, True
+	return key, False
+
+
 
 #this function loads the list of 'uninformative' filter hits into memory for searching later on
 def load_filter_list(file_name):
@@ -293,11 +338,11 @@ def write_contaminants_log(element,log_name):
 		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
 			file = open(log_name+".txt", "w")
 			print ("creating contaminants log with name: " + log_name)
-			file.write(element+"\n")
+			file.write("".join(element)+"\n")
 			file.close()
 		else:
 			file = open(log_name+".txt", "a")
-			file.write(element+"\n")
+			file.write("".join(element)+"\n")
 			file.close()
 	else:
 		counter -= 1
@@ -307,63 +352,75 @@ def write_contaminants_log(element,log_name):
 			if not counter > 0:
 				file.write(element)
 			else:
-				file.write(element+"\n")
+				file.write("".join(element)+"\n")
 			file.close()
 		else:
 			file = open(log_name+".txt", "a")
 			if not counter > 0:
 				file.write(element)
 			else:
-				file.write(element+"\n")
+				file.write("".join(element)+"\n")
 			file.close()
+
+'''
+Assumptions before matching
+1) The best possible match has already been found for every term
+2) IF a fasta file/wGI numbers is present then there then every element in the search results has a corresponding entry in the FASTA file (THE REVERSE IS NOT TRUE -- since only best matches remain in search results)
+
+Steps
+1) IF fasta file w/GI numbers is present, scan through
+2) For each element in the FASTA file without GI numbers, write all matching search results to annotation.tsv
+
+
+'''
 	
 	
 def match_fasta(db):
 	global num_queries_informative_hit #1 or more informative hits
 	global num_queries_no_hit #no hits
 	global num_queries_uninformative
-
+	
+	global annotation_log_entries
+	
 	global fasta_db
 	global fasta_db_description
 	global fasta_db_species
+	global fasta_no_gi
 	
-	
-	for element in fasta_db:
-		#check for contaminants
-		if fasta_db_species[element] in contaminants:
-			print("contaminants found: " + fasta_db_species[element])
-			
-			#append multiple contaminants per query
-			if contaminants_found[element] is None and not db.get(element) is None:
-				contaminants_found[element] = db.get(element)
-			elif not contaminants_found[element] is None and not db.get(element) is None:
-				contaminants_found[element] = contaminants_found[element] + db.get(element)
-			else:
-				print("this should not be reached")
-			del db[element]
-		print(element)
-		print(db.get(element))			
-		#make sure there is a match between fasta element and db
-		if not db.get(element) is None:
-			#returns true if "uninformative"
-			#then if uninformative changes desc to uninformative
-			if is_uninformative(fasta_db_description[element]):
-				fasta_db_description[element] = "uninformative" + fasta_db_description[element][fasta_db_description[element].find("[")-1:]
-				num_queries_uninformative += 1
-			else:
-				num_queries_informative_hit += 1
+	#print (fasta_no_gi)
 
-			get = db.get(element) + [fasta_db_description[element][:fasta_db_description[element].find("[")]] + [fasta_db_species[element]]
-			if type(get) is list:
-				tsv_new.writerow(get)
+	if fasta_no_gi != "no_file":
+		#scan through every elemeny in fasta_no_gi and return the best match from DB
+		for element in fasta_no_gi:
+			#print (fasta_no_gi[element])
+			[key, is_present] = is_query_in_db(fasta_no_gi[element], db)
+			#print (key)
+			#print (db[key])
+			#print (is_present)
+			if is_present:
+				if annotation_log_entries.get(key) is None:
+					annotation_log_entries[key] = db[key]
+				else:
+					annotation_log_entries[key] = annotation_log_entries[key] + db[key]
+				del db[key]
 			else:
-				tsv_new.writerow([get])
-			#after match is found remove it from db
-			del db[element]
-		else:
-			print ("no such element in db: " + element)
-			num_queries_no_hit += 1
-	
+				num_queries_no_hit += 1
+
+
+def parse_fasta_no_gi(file_name):
+	return_dict = dict()
+	query = ""
+	description = ""
+        with open(file_name,'r') as file:
+                for line in file:
+			if ">" in line:
+				description = line[1:-1]
+				query = line[1:-1]
+				return_dict[query] = description
+	print (return_dict)
+	return return_dict	
+
+
 
 			
 #entry point of script				
@@ -372,6 +429,9 @@ if __name__ == '__main__':
 	arguments_list = sys.argv
 	settings = parse_config_file("configuration_file.txt") #sets up the settings
 	output_log = "log"
+	
+	global annotation_log_entries
+	annotation_log_entries = dict()
 	global filter_list
 	global contaminants
 	global number_db
@@ -381,6 +441,8 @@ if __name__ == '__main__':
 	global fasta_db
 	global fasta_db_description
 	global fasta_db_species
+
+	global fasta_no_gi
 	
 	global e_value # this constant refers to the threshold to use for determining a "best match" in terms of queries
 	e_value = 0.00001 
@@ -438,35 +500,51 @@ if __name__ == '__main__':
 		tsv_new.writerow(row)
 		
 		
-		print(range (0, (number_db)))
+		#print(range (0, (number_db)))
 		
 		if number_db == 1: #database/fasta pair 1
 			print("1 database/fasta pair")
-			
-			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[6])
-			print ("multi fasta file done")
-			db_time = time.clock()
-			if settings[2] == "ncbi":
-				db = ncbi_format_db_parse(settings[5])
+			#print (settings[6] != "")
+			if settings[6] != "":
+				fasta_no_gi = parse_fasta_no_gi(settings[6])
 			else:
-				db = usearch_format_db_parse(settings[5])
-			print (str(time.clock() - db_time) + " seconds")	
+				fasta_no_gi = "no_file"
+			
+			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[5])
+			print ("multi fasta file done")
+			
+			if settings[2] == "ncbi":
+				db = ncbi_format_db_parse(settings[4])
+			else:
+				db = usearch_format_db_parse(settings[4])
+			print ("db complete -- now matching")
 			match_fasta(db)
 				
-			#after parsing of all fasta elements add all missed hits to nohits file
-			for key in db:
-				write_log(db.get(key)[0],"nohits")
-			
-			for key in contaminants_found:
-				print (contaminants_found.get(key))
-				write_contaminants_log(contaminants_found.get(key),"contaminants")
-			
+	
+		
 		elif number_db == 2: #database/fasta pair 2
 			print("2 database/fasta pair")
 				
 		elif number_db == 3: #database/fasta pair 3
 			print("3 database/fasta pair")
-				
+		
+
+		print ("writing annotation log entires")
+		for key in annotation_log_entries:
+			tsv_new.writerow(annotation_log_entries[key])
+		
+			
+		print ("writing no hits log")
+		#after parsing of all fasta elements add all missed hits to nohits file
+		for key in db:
+			write_log(db.get(key)[0],"nohits")
+
+
+		print ("writing contaminants log")
+		for key in contaminants_found:
+			print (contaminants_found.get(key))
+			write_contaminants_log(contaminants_found.get(key),"contaminants")
+		
 		
 	
 	print (str(time.clock() - start_time) + " seconds")
@@ -474,11 +552,11 @@ if __name__ == '__main__':
 
 
 	if not os.path.exists(output_log+".txt"):
-		print("creating log file: " + output_log)
-		log_file = open(output_log + ".txt", "w")
-		file.write("num_queries: " + num_queries + "\n")
-		file.write("num_queries_informative_hit: " + num_queries_informative_hit + "\n")
-		file.write("num_queries_no_hit: " + num_queries_no_hit + "\n")
-		file.write("num_queries_uninformative: " + num_queries_uninformative + "\n")
-		file.close()
-		print ("log files complete -- exiting")
+		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_log:
+			tsv_log = csv.writer(tsv_log, delimiter='\t')
+			tsv_log.writerow("num_queries: " + str(num_queries) + "\n")
+			tsv_log.writerow("num_queries: " + str(num_queries) + "\n")
+			tsv_log.writerow("num_queries_informative_hit: " + str(num_queries_informative_hit) + "\n")
+			tsv_log.writerow("num_queries_no_hit: " + str(num_queries_no_hit) + "\n")
+			tsv_log.writerow("num_queries_uninformative: " + str(num_queries_uninformative) + "\n")
+			print ("log files complete -- exititing")
