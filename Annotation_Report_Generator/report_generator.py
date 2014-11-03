@@ -121,7 +121,7 @@ def find_best_query_result(query1, query2):
 	
 	global contaminants_found
 
-	#global num_queries_informative_hit #1 or more informative hits
+	global num_queries_informative_hit
 	#global num_queries_no_hit #no hits
 	global num_queries_uninformative
 
@@ -137,6 +137,7 @@ def find_best_query_result(query1, query2):
 
                 if not fasta_db_species[query1_gi] in contaminants and not fasta_db_species[query2_gi] in contaminants:
                         if not is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
+				num_queries_informative_hit += 1
                                 if parse_e_value(query1[10]) < parse_e_value(query2[10]):
                                         return query1
                                 else:
@@ -146,6 +147,7 @@ def find_best_query_result(query1, query2):
                 if not is_uninformative(fasta_db_description[query1[1]]) and not is_uninformative(fasta_db_description[query2[1]]):
                         if parse_e_value(query1[10]) < parse_e_value(query2[10]):
 				contaminants_found[query1_gi] = query1
+				num_queries_informative_hit += 1
                                 return query1
                         else:
 				contaminants_found[query2_gi] = query2
@@ -177,7 +179,12 @@ def parse_e_value(e_val):
 	e_val = "".join(e_val)
 
 	base = number[:e_val.find("e")]
-	exp = number[e_val.find("e")+2:]
+	exp = number[e_val.find("e")+1:]
+	#print (exp)
+	
+	if e_val.find("e") == -1:
+		return float(e_val)
+
 	try:
 		return (10 ** float(exp)) * float(base)
 	except ValueError:
@@ -186,17 +193,6 @@ def parse_e_value(e_val):
 		#print ("base ::: " + base)	
 		return float(e_val)	
 
-
-
-# helper method used to create list of lengths
-def insert_in_order(median_list, element):
-	count = 0
-	#print (len(median_list))
-	#print (count)
-	while count < len(median_list) and element < median_list[count]:
-		count += 1
-	median_list.insert(element, count)
-	
 
 
 
@@ -208,7 +204,7 @@ Field 3: percent identity
 Field 4: alignment mismatches
 Field 5: number of mismatches
 Field 6: number of gap opens
-F ield 7: 1-based position of start in queryH promoter plus cDNA', 'gi|547235765|ref|WP_021971974.1|', '35.7', '42', '24', '1', '1250', '1134', '364', '405', '31', '33.5']
+Field 7: 1-based position of start in queryH promoter plus cDNA', 'gi|547235765|ref|WP_021971974.1|', '35.7', '42', '24', '1', '1250', '1134', '364', '405', '31', '33.5']
 creating contaminants log with name: contaminants
 Field 8: 1-based position of end in query
 Field 9: 1-based position of start in target
@@ -243,7 +239,7 @@ def ncbi_format_db_parse(file_name):
 				ncbi_db[get_gi_num_from_string(line[1])] = line
 		
 
-		length = int(line[7]) - int(line[8])
+		length = int(line[8]) - int(line[7])
 		avg_length_query_sequence = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
 		insert_in_order(median_query_length, length)
 	
@@ -289,12 +285,12 @@ def usearch_format_db_parse(file_name):
 			else:
 				usearch_db[get_gi_num_from_string(line[1])] = line
 		
-			length = int(line[7]) - intline[8])
-			print (length)
+			length = int(line[6]) - int(line[5])
+			#print (length)
 			avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
-			print (avg_length_query_sequences)
-			insert_in_order(median_query_length, length)
-		
+			#print (avg_length_query_sequences)
+			#insert_in_order(median_query_length, length)
+			median_query_length.append(length)	
 			if length > longest_query_length:
 				longest_query_length = length
 			if length < shortest_query_length:
@@ -446,6 +442,7 @@ def match_fasta(db):
 					annotation_log_entries[key] = annotation_log_entries[key] + db[key]
 				del db[key]
 			else:
+				#print ("no hit += 1")
 				num_queries_no_hit += 1
 
 
@@ -466,15 +463,25 @@ def parse_fasta_no_gi(file_name):
 def get_n50_statistic(lengths):
 	temp = list()
 	for element in lengths:
+		print(element)
+		print (range(0,int(element)))
 		for i in range(0, int(element)):
 			temp.append(element)
+		#print (temp)
 	if len(temp) % 2 == 0:
 		return (temp[((len(temp)/2) + 1)] + temp[(len(temp)/2) - 1]) / 2
 	else:
 		return temp[(len(temp)/2)]
 
+def get_median(lengths):
+	odd, halfway = len(lengths) % 2, len(lengths) / 2
+	if odd:  # odd number
+		return lengths[halfway]  # e.g. for length 3, returns lengths[1]
+	else:
+		return 0.5 * (lengths[halfway - 1] + lengths[halfway])
 
-			
+
+
 #entry point of script				
 if __name__ == '__main__':
 	start_time = time.clock()
@@ -497,7 +504,8 @@ if __name__ == '__main__':
 	global fasta_no_gi
 	
 	global e_value # this constant refers to the threshold to use for determining a "best match" in terms of queries
-	e_value = 0.00001 
+	e_value = parse_e_value(settings[14]) 
+	print("min e val is :: " + str(e_value))
 	#The following global variables are used to record statistical data in order to generate a log
 	
 	#query length variables
@@ -539,15 +547,20 @@ if __name__ == '__main__':
 	with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
 		tsv_new = csv.writer(tsv_new, delimiter='\t')
 		#The first row
-				
-		row = ["Query","Subject_id","Identity(%)","Alignment_length","Mismatches","Number of gap opens","Query_start","Query_end" \
-		,"Subject_start","Subject_end","E-value","Bit_score","Subject Description","Species"]
-		
-		for x in range(0, (number_db - 1)):
-			row += ["Subject_description","Species","Subject_id","Alignment_length", \
-			"Mismatches","Query_start","Query_end","Subject_start","Subject_end","E-value","Bit_score","Subject_description","Species"]
-		row +=["has GFF3 data","GFF3 start","GFF3 stop","GFF3 ORF"]
-		
+		if db_type == "usearch":
+			row = ["Query","Subject_id","Identity(%)","Alignment_length","Mismatches","Number of gap opens","Query_start","Query_end" \
+			,"Subject_start","Subject_end","E-value","Bit_score","Subject Description","Species"]
+			
+			for x in range(0, (number_db - 1)):
+				row += ["Subject_description","Species","Subject_id","Alignment_length", \
+				"Mismatches","Query_start","Query_end","Subject_start","Subject_end","E-value","Bit_score","Subject_description","Species"]
+			row +=["has GFF3 data","GFF3 start","GFF3 stop","GFF3 ORF"]
+		else:
+			print("ncbi")
+
+
+
+
 		tsv_new.writerow(row)
 		
 		
@@ -558,36 +571,102 @@ if __name__ == '__main__':
 		if number_db == 1: #database/fasta pair 1
 			print("1 database/fasta pair")
 			#print (settings[6] != "")
-			if settings[6] != "":
-				fasta_no_gi = parse_fasta_no_gi(settings[6])
+			if settings[0] != "":
+				fasta_no_gi = parse_fasta_no_gi(settings[0])
 			else:
 				fasta_no_gi = "no_file"
 			
 			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[5])
 			print ("multi fasta file done")
 			
-			if settings[2] == "ncbi":
-				db = ncbi_format_db_parse(settings[4])
+			if db_type == "ncbi":
+				db = ncbi_format_db_parse(settings[6])
 			else:
-				db = usearch_format_db_parse(settings[4])
+				db = usearch_format_db_parse(settings[6])
 			print ("db complete -- now matching")
+			print (str(time.clock() - start_time) + " ::  time to complete db")
 			match_fasta(db)
+			print (str(time.clock() - start_time) + " :: time to match fasta")
 			
 		
 		elif number_db == 2: #database/fasta pair 2
 			print("2 database/fasta pair")
-				
+						
+			if settings[0] != "":
+				fasta_no_gi = parse_fasta_no_gi(settings[0])
+			else:
+				fasta_no_gi = "no_file"
+
+			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[5])
+			[fasta_db2, fasta_db_description2, fasta_db_species2] = multi_fasta_parse(settings[8])
+
+			fasta_db.update(fasta_db2)
+			fasta_db_description.update(fasta_db_description2)
+			fasta_db_species.update(fasta_db_species2)
+			
+			print ("multi fasta file done")
+
+			
+			if db_type == "ncbi":
+				db = ncbi_format_db_parse(settings[6])
+				db2 = ncbi_format_db_parse(settings[9])
+			else:
+				db = usearch_format_db_parse(settings[6])
+				db2 = usearch_format_db_parse(settings[9])
+			
+			print("db, db2 complete -- now matching")
+			print(str(time.clock() - start_time) + " ::  time to complete db, db2")
+			match_fasta(db)
+			match_fasta(db2)
+			print (str(time.clock() - start_time) + " :: time to match fasta")	
+
+
 		elif number_db == 3: #database/fasta pair 3
 			print("3 database/fasta pair")
-	
-		n50_statistic = get_n50_statistic(median_query_length)
-		
 
-		if len(number_queries) % 2 == 0:
-			median_query_length = (median_query_length.get((len(number_queries) / 2) - 1) + median_query_length.get((len(number_queries) / 2) + 1)) / 2
-		else:
-			median_query_length = median_query_length.get(len(number_queries) / 2)
-			
+			if settings[0] != "":
+				fasta_no_gi = parse_fasta_no_gi(settings[0])
+			else:
+				fasta_no_gi = "no_file"
+
+			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[5])
+			[fasta_db2, fasta_db_description2, fasta_db_species2] = multi_fasta_parse(settings[8])
+			[fasta_db3, fasta_db_description3, fasta_db_species3] = multi_fasta_parse(settings[11])
+
+			fasta_db.update(fasta_db2)
+			fasta_db.update(fasta_db3)
+			fasta_db_description.update(fasta_db_description2)
+			fasta_db_description.update(fasta_db_description3)
+			fasta_db_species.update(fasta_db_species2)
+			fasta_db_species.update(fasta_db_species3)
+
+			print ("multi fasta file done")
+
+			if db_type == "ncbi":
+				db = ncbi_format_db_parse(settings[6])
+				db2 = ncbi_format_db_parse(settings[9])
+				db3 = ncbi_format_db_parse(settings[12])
+			else:
+				db = usearch_format_db_parse(settings[6])
+				db2 = usearch_format_db_parse(settings[9])
+				db3 = usearch_format_db_parse(settings[12])
+
+			print("db, db2, db3 complete -- now matching")
+			print(str(time.clock() - start_time) + " ::  time to complete db, db2, db3")
+			match_fasta(db)
+			match_fasta(db2)
+			match_fasta(db3)
+			print (str(time.clock() - start_time) + " :: time to match fasta")
+
+
+	
+		print ("calculating n50 statistic")
+		median_query_length.sort()
+		#n50_statistic = get_n50_statistic(median_query_length)
+		print (str(time.clock() - start_time) + " :: time to calculate n50 statistic")
+		
+		median_query_length = get_median(median_query_length)
+
 		print ("writing annotation log entires")
 		for key in annotation_log_entries:
 			tsv_new.writerow(annotation_log_entries[key])
@@ -611,15 +690,15 @@ if __name__ == '__main__':
 
 
 	if not os.path.exists(output_log+".txt"):
-		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_log:
+		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'w') as tsv_log:
 			tsv_log = csv.writer(tsv_log, delimiter='\t')
-			tsv_log.writerow("num_queries: " + str(num_queries) + "\n")
-			tsv_log.writerow("median query length: " + str(median_query_length) + "\n")
-			tsv_log.writerow("average query length: " + str(avg_length_query_sequences) + "\n")
-			tsv_log.writerow("shortest query length: " + str(shortest_query_length) + "\n")
-			tsv_log.writerow("longest query length: " + str(longest_query_length) + "\n")
-			tsv_log.writerow("n50 statistic: " + str(n50_statistic + "\n"))
-			tsv_log.writerow("num_queries_informative_hit: " + str(num_queries_informative_hit) + "\n")
-			tsv_log.writerow("num_queries_no_hit: " + str(num_queries_no_hit) + "\n")
-			tsv_log.writerow("num_queries_uninformative: " + str(num_queries_uninformative) + "\n")
+			tsv_log.writerow(["num_queries: "] + [str(num_queries)])
+			tsv_log.writerow(["median query length: "] + [str(median_query_length)])
+			tsv_log.writerow(["average query length: "] + [str(round(avg_length_query_sequences,2))])
+			tsv_log.writerow(["shortest query length: "] + [str(shortest_query_length)])
+			tsv_log.writerow(["longest query length: "] + [str(longest_query_length)])
+			#tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
+			tsv_log.writerow(["num_queries_informative_hit: "] + [str(num_queries_informative_hit)])
+			tsv_log.writerow(["num_queries_no_hit: "] + [str(num_queries_no_hit)])
+			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
 			print ("log files complete -- exititing")
