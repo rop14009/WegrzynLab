@@ -462,16 +462,10 @@ def parse_fasta_no_gi(file_name):
 
 def get_n50_statistic(lengths):
 	temp = list()
-	for element in lengths:
-		print(element)
-		print (range(0,int(element)))
-		for i in range(0, int(element)):
-			temp.append(element)
-		#print (temp)
-	if len(temp) % 2 == 0:
-		return (temp[((len(temp)/2) + 1)] + temp[(len(temp)/2) - 1]) / 2
-	else:
-		return temp[(len(temp)/2)]
+	for n in lengths:
+  		temp.extend([n] * n)
+
+	return get_median(temp)
 
 def get_median(lengths):
 	odd, halfway = len(lengths) % 2, len(lengths) / 2
@@ -486,8 +480,11 @@ def get_median(lengths):
 if __name__ == '__main__':
 	start_time = time.clock()
 	arguments_list = sys.argv
+	
+	date = str(datetime.datetime.now())
+	print(date)
 	settings = parse_config_file("configuration_file.txt") #sets up the settings
-	output_log = "log"
+	output_log = "log_" + date + ".txt"
 	
 	global annotation_log_entries
 	annotation_log_entries = dict()
@@ -538,7 +535,7 @@ if __name__ == '__main__':
 	contaminants = build_contaminants_db()
 	contaminants_found = dict()
 	print("contaminants db built")
-	output = "default_output_annotation.tsv"
+	output = "default_output_annotation_" + date +".tsv"
 	number_db = int(settings[1]) # the number of databases being parsed
 	counter = number_db
 	db = dict()
@@ -675,13 +672,13 @@ if __name__ == '__main__':
 		print ("writing no hits log")
 		#after parsing of all fasta elements add all missed hits to nohits file
 		for key in db:
-			write_log(db.get(key)[0],"nohits")
+			write_log(db.get(key)[0],"nohits_"+ date)
 
 
 		print ("writing contaminants log")
 		for key in contaminants_found:
 			#print (contaminants_found.get(key))
-			write_contaminants_log("\t".join(contaminants_found.get(key)),"contaminants")
+			write_contaminants_log("\t".join(contaminants_found.get(key)),"contaminants_" + date)
 		
 		
 	
@@ -697,8 +694,9 @@ if __name__ == '__main__':
 			tsv_log.writerow(["average query length: "] + [str(round(avg_length_query_sequences,2))])
 			tsv_log.writerow(["shortest query length: "] + [str(shortest_query_length)])
 			tsv_log.writerow(["longest query length: "] + [str(longest_query_length)])
-			#tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
+			tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
 			tsv_log.writerow(["num_queries_informative_hit: "] + [str(num_queries_informative_hit)])
 			tsv_log.writerow(["num_queries_no_hit: "] + [str(num_queries_no_hit)])
 			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
 			print ("log files complete -- exititing")
+			exit()
