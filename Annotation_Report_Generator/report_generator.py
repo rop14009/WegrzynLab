@@ -4,6 +4,7 @@ import os
 import sys
 import csv
 import string
+import multiprocessing
 
 def parse_config_line(line):
 	count = 0
@@ -75,11 +76,12 @@ def multi_fasta_parse(file_name):
 	current_protein_seq = ""
 	current_desc = ""
 	current_species = ""
+	last_gi = ""
 	with open(file_name,'r') as file:
 		for line in file:
 			if line[:1] == ">": # line contains description of sequence
 				if current_protein_seq != "":
-					#print (fasta_db)
+					last_gi = current_gi
 					fasta_db[current_gi] = current_protein_seq
 					fasta_db_description[current_gi] = current_desc
 					fasta_db_species[current_gi] = current_species
@@ -88,13 +90,19 @@ def multi_fasta_parse(file_name):
 					current_species = ""
 				
 				current_gi =  get_gi_num_from_string(get_gi_string(line))
-				
 				current_desc = line[line.find(" "):].strip()
 				current_species = line[line.find("[")+1:line.find("]")]
 				
 			else:
 				current_protein_seq += line
-	#print (fasta_db)
+
+	#print (last_gi)
+	#print (current_gi)
+
+	fasta_db[current_gi] = current_protein_seq
+	fasta_db_description[current_gi] = current_desc
+	fasta_db_species[current_gi] = current_species
+
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
 '''
@@ -118,61 +126,128 @@ def find_best_query_result(query1, query2):
         global fasta_db
         global fasta_db_description
         global fasta_db_species
-	
+	global fasta_no_gi
 	global contaminants_found
 
 	global num_queries_informative_hit
 	#global num_queries_no_hit #no hits
 	global num_queries_uninformative
 
-
+	global min_coverage # 0.7 --> refers to 70% coverage
         global e_value # 1e-5 / 0.00001
 
         query1_gi = get_gi_num_from_string(query1[1])
         query2_gi = get_gi_num_from_string(query2[1])
+	
+
+	# this is done to prevent the ptAAH cDNA etc... error where no match to fasta_no_gi can be made
+	#query1[0] = query1[:-query1[0].find(" ")]
+	#query2[0] = query2[:-query2[0].find(" ")]
+
+	#int(line[7]) - int(line[6])
+	#print (query1[0])
+	#print (str(query1))
+	#print (str(query2))
+	#print (fasta_no_gi[str(query1[0])[2:-2]])
+
+	#query1_search_length = int(query1[7]) - int(query1[6])
+	#query2_search_length = int(query2[7]) - int(query2[6])
+	
+	#print (str(query1[0]))	
+	#print (len(fasta_no_gi[str(query1[0])[2:-2]]))	
+	
+	#print (fasta_no_gi["ptAAH promoter plus cDNA"])
+	
+
+	#print ("query1 length: " + str(query1_search_length))
+	#print ("query2 length: " + str(query2_search_length))
 
 
-        #attempt 1) find a query that is not a contaminant and informative, with lowest e-value
-        try:
+	#query1_coverage = float(query1_search_length) / float(len(fasta_no_gi[str(query1[0])]))
+	#query2_coverage = float(query2_search_length) / float(len(fasta_no_gi[str(query2[0])]))
 
-                if not fasta_db_species[query1_gi] in contaminants and not fasta_db_species[query2_gi] in contaminants:
-                        if not is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
-				num_queries_informative_hit += 1
-                                if parse_e_value(query1[10]) < parse_e_value(query2[10]):
-                                        return query1
-                                else:
-                                        return query2
+	query1_coverage = float(query1[3]) / float(len(fasta_no_gi[str(query1[0])]))
+	query2_coverage = float(query2[3]) / float(len(fasta_no_gi[str(query2[0])]))
 
-                #attempt 2) find a contaminated query with lowest possible e-value and return that
-                if not is_uninformative(fasta_db_description[query1[1]]) and not is_uninformative(fasta_db_description[query2[1]]):
-                        if parse_e_value(query1[10]) < parse_e_value(query2[10]):
-				contaminants_found[query1_gi] = query1
-				num_queries_informative_hit += 1
-                                return query1
-                        else:
-				contaminants_found[query2_gi] = query2
-                                return query2
-
-        except KeyError:
-                #attempt 3) as a final resort, simply return the query with lowest possible e-value (this result will be both contaminated and uninformative)
-
-                if parse_e_value(query1[10]) < parse_e_value(query2[10]):
-			contaminants_found[query1_gi] = query1
-			fasta_db_description[query1_gi] = "uninformative" + fasta_db_description[query1_gi][fasta_db_description[query1_gi].find("[")-1:]
-			num_queries_uninformative += 1
-			return query1
-                else:
-			contaminants_found[query2_gi] = query2
-                        fasta_db_description[query2_gi] = "uninformative" + fasta_db_description[query2_gi][fasta_db_description[query2_gi].find("[")-1:]
-                        num_queries_uninformative += 1
-			
-			return query2
-
-
-        print ("error in find_best_query_result(query1, query2) this should not ever be reached")
-        return ["",""] #this should not be reached, ever
+	print ("query1 coverage: " + str(query1_coverage))
+	print ("query2 coverage: " + str(query2_coverage))
 
 	
+
+
+	'''
+	print ("query1: " + str(query1))	
+	print ("query2: " + str(query2))
+	print ("fasta no gi lengths")
+	print (len(fasta_no_gi[str(query1[0])[2:-2]]))
+	print (len(fasta_no_gi[str(query2[0])[2:-2]]))
+	print ("coverages")
+	print (query1_coverage)
+	print (query2_coverage)
+	'''
+	if is_uninformative(fasta_db_description[query1_gi]):
+		fasta_db_description[query1_gi] = "uninformative"
+
+	if is_uninformative(fasta_db_description[query2_gi]):
+		fasta_db_description[query2_gi] = "uninformative"
+	
+
+	
+
+	if not is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
+		return query1
+
+	if is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
+		return query2
+
+	if is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
+		#print ("test --  both uninformative")
+		if (query1_coverage >= min_coverage and query1_coverage > query2_coverage):
+			return query1
+
+		if (query2_coverage >= min_coverage and query2_coverage > query1_coverage):
+			return query2
+		return query1
+
+	if not is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
+		#print ("test --  both informative")
+		if (query1_coverage >= min_coverage and query1_coverage > query2_coverage):
+			return query1
+
+		if (query2_coverage >= min_coverage and query2_coverage > query1_coverage):
+			return query2
+		return query1
+
+	print ("this statement has been reached, when it should never be reached")
+	
+
+	'''
+	if is_uf (query1_coverage > min_coverage and query1_coverage > query2_coverage)
+                        return query1
+
+                if (query2_coverage > min_coverage and query2_coverage > query1_coverage)
+                        return query2
+ninformative(fasta_db_description[query1_gi]):
+		if is_uninformative(fasta_db_description[query2_gi]):
+			return query1
+		else:
+			print ("bettery query than: " + str(query1) + " : " + str(fasta_db_description[query2_gi]))
+			return query2
+	elif not is_uninformative(fasta_db_description[query2_gi]):
+		if (query1_coverage > min_coverage and query2_coverage > min_coverage):
+			if query1_coverage > query2_coverage:
+				return query1
+			else:
+				print ("bettery query than: " + str(query1) + " : " + str(fasta_db_description[query2_gi]))
+				return query2
+		else:
+			return query1
+	else:
+		#print ("error in find_best_query_result(query1, query2) this should not ever be reached")
+	        print ("last case scenario occured")
+		return query2 #this should not be reached, ever
+	'''	
+
 def parse_e_value(e_val):
 	number = e_val
 	exp = ""
@@ -241,8 +316,7 @@ def ncbi_format_db_parse(file_name):
 
 		length = int(line[8]) - int(line[7])
 		avg_length_query_sequence = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
-		insert_in_order(median_query_length, length)
-	
+		median_query_length.append(length)
 		if length > longest_query_length:
 			longest_query_length = length
 		if length < shortest_query_length:
@@ -281,11 +355,13 @@ def usearch_format_db_parse(file_name):
 			if in_db:
 				#print (usearch_db[key] )
 				#print (line)
-				usearch_db[key] = find_best_query_result(usearch_db[key], line)
+				usearch_db[str(key)] = find_best_query_result(usearch_db[key], line)
 			else:
-				usearch_db[get_gi_num_from_string(line[1])] = line
+				usearch_db[str(get_gi_num_from_string(line[1]))] = line
 		
-			length = int(line[6]) - int(line[5])
+			#length = int(line[7]) - int(line[6])
+			length = float(line[3])
+	
 			#print (length)
 			avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
 			#print (avg_length_query_sequences)
@@ -302,8 +378,9 @@ def usearch_format_db_parse(file_name):
 
 def is_query_in_db(query, db):
 	key = ""
+	#print (query)
 	for key,value in db.items():
-		if value[0] == query:
+		if query in value[0]:
 			#print ("true")
 			return key, True
 	return key, False
@@ -431,18 +508,19 @@ def match_fasta(db):
 		#scan through every elemeny in fasta_no_gi and return the best match from DB
 		for element in fasta_no_gi:
 			#print (fasta_no_gi[element])
-			[key, is_present] = is_query_in_db(fasta_no_gi[element], db)
+			[key, is_present] = is_query_in_db(element, db)
 			#print (key)
 			#print (db[key])
 			#print (is_present)
 			if is_present:
 				if annotation_log_entries.get(key) is None:
-					annotation_log_entries[key] = db[key]
+					annotation_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
 				else:
-					annotation_log_entries[key] = annotation_log_entries[key] + db[key]
+					annotation_log_entries[key] = annotation_log_entries[key] + (db[key] + [fasta_db_description[key]] + [fasta_db_species[key]])
 				del db[key]
 			else:
 				#print ("no hit += 1")
+				#print (element)
 				num_queries_no_hit += 1
 
 
@@ -452,20 +530,59 @@ def parse_fasta_no_gi(file_name):
 	description = ""
         with open(file_name,'r') as file:
                 for line in file:
+			#print (line)
 			if ">" in line:
-				description = line[1:-1]
-				query = line[1:-1]
-				return_dict[query] = description
+				#print (query)
+				#print (description)
+				if description != "":
+					#print (query)
+					return_dict[query] = description
+					description = ""
+				
+				query = str(line[1:-1])
+				#print (query)
+				#return_dict[query] = description
+			else:
+				if "\n" in line:
+					description += str(line[:-1])
+				else:			
+					description += str(line)
+	
+	return_dict[query] = description
 	#print (return_dict)
 	return return_dict	
 
 
-def get_n50_statistic(lengths):
-	temp = list()
-	for n in lengths:
-  		temp.extend([n] * n)
 
-	return get_median(temp)
+'''
+Method of calculation of n50 statistic (n25, n75 could be added using a similar method)
+
+step 1) Sum up all of the contig lengths to obtain sum of all contig lengths
+
+step 2) set n50_lengths to 1/2 of sum of all contig lengths
+
+step 3) while sum < n50_lengths, i++ (i is the index of n50 statistic)
+
+step 4) return lengths[i-1]
+
+'''
+
+def get_n50_statistic(lengths):
+	print ("starting n50 calcs")
+	n50_lengths = 0
+	n50_index = 0
+	sum = 0
+	for element in lengths:
+		n50_lengths += element	
+	n50_lengths = 0.5 * n50_lengths
+	
+	while sum < n50_lengths:
+		sum += lengths[n50_index]
+		n50_index += 1
+	return lengths[n50_index - 1]
+
+
+
 
 def get_median(lengths):
 	odd, halfway = len(lengths) % 2, len(lengths) / 2
@@ -529,6 +646,9 @@ if __name__ == '__main__':
 	num_queries_no_hit = 0
 	num_queries_uninformative = 0
 	global db_type
+	global min_coverage	
+	min_coverage = settings[13]
+
 
 	db_type = settings[2]
 	filter_list = load_filter_list("filter_list.txt")
@@ -572,7 +692,7 @@ if __name__ == '__main__':
 				fasta_no_gi = parse_fasta_no_gi(settings[0])
 			else:
 				fasta_no_gi = "no_file"
-			
+			#print (fasta_no_gi["ptAAH promoter plus cDNA"])			
 			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[5])
 			print ("multi fasta file done")
 			
@@ -658,8 +778,9 @@ if __name__ == '__main__':
 
 	
 		print ("calculating n50 statistic")
-		median_query_length.sort()
-		#n50_statistic = get_n50_statistic(median_query_length)
+		median_query_length.sort() # sorts least to greatest
+		median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
+		n50_statistic = get_n50_statistic(median_query_length)
 		print (str(time.clock() - start_time) + " :: time to calculate n50 statistic")
 		
 		median_query_length = get_median(median_query_length)

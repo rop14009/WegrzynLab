@@ -1,3 +1,5 @@
+predicted
+predicted protein
 predicted protein, partial
 hypothetical protein
 hypothetical protein, partial
@@ -37,9 +39,11 @@ putative uncharacterized protein
 unknown protein
 uncultured
 unidentified
+uninformative
 unknown
 hypothetical
 protein with unknown function
+low quality protein
 low quality protein: conserved hypothetical protein
 predicted: similar to conserved hypothetical protein
 expressed unknown protein
