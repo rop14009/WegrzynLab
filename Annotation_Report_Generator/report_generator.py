@@ -4,7 +4,8 @@ import os
 import sys
 import csv
 import string
-import multiprocessing
+import subprocess
+
 
 def parse_config_line(line):
 	count = 0
@@ -139,41 +140,14 @@ def find_best_query_result(query1, query2):
         query1_gi = get_gi_num_from_string(query1[1])
         query2_gi = get_gi_num_from_string(query2[1])
 	
-
-	# this is done to prevent the ptAAH cDNA etc... error where no match to fasta_no_gi can be made
-	#query1[0] = query1[:-query1[0].find(" ")]
-	#query2[0] = query2[:-query2[0].find(" ")]
-
-	#int(line[7]) - int(line[6])
-	#print (query1[0])
-	#print (str(query1))
-	#print (str(query2))
-	#print (fasta_no_gi[str(query1[0])[2:-2]])
-
-	#query1_search_length = int(query1[7]) - int(query1[6])
-	#query2_search_length = int(query2[7]) - int(query2[6])
-	
-	#print (str(query1[0]))	
-	#print (len(fasta_no_gi[str(query1[0])[2:-2]]))	
-	
-	#print (fasta_no_gi["ptAAH promoter plus cDNA"])
-	
-
-	#print ("query1 length: " + str(query1_search_length))
-	#print ("query2 length: " + str(query2_search_length))
-
-
-	#query1_coverage = float(query1_search_length) / float(len(fasta_no_gi[str(query1[0])]))
-	#query2_coverage = float(query2_search_length) / float(len(fasta_no_gi[str(query2[0])]))
-
 	query1_coverage = float(query1[3]) / float(len(fasta_no_gi[str(query1[0])]))
 	query2_coverage = float(query2[3]) / float(len(fasta_no_gi[str(query2[0])]))
 
-	print ("query1 coverage: " + str(query1_coverage))
-	print ("query2 coverage: " + str(query2_coverage))
+	#print ("query1 coverage: " + str(query1_coverage))
+	#print ("query2 coverage: " + str(query2_coverage))
 
 	
-
+	
 
 	'''
 	print ("query1: " + str(query1))	
@@ -185,6 +159,7 @@ def find_best_query_result(query1, query2):
 	print (query1_coverage)
 	print (query2_coverage)
 	'''
+	
 	if is_uninformative(fasta_db_description[query1_gi]):
 		fasta_db_description[query1_gi] = "uninformative"
 
@@ -192,61 +167,47 @@ def find_best_query_result(query1, query2):
 		fasta_db_description[query2_gi] = "uninformative"
 	
 
-	
 
+	'''
+	print (str(query1) + " : uninformative : " + str(is_uninformative(fasta_db_description[query1_gi])))
+	print (str(query2) + " : uninformative : " + str(is_uninformative(fasta_db_description[query2_gi])))
+
+	print (str(query1) + " description : " + str(fasta_db_description[query1_gi]))
+	print (str(query2) + " description : " + str(fasta_db_description[query2_gi]))
+	'''
+
+	
 	if not is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
+		#print ("ret query1 informative")
 		return query1
 
 	if is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
+		#print ("ret query2 informative")
 		return query2
 
 	if is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
 		#print ("test --  both uninformative")
-		if (query1_coverage >= min_coverage and query1_coverage > query2_coverage):
+		if (query1_coverage > query2_coverage):
 			return query1
 
-		if (query2_coverage >= min_coverage and query2_coverage > query1_coverage):
+		if (query2_coverage > query1_coverage):
+			#print ("returning query2, uninformative")
 			return query2
 		return query1
 
 	if not is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
 		#print ("test --  both informative")
-		if (query1_coverage >= min_coverage and query1_coverage > query2_coverage):
+		if (query1_coverage > query2_coverage):
+			#print ()
 			return query1
 
-		if (query2_coverage >= min_coverage and query2_coverage > query1_coverage):
+		if (query2_coverage > query1_coverage):
+			#print ("returning query2, informative")
 			return query2
 		return query1
-
+	
 	print ("this statement has been reached, when it should never be reached")
 	
-
-	'''
-	if is_uf (query1_coverage > min_coverage and query1_coverage > query2_coverage)
-                        return query1
-
-                if (query2_coverage > min_coverage and query2_coverage > query1_coverage)
-                        return query2
-ninformative(fasta_db_description[query1_gi]):
-		if is_uninformative(fasta_db_description[query2_gi]):
-			return query1
-		else:
-			print ("bettery query than: " + str(query1) + " : " + str(fasta_db_description[query2_gi]))
-			return query2
-	elif not is_uninformative(fasta_db_description[query2_gi]):
-		if (query1_coverage > min_coverage and query2_coverage > min_coverage):
-			if query1_coverage > query2_coverage:
-				return query1
-			else:
-				print ("bettery query than: " + str(query1) + " : " + str(fasta_db_description[query2_gi]))
-				return query2
-		else:
-			return query1
-	else:
-		#print ("error in find_best_query_result(query1, query2) this should not ever be reached")
-	        print ("last case scenario occured")
-		return query2 #this should not be reached, ever
-	'''	
 
 def parse_e_value(e_val):
 	number = e_val
@@ -314,7 +275,7 @@ def ncbi_format_db_parse(file_name):
 				ncbi_db[get_gi_num_from_string(line[1])] = line
 		
 
-		length = int(line[8]) - int(line[7])
+		length = int(line[4])
 		avg_length_query_sequence = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
 		median_query_length.append(length)
 		if length > longest_query_length:
@@ -335,15 +296,17 @@ def usearch_format_db_parse(file_name):
 	current_query = ""
 	first_row = 1
 
+
+	global contaminants	
+	global contaminants_found
 	global longest_query_length
         global shortest_query_length
         global median_query_length
 	global avg_length_query_sequences
 	global num_queries
-	
-	#median_query_length = 0
+	global num_queries_uninformative
+	global fasta_db_species
 
-	#median_query_length = list()
 	
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
@@ -351,6 +314,14 @@ def usearch_format_db_parse(file_name):
 			num_queries += 1
 			#print (get_gi_num_from_string(line[1]))
 			[key, in_db] = is_query_in_db(line[0], usearch_db)		
+
+
+			if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
+				num_queries_uninformative += 1
+			
+			if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
+				contaminants_found[str(get_gi_num_from_string(line[1]))] = fasta_db_species[str(get_gi_num_from_string(line[1]))]
+				
 
 			if in_db:
 				#print (usearch_db[key] )
@@ -372,7 +343,13 @@ def usearch_format_db_parse(file_name):
 			if length < shortest_query_length:
 				shortest_query_length = length
 
+		#print (usearch_db)
 		return usearch_db
+
+
+
+
+
 
 
 
@@ -448,16 +425,25 @@ def build_contaminants_db():
 	
 	return contaminant_db
 	
+
+''' 
+Re-evaluate the logic within this method later, it seems some of the else clauses are unneccessary
+
+'''
+
 def write_contaminants_log(element,log_name):
+	element = "".join(element)
 	if number_db == 1:
 		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
 			file = open(log_name+".txt", "w")
 			print ("creating contaminants log with name: " + log_name)
-			file.write("".join(element)+"\n")
+			file.write(element)
+			file.write("\n")
 			file.close()
 		else:
 			file = open(log_name+".txt", "a")
-			file.write("".join(element)+"\n")
+			file.write(element)
+			file.write("\n")
 			file.close()
 	else:
 		counter -= 1
@@ -466,15 +452,19 @@ def write_contaminants_log(element,log_name):
 			print ("creating contaminants log with name: " + log_name)
 			if not counter > 0:
 				file.write(element)
+				file.write("\n")
 			else:
-				file.write("".join(element)+"\n")
+				file.write(element)
+				file.write("\n")
 			file.close()
 		else:
 			file = open(log_name+".txt", "a")
 			if not counter > 0:
 				file.write(element)
+				file.write("\n")
 			else:
-				file.write("".join(element)+"\n")
+				file.write(element)
+				file.write("\n")
 			file.close()
 
 '''
@@ -502,21 +492,23 @@ def match_fasta(db):
 	global fasta_db_species
 	global fasta_no_gi
 	
-	#print (fasta_no_gi)
+	print (db)
 
 	if fasta_no_gi != "no_file":
 		#scan through every elemeny in fasta_no_gi and return the best match from DB
 		for element in fasta_no_gi:
 			#print (fasta_no_gi[element])
 			[key, is_present] = is_query_in_db(element, db)
+			key = str(key)
 			#print (key)
 			#print (db[key])
 			#print (is_present)
 			if is_present:
+				key_new = str(get_gi_num_from_string(db[key][1]))
 				if annotation_log_entries.get(key) is None:
-					annotation_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					annotation_log_entries[key] = db[key] + [fasta_db_description[key_new]] + [fasta_db_species[key_new]]
 				else:
-					annotation_log_entries[key] = annotation_log_entries[key] + (db[key] + [fasta_db_description[key]] + [fasta_db_species[key]])
+					annotation_log_entries[key] = annotation_log_entries[key] + (db[key] + [fasta_db_description[key_new]] + [fasta_db_species[key_new]])
 				del db[key]
 			else:
 				#print ("no hit += 1")
@@ -799,13 +791,27 @@ if __name__ == '__main__':
 		print ("writing contaminants log")
 		for key in contaminants_found:
 			#print (contaminants_found.get(key))
-			write_contaminants_log("\t".join(contaminants_found.get(key)),"contaminants_" + date)
+			write_contaminants_log([contaminants_found.get(key)],"contaminants_" + date)
 		
 		
 	
 	print (str(time.clock() - start_time) + " seconds")
 	print("complete -- annotation file now available")
 
+	
+	if settings[16] != "":
+		print ("option to include interpro output has been checked, filepath to interpro: " + settings[16]) 
+		print ("calling external script to complete task")
+		ret_val = subprocess.Popen("python combine_annotations.py --input " + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv", shell=False)
+		if ret_val != 0:
+			print ("external script failed to generate files and terminated with error code: " + ret_val)
+		else:
+			print ("external script executed correctly and successfully generated the output annotation file, with name: " )
+	else:
+		print ("no interpro file has been specified, skipping combined annotation step")
+
+
+	num_queries_informative_hit = (num_queries - num_queries_uninformative)
 
 	if not os.path.exists(output_log+".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'w') as tsv_log:
