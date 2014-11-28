@@ -14,4 +14,4 @@ Path to search results from database3:
 Full-length coverage requirement: 0.7
 Minimum Evalue:1e-5
 Generate XML for Blast2GO:
-Path to Interpro Results: (leave blank for no input)
+Path to Interpro Results: 

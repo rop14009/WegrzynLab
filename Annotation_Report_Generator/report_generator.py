@@ -802,7 +802,10 @@ if __name__ == '__main__':
 	if settings[16] != "":
 		print ("option to include interpro output has been checked, filepath to interpro: " + settings[16]) 
 		print ("calling external script to complete task")
+		
+
 		ret_val = subprocess.Popen("python combine_annotations.py --input " + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv", shell=False)
+
 		if ret_val != 0:
 			print ("external script failed to generate files and terminated with error code: " + ret_val)
 		else:
@@ -812,7 +815,6 @@ if __name__ == '__main__':
 
 
 	num_queries_informative_hit = (num_queries - num_queries_uninformative)
-
 	if not os.path.exists(output_log+".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'w') as tsv_log:
 			tsv_log = csv.writer(tsv_log, delimiter='\t')
