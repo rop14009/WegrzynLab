@@ -129,7 +129,9 @@ def parse_flags(param_list):
 			else:
 				return "interpro"
 	else: #custom output
-		if len(input) == 4: #all params
+		if len(input) == 5:
+			return "all_params_two_interpro"
+		elif len(input) == 4: #all params
 			return "all_params_custom_output"
 		elif len(input) == 2: #either 1 or the other, so do a quick check
 			if determine_blast_or_interpro_input(param_list) == "blast2go":
@@ -142,7 +144,45 @@ if __name__ == '__main__':
 	arguments_list = sys.argv
 	params = parse_flags(arguments_list)
 	print (params)
-	if params == "all_params" or params == "all_params_custom_output":
+	
+
+	if params == "all_params_two_interpro":
+		output = arguments_list[len(arguments_list) - 1]
+		file_path_combined_anno = arguments_list[2]
+		file_path_blast2go_walnut = arguments_list[4]
+		file_path_walnut_interpro = arguments_list[6]
+		file_path_walnut_interpro_two = arguments_list[7]	
+		if output == file_path_walnut_interpro_two or output == file_path_walnut_interpro or output == file_path_combined_anno or output == file_path_blast2go_walnut:
+			print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
+			sys.exit(-1)
+			
+		blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_blast2go_walnut)
+		walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
+		walnut_interpro_hashtable_two = make_walnut_interpro_dict(file_path_walnut_interpro_two)
+		
+		walnut_interpro_hashtable.update(walnut_interpro_hashtable_two)
+
+
+		with open(file_path_combined_anno,'r') as tsv_old, \
+		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+			tsv_new = csv.writer(tsv_new, delimiter='\t')
+			tsv_old = csv.reader(tsv_old, delimiter='\t')
+			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
+			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
+			tsv_new.writerow(combined_row) # copy the header
+			for row in tsv_old:
+				id = combined_anno_id_parser(row[0])
+				walnut_results_interpro = walnut_interpro_hashtable.get(id)
+				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
+					walnut_results_interpro = ["N/A","N/A","N/A"]
+				walnut_results_blast2go = blast2go_hastable.get(id)
+				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
+					walnut_results_blast2go = ["N/A","N/A","N/A"]
+				combined_row = row + walnut_results_interpro + walnut_results_blast2go
+				tsv_new.writerow(combined_row)
+	
+
+	elif params == "all_params" or params == "all_params_custom_output":
 		if params == "all_params_custom_output":
 			output = arguments_list[len(arguments_list) - 1]
 			file_path_combined_anno = arguments_list[2]
