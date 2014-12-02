@@ -585,6 +585,100 @@ def get_median(lengths):
 
 
 
+
+def write_xml(filename, results_db):
+	#write header first
+	if not os.path.exists(filename+".xml"): # if file doesnt exist create it
+		file = open(filename+".xml", "w")
+		print ("creating xml output with name:\t" + filename + ".xml")
+		
+		for key in results_db:
+
+			result = results_db[key]
+			print (result)
+			# ['Contig_PtPAL2', 'gi|15228074|ref|NP_181241.1|', '63.2', '734', '242', '13', '182', '2329', '1', '724', '4.9e-255', '887.5', 'phenylalanine ammonia-lyase 1 [Arabidopsis thaliana]', 'Arabidopsis thaliana']
+
+			file.write("<?xml version=\"1.0\" ?>\n")
+			file.write("<!DOCTYPE BlastOutput\n")
+			file.write("\tPUBLIC \'-//NCBI//NCBI BlastOutput/EN\'\n")
+			file.write("\t'NCBI_BlastOutput.dtd'>\n")
+			file.write("<BlastOutput>\n")
+			file.write("\t<BlastOutput_program>BLASTX</BlastOutput_program>\n")
+			file.write("\t<BlastOutput_version>BLASTX 2.2.25+</BlastOutput_version>\n")
+			file.write("\t<BlastOutput_reference>Altschul, et. al.</BlastOutput_reference>\n")
+			file.write("\t<BlastOutput_db>" + "db" + "</BlastOutput_db>\n")
+			file.write("\t<BlastOutput_query-ID>1</BlastOutput_query-ID>\n")
+			file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
+			file.write("\t<BlastOutput_query-len>" + result[3] + "</BlastOutput_query-len>\n")
+			file.write("\t<BlastOutput_param>\n")
+			file.write("\t\t<Parameters>\n")
+			file.write("\t\t\t<Parameters_expect>10</Parameters_expect>\n")
+			file.write("\t\t\t<Parameters_include>0</Parameters_include>\n")
+			file.write("\t\t\t<Parameters_sc-match>1</Parameters_sc-match>\n")
+			file.write("\t\t\t<Parameters_sc-mismatch>-3</Parameters_sc-mismatch>\n")
+			file.write("\t\t\t<Parameters_gap-open>5</Parameters_gap-open>\n")
+			file.write("\t\t\t<Parameters_gap-extend>2</Parameters_gap-extend>\n")
+			file.write("\t\t\t<Parameters_filter>D</Parameters_filter>\n")
+			file.write("\t\t</Parameters>\n")
+			file.write("\t</BlastOutput_param>\n")	
+			file.write("\t<BlastOutput_iterations>\n")
+			file.write("\t\t<Iteration>\n")		
+			file.write("\t\t\t<Iteration_iter-num>1</Iteration_iter-num>\n")
+			file.write("\t\t\t<Iteration_query-ID>1</Iteration_query-ID>\n")
+			file.write("\t\t\t<Iteration_query-def>" + result[0] + "</Iteration_query-def>\n")
+			file.write("\t\t\t<Iteration_query-len>" + result[3] + " </Iteration_query-len>\n")
+			file.write("\t\t\t<Iteration_hits>\n")
+			
+
+			#depending on legnth of result loop through this later
+
+			file.write("\t\t\t\t<Hit>\n")
+			file.write("\t\t\t\t\t<Hit_num>1</Hit_num>\n")
+			file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
+			file.write("\t\t\t\t\t<Hit_def>" + result[12] + "</Hit_def>\n")
+			file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
+			file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
+			file.write("\t\t\t\t\t<Hit_hsps>\n")
+			file.write("\t\t\t\t\t\t<Hsp>\n")
+			file.write("\t\t\t\t\t\t\t<Hit_num>1</Hit_num>\n")	
+			file.write("\t\t\t\t\t\t\t<Hsp_bit-score>" + result[3] + "</Hsp_bit-score>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_score>0</Hsp_score>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_evalue>" + result[10] + "</Hsp_evalue>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_query-from>1</Hsp_query-from>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_query-to>1312</Hsp_query-to>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_hit-from>1</Hsp_hit-from>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_hit-to>145</Hsp_hit-to>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_pattern-from>0</Hsp_pattern-from>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_pattern-to>0</Hsp_pattern-to>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_query-frame>0</Hsp_query-frame>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_hit-frame>0</Hsp_hit-frame>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_identity>133</Hsp_identity>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_positive>0</Hsp_positive>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_gaps>1</Hsp_gaps>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_align-len>146</Hsp_align-len>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_density>0</Hsp_density>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + "ATGC" + "</Hsp_qseq>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_hseq>---</Hsp_hseq>\n")
+			file.write("\t\t\t\t\t\t\t<Hsp_midline>---</Hsp_midline>\n")
+			file.write("\t\t\t\t\t\t</Hsp>\n")
+			file.write("\t\t\t\t\t</Hit_hsps>\n")
+			file.write("\t\t\t\t</Hit>\n")
+			
+
+
+
+			file.write("\t\t\t</Iteration_hits>\n")
+			file.write("\t\t</Iteration>\n")
+			file.write("\t</BlastOutput_iterations>\n")
+			file.write("</BlastOutput>\n")
+			file.close()
+
+
+
+	else: #the file already exists
+		print ("The output for the xml file already exists -- check file directory to rename the file/remove it")
+
+
 #entry point of script				
 if __name__ == '__main__':
 	start_time = time.clock()
@@ -637,8 +731,10 @@ if __name__ == '__main__':
 	num_queries_informative_hit = 0
 	num_queries_no_hit = 0
 	num_queries_uninformative = 0
+	
 	global db_type
 	global min_coverage	
+	
 	min_coverage = settings[13]
 
 
@@ -797,6 +893,11 @@ if __name__ == '__main__':
 	
 	print (str(time.clock() - start_time) + " seconds")
 	print("complete -- annotation file now available")
+
+
+	if settings[15] == "yes" or settings[15] == "y":
+		write_xml("blastxml_"+date, annotation_log_entries)		
+		
 
 	
 	if settings[16] != "":
