@@ -135,10 +135,7 @@ def parse_flags(param_list):
 		elif len(input) == 6:
 			return "all_params_two_interpro_custom"
 	else: #custom output
-		if len(input) == 5:
-			print ("works")
-			return "all_params_two_interpro"
-		elif len(input) == 4: #all params
+		if len(input) == 4: #all params
 			return "all_params_custom_output"
 		elif len(input) == 2: #either 1 or the other, so do a quick check
 			if determine_blast_or_interpro_input(param_list) == "blast2go":
@@ -173,7 +170,7 @@ if __name__ == '__main__':
 		walnut_interpro_hashtable_two = make_walnut_interpro_dict(file_path_walnut_interpro_two)
 		walnut_interpro_hashtable.update(walnut_interpro_hashtable_two)
 		with open(file_path_combined_anno,'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		open(output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
@@ -213,7 +210,7 @@ if __name__ == '__main__':
 		
 		#print (output)
 		with open(file_path_combined_anno,'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		open(output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
@@ -248,14 +245,14 @@ if __name__ == '__main__':
 			file_path_blast2go_walnut = arguments_list[4]
 			file_path_walnut_interpro = arguments_list[6]
 		
-
+		print (output)
 		
 		#first make dicts for walnut interpro and blast2go for easier searching based off of IDs
 		walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
 		blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_blast2go_walnut)
 		
 		with open(file_path_combined_anno,'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		open(output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
@@ -298,7 +295,7 @@ if __name__ == '__main__':
 		#first make dicts for walnut interpro and blast2go for easier searching based off of IDs
 		walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
 		with open(file_path_combined_anno,'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		open(output, 'w') as tsv_new:
 			print(os.path.realpath(__file__) + "//" + output)
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
@@ -338,7 +335,7 @@ if __name__ == '__main__':
 		blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_blast2go_walnut)
 		
 		with open(file_path_combined_anno,'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		open(output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
