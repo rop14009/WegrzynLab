@@ -55,12 +55,17 @@ def make_walnut_interpro_dict(file_name):
 	value_list = list()
 	with open(file_name,'r') as tsv_old:
 		for row in csv.reader(tsv_old, delimiter='\t'):
-			id = row[0][8:] #get the key
+			#print (row)
+			if row[0].index(".") > -1:
+				id = row[0][row[0].index(".")+1:]
+			else:
+				id = row[0][8:] #get the key
 			value_list.append(row[5])
 			value_list.append(row[11])
 			value_list.append(row[12])
 			walnut_interpro_data[id] = value_list
 			value_list = list()
+	#print (walnut_interpro_data)
 	return walnut_interpro_data
 
 '''
@@ -256,18 +261,16 @@ if __name__ == '__main__':
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
-			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
+			combined_row = row #+ ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
 				id = combined_anno_id_parser(row[0])
 				
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
-				
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
 					
 				walnut_results_blast2go = blast2go_hastable.get(id)
-				
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
 					walnut_results_blast2go = ["N/A","N/A","N/A"]
 					

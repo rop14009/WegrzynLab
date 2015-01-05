@@ -103,7 +103,7 @@ def multi_fasta_parse(file_name):
 	fasta_db[current_gi] = current_protein_seq
 	fasta_db_description[current_gi] = current_desc
 	fasta_db_species[current_gi] = current_species
-
+	#print (fasta_db)
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
 '''
@@ -492,7 +492,7 @@ def match_fasta(db):
 	global fasta_db_species
 	global fasta_no_gi
 	
-	print (db)
+	annotation_log_entries = dict()	
 
 	if fasta_no_gi != "no_file":
 		#scan through every elemeny in fasta_no_gi and return the best match from DB
@@ -522,7 +522,6 @@ def parse_fasta_no_gi(file_name):
 	description = ""
         with open(file_name,'r') as file:
                 for line in file:
-			#print (line)
 			if ">" in line:
 				#print (query)
 				#print (description)
@@ -541,7 +540,6 @@ def parse_fasta_no_gi(file_name):
 					description += str(line)
 	
 	return_dict[query] = description
-	#print (return_dict)
 	return return_dict	
 
 
@@ -589,15 +587,18 @@ def get_median(lengths):
 def write_xml(filename, results_db):
 	global number_db
 	global fasta_no_gi
-	#write header first
+	global fasta_db
+	print (filename)
+	#rite header first
 	if not os.path.exists(filename+".xml"): # if file doesnt exist create it
 		file = open(filename+".xml", "w")
 		print ("creating xml output with name:\t" + filename + ".xml")
-		
+		#print (fasta_no_gi)
+	
 		for key in results_db:
 
 			result = results_db[key]
-			print (result)
+			#print (result)
 			# ['Contig_PtPAL2', 'gi|15228074|ref|NP_181241.1|', '63.2', '734', '242', '13', '182', '2329', '1', '724', '4.9e-255', '887.5', 'phenylalanine ammonia-lyase 1 [Arabidopsis thaliana]', 'Arabidopsis thaliana']
 
 			#print (fasta_no_gi[result[0]])
@@ -636,11 +637,12 @@ def write_xml(filename, results_db):
 			
 
 			#depending on legnth of result loop through this later
-
+		
 
 			for count in range(0, number_db):
+				#print (fasta_db[get_gi_num_from_string(result[1])])
 				file.write("\t\t\t\t<Hit>\n")
-				file.write("\t\t\t\t\t<Hit_num>1</Hit_num>\n")
+				file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
 				file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
 				file.write("\t\t\t\t\t<Hit_def>" + result[12] + "</Hit_def>\n")
 				file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
@@ -653,20 +655,18 @@ def write_xml(filename, results_db):
 				file.write("\t\t\t\t\t\t\t<Hsp_evalue>" + result[10] + "</Hsp_evalue>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_query-from>" + result[6] + "</Hsp_query-from>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_query-to>" + result[7] + "</Hsp_query-to>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_hit-from>1</Hsp_hit-from>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_hit-to>145</Hsp_hit-to>\n")
+				file.write("\t\t\t\t\t\t\t<Hsp_hit-from>0</Hsp_hit-from>\n")
+				file.write("\t\t\t\t\t\t\t<Hsp_hit-to>0</Hsp_hit-to>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_pattern-from>0</Hsp_pattern-from>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_pattern-to>0</Hsp_pattern-to>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_query-frame>0</Hsp_query-frame>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_hit-frame>0</Hsp_hit-frame>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_identity>133</Hsp_identity>\n")
+				file.write("\t\t\t\t\t\t\t<Hsp_identity>0</Hsp_identity>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_positive>0</Hsp_positive>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_gaps>1</Hsp_gaps>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_align-len>146</Hsp_align-len>\n")
+				file.write("\t\t\t\t\t\t\t<Hsp_gaps>0</Hsp_gaps>\n")
+				file.write("\t\t\t\t\t\t\t<Hsp_align-len>" + result[3] + "</Hsp_align-len>\n")
 				file.write("\t\t\t\t\t\t\t<Hsp_density>0</Hsp_density>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_no_gi[result[0]] + "</Hsp_qseq>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_hseq>---</Hsp_hseq>\n")
-				file.write("\t\t\t\t\t\t\t<Hsp_midline>---</Hsp_midline>\n")
+				file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_db[get_gi_num_from_string(result[1])].replace("\n", "") + "</Hsp_qseq>\n")
 				file.write("\t\t\t\t\t\t</Hsp>\n")
 				file.write("\t\t\t\t\t</Hit_hsps>\n")
 				file.write("\t\t\t\t</Hit>\n")
@@ -797,6 +797,11 @@ if __name__ == '__main__':
 			print ("db complete -- now matching")
 			print (str(time.clock() - start_time) + " ::  time to complete db")
 			match_fasta(db)
+			
+			if settings[15] == "yes" or settings[15] == "y":
+				write_xml("blastxml_" + "db1" + "_" + date, annotation_log_entries)
+				#write_xml("blastxml_" + date, annotation_log_entries)
+
 			print (str(time.clock() - start_time) + " :: time to match fasta")
 			
 		
@@ -828,7 +833,14 @@ if __name__ == '__main__':
 			print("db, db2 complete -- now matching")
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2")
 			match_fasta(db)
+
+			if settings[15] == "yes" or settings[15] == "y":
+				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
+
 			match_fasta(db2)
+			
+			if settings[15] == "yes" or settings[15] == "y":
+				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")	
 
 
@@ -865,8 +877,14 @@ if __name__ == '__main__':
 			print("db, db2, db3 complete -- now matching")
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2, db3")
 			match_fasta(db)
+			if settings[15] == "yes" or settings[15] == "y":
+				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
 			match_fasta(db2)
+			if settings[15] == "yes" or settings[15] == "y":
+				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
 			match_fasta(db3)
+			if settings[15] == "yes" or settings[15] == "y":
+				write_xml("blastxml_" + "db3_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")
 
 
@@ -899,11 +917,9 @@ if __name__ == '__main__':
 	
 	print (str(time.clock() - start_time) + " seconds")
 	print("complete -- annotation file now available")
+	print ("printing db")
+	#print (db)
 
-
-	if settings[15] == "yes" or settings[15] == "y":
-		write_xml("blastxml_"+date, annotation_log_entries)		
-		
 
 	
 	if settings[16] != "":
