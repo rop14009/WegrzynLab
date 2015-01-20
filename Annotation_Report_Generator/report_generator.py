@@ -106,6 +106,7 @@ def multi_fasta_parse(file_name):
 	
 	#print ("test:  " + str(fasta_db["224126497"]))
 	#print (fasta_db)
+	print ("finished building a fasta db")
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
 '''
@@ -157,17 +158,8 @@ def find_best_query_result(query1, query2):
 
 	#print (query2)
 
-
-
-	try:
-		query1_coverage = float(query1[3]) / float(len(fasta_no_gi[str(query1[0][0:query1[0].index("|")])]))
-		query2_coverage = float(query2[3]) / float(len(fasta_no_gi[str(query2[0][0:query2[0].index("|")])]))
-	except ValueError:
-		query1_coverage = float(query1[3]) / float(len(fasta_no_gi[str(query1[0])]))
-		query2_coverage = float(query2[3]) / float(len(fasta_no_gi[str(query2[0])]))
-
-
-
+	query1_coverage = float(query1[3]) / float(len(fasta_no_gi[trim_query_name(query1[0])]))
+	query2_coverage = float(query2[3]) / float(len(fasta_no_gi[trim_query_name(query2[0])]))
 
 	#print ("query1 coverage: " + str(query1_coverage))
 	#print ("query2 coverage: " + str(query2_coverage))
@@ -263,6 +255,11 @@ def parse_e_value(e_val):
 
 
 
+def trim_query_name(query_name):
+	if "|" in query_name:
+		return query_name[:query_name.index("|")]
+	else:
+		return query_name
 
 '''
 NCBI format
@@ -342,34 +339,24 @@ def usearch_format_db_parse(file_name):
 	
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
+		print ("Now parsing DB")
 		for line in file_tsv:
-			
-			#determine query name format
-			try:
-				temp_index = line[0].index("|")
-			except ValueError:
-				temp_index = len(line[0])
-
-			if not fasta_no_gi.get(str(line[0][:temp_index])) is None and not fasta_db.get(str(get_gi_num_from_string(line[1]))) is None:
+			if not fasta_db.get(str(get_gi_num_from_string(line[1]))) is None:
 				num_queries += 1
 				#print (get_gi_num_from_string(line[1]))
-				[key, in_db] = is_query_in_db(line[0], usearch_db)		
+				#[key, in_db] = is_query_in_db(line[0], usearch_db)		
 				#print (fasta_db_description)
 
 				#print (line)
-				if not fasta_db.get(str(get_gi_num_from_string(line[1]))) is None:
-					if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
-						num_queries_uninformative += 1
-					
-					if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
-						contaminants_found[str(get_gi_num_from_string(line[1]))] = fasta_db_species[str(get_gi_num_from_string(line[1]))]
-						
-
-				if in_db:
-					#print (usearch_db[key] )
-					#print (line)
-					usearch_db[str(key)] = find_best_query_result(usearch_db[key], line)
-				else:
+				if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
+					num_queries_uninformative += 1
+				
+				if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
+					contaminants_found[str(get_gi_num_from_string(line[1]))] = fasta_db_species[str(get_gi_num_from_string(line[1]))]
+				
+				if not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None and not fasta_no_gi.get(trim_query_name(line[0])) is None:
+					usearch_db[str(get_gi_num_from_string(line[1]))] = find_best_query_result(usearch_db[str(get_gi_num_from_string(line[1]))], line)
+				elif not fasta_no_gi.get(trim_query_name(line[0])) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = line
 			
 				#length = int(line[7]) - int(line[6])
@@ -385,6 +372,7 @@ def usearch_format_db_parse(file_name):
 				if length < shortest_query_length:
 					shortest_query_length = length
 		#print (usearch_db)
+		print ("db complete parsing")
 		return usearch_db
 
 
@@ -534,7 +522,7 @@ def match_fasta(db):
 	global fasta_no_gi
 	
 	annotation_log_entries = dict()	
-
+	print ("matching fasta")
 	if fasta_no_gi != "no_file":
 		#scan through every elemeny in fasta_no_gi and return the best match from DB
 		for element in fasta_no_gi:
@@ -581,7 +569,7 @@ def parse_fasta_no_gi(file_name):
 					description += str(line)
 	
 	return_dict[query] = description
-
+	print ("finished parsing query fasta")
 	return return_dict	
 
 
