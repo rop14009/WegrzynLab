@@ -49,6 +49,11 @@ def parse_config_file(file_path):
 	return config_file_settings
 	
 def get_gi_num_from_string(line):
+	global is_tair
+	if is_tair:
+		#print (line)
+		return line
+
 	line = line[3:] # we know the first 3 characters are "gi|" so they can be removed
 	return_string = ""
 	for char in line:
@@ -67,9 +72,27 @@ def get_gi_string(line):
 			return temp_string[1:] # first char cut off since we know it to be ">"
 		temp_string += char
 	return temp_string[1:]		
+
+
+#gets the index of the nth occurance of an element in a list
+def get_nth_index(n, element, l):
+	#print (l)
+	#print (n)
+	#print ((l.find(element)+1))
+	if n == 0:
+		return l
+	elif l.find(element) != -1:
+		n -= 1
+		return get_nth_index(n, element , l[l.find(element)+1:])
+	else:
+		print ("Error: there is no occurance of " + str(element) + " in list: " + str(l))
+		return -1 
+
 	
 # this method creates hashtable used for looking up fasta seq based off of gi
 def multi_fasta_parse(file_name):
+	global is_tair
+	
 	fasta_db = dict()
 	fasta_db_description = dict()
 	fasta_db_species = dict()
@@ -90,11 +113,24 @@ def multi_fasta_parse(file_name):
 					current_desc = ""
 					current_species = ""
 				
-				current_gi =  get_gi_num_from_string(get_gi_string(line))
-				current_desc = line[line.find(" "):line.find("[")].strip()
-				#print (current_desc)
-				current_species = line[line.find("[")+1:line.find("]")]
-				
+				#print (line[1:3])
+				if line[1:3] == "AT":
+					
+					if not is_tair:
+						is_tair = True
+
+					#print (line)
+					modified_line = get_nth_index(2,"|",line)
+					current_gi = line[1:line.find(" ")] 
+					current_desc = modified_line[1:modified_line.find("|")]
+					#print (current_desc)
+					current_species = "Arabidopsis Thaliana"
+					#print (current_species)
+				else:	# genebank
+					current_gi =  get_gi_num_from_string(get_gi_string(line))
+					current_desc = line[line.find(" "):line.find("[")].strip()
+					current_species = line[line.find("[")+1:line.find("]")]
+					
 			else:
 				current_protein_seq += line
 
@@ -352,6 +388,7 @@ def usearch_format_db_parse(file_name):
 	current_query = ""
 	first_row = 1
 
+	global is_tair
 
 	global contaminants	
 	global contaminants_found
@@ -392,31 +429,10 @@ def usearch_format_db_parse(file_name):
 				if not fasta_no_gi.get(trim_query_name(line[0])) is None and not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None:
 					
 					usearch_db[str(get_gi_num_from_string(line[1]))] = find_best_query_result(usearch_db[str(get_gi_num_from_string(line[1]))], line)
-					
-					'''
-					if db_count == 0:
-						query_gi_association_db_0[trim_query_name(line[0])] = usearch_db[str(get_gi_num_from_string(line[1]))]
-					elif db_count == 1:
-						query_gi_association_db_1[trim_query_name(line[0])] = usearch_db[str(get_gi_num_from_string(line[1]))]
-					elif db_count == 2:
-						query_gi_association_db_2[trim_query_name(line[0])] = usearch_db[str(get_gi_num_from_string(line[1]))]
-					'''
 				elif not fasta_no_gi.get(trim_query_name(line[0])) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = line
-					
-					'''
-					if db_count == 0 and query_gi_association_db_0.get(trim_query_name(line[0])) is None:
-						query_gi_association_db_0[trim_query_name(line[0])] = line 
-					elif db_count == 1 and query_gi_association_db_1.get(trim_query_name(line[0])) is None:
-						query_gi_association_db_1[trim_query_name(line[0])] = line
-					elif db_count == 2 and query_gi_association_db_2.get(trim_query_name(line[0])) is None:
-						query_gi_association_db_2[trim_query_name(line[0])] = line
-					'''
-
-
 				
-					
-				
+				#print (usearch_db)
 
 				#length = int(line[7]) - int(line[6])
 				length = float(line[3])
@@ -430,8 +446,10 @@ def usearch_format_db_parse(file_name):
 					longest_query_length = length
 				if length < shortest_query_length:
 					shortest_query_length = length
-		
-
+			else:
+				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
+				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
+				sys.exit()
 		for key,value in usearch_db.items():
 			#print (key)
 			#print (value)
@@ -446,7 +464,7 @@ def usearch_format_db_parse(file_name):
 			#print (get_current_db())
 		#print (usearch_db)
 		print ("db complete parsing")
-		print (get_current_db())
+		#print (get_current_db())
 		#print (query_gi_association_db_0)
 		db_count += 1
 		return usearch_db
@@ -537,7 +555,7 @@ Re-evaluate the logic within this method later, it seems some of the else clause
 '''
 
 def write_contaminants_log(element,log_name):
-	element = "".join(element)
+	element = "".join(str(element))
 	if number_db == 1:
 		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
 			file = open(log_name+".txt", "w")
@@ -651,7 +669,7 @@ def parse_fasta_no_gi(file_name):
 				#print (description)
 				if description != "":
 					#print (query)
-					return_dict[query] = description
+					return_dict[trim_query_name(query)] = description
 					description = ""
 				
 				query = str(line[1:-1])
@@ -665,6 +683,7 @@ def parse_fasta_no_gi(file_name):
 	
 	return_dict[query] = description
 	print ("finished parsing query fasta")
+	#print (return_dict)
 	return return_dict	
 
 
@@ -833,7 +852,8 @@ if __name__ == '__main__':
 
 	global fasta_no_gi
 
-
+	global is_tair
+	is_tair = False
 	global db_count # this var keeps track of which db is currently being loaded into memory (in order to keep query/gi associations per db)
 	db_count = 0
 
