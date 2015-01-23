@@ -91,7 +91,8 @@ def multi_fasta_parse(file_name):
 					current_species = ""
 				
 				current_gi =  get_gi_num_from_string(get_gi_string(line))
-				current_desc = line[line.find(" "):].strip()
+				current_desc = line[line.find(" "):line.find("[")].strip()
+				#print (current_desc)
 				current_species = line[line.find("[")+1:line.find("]")]
 				
 			else:
@@ -277,6 +278,7 @@ Field 10: 1-based position of end in target
 Field 11: e value
 Field 12: bit score
 '''	
+#this method is currently depreicated (DO NOT USE UNTIL UPDATED)
 def ncbi_format_db_parse(file_name):
 	ncbi_db = dict()
 	temp_query_group= dict()
@@ -314,7 +316,32 @@ def ncbi_format_db_parse(file_name):
 
 		return ncbi_db
 	
+
+
+# This is a helper method to usearch format db parse to ensure that the best mach for each query is made
+def is_query_present(query):
+	global query_gi_association_db_0
+	global query_gi_association_db_1
+	global query_gi_association_db_2
 	
+	global db_count
+
+	return get_current_db().get(query)
+
+def get_current_db():
+	global db_count
+	global query_gi_association_db_0
+	global query_gi_association_db_1
+	global query_gi_association_db_2
+	if db_count == 0:
+		return query_gi_association_db_0
+	elif db_count == 1:
+		return query_gi_association_db_1
+	else:
+		return query_gi_association_db_2
+
+
+
 '''
 usearch_db format
 find later
@@ -336,7 +363,12 @@ def usearch_format_db_parse(file_name):
 	global num_queries_uninformative
 	global fasta_db_species
 	global fasta_no_gi
-	
+	global db_count
+
+	global query_gi_association_db_0
+	global query_gi_association_db_1
+	global query_gi_association_db_2
+
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
 		print ("Now parsing DB")
@@ -348,17 +380,44 @@ def usearch_format_db_parse(file_name):
 				#print (fasta_db_description)
 
 				#print (line)
+
+				line[0] = trim_query_name(line[0])
+
 				if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
 					num_queries_uninformative += 1
 				
 				if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
-					contaminants_found[str(get_gi_num_from_string(line[1]))] = fasta_db_species[str(get_gi_num_from_string(line[1]))]
+					contaminants_found[str(get_gi_num_from_string(line[1]))] = line
 				
-				if not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None and not fasta_no_gi.get(trim_query_name(line[0])) is None:
+				if not fasta_no_gi.get(trim_query_name(line[0])) is None and not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None:
+					
 					usearch_db[str(get_gi_num_from_string(line[1]))] = find_best_query_result(usearch_db[str(get_gi_num_from_string(line[1]))], line)
+					
+					'''
+					if db_count == 0:
+						query_gi_association_db_0[trim_query_name(line[0])] = usearch_db[str(get_gi_num_from_string(line[1]))]
+					elif db_count == 1:
+						query_gi_association_db_1[trim_query_name(line[0])] = usearch_db[str(get_gi_num_from_string(line[1]))]
+					elif db_count == 2:
+						query_gi_association_db_2[trim_query_name(line[0])] = usearch_db[str(get_gi_num_from_string(line[1]))]
+					'''
 				elif not fasta_no_gi.get(trim_query_name(line[0])) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = line
-			
+					
+					'''
+					if db_count == 0 and query_gi_association_db_0.get(trim_query_name(line[0])) is None:
+						query_gi_association_db_0[trim_query_name(line[0])] = line 
+					elif db_count == 1 and query_gi_association_db_1.get(trim_query_name(line[0])) is None:
+						query_gi_association_db_1[trim_query_name(line[0])] = line
+					elif db_count == 2 and query_gi_association_db_2.get(trim_query_name(line[0])) is None:
+						query_gi_association_db_2[trim_query_name(line[0])] = line
+					'''
+
+
+				
+					
+				
+
 				#length = int(line[7]) - int(line[6])
 				length = float(line[3])
 		
@@ -371,8 +430,25 @@ def usearch_format_db_parse(file_name):
 					longest_query_length = length
 				if length < shortest_query_length:
 					shortest_query_length = length
+		
+
+		for key,value in usearch_db.items():
+			#print (key)
+			#print (value)
+			#print (element)	
+			# if query is present then compare to existing version to see which is better
+			if not is_query_present(value[0]) is None:
+				get_current_db()[value[0]] = find_best_query_result(value,  get_current_db()[value[0]])
+			# else if query is not present then add the current db
+			else:
+				get_current_db()[value[0]] = value
+
+			#print (get_current_db())
 		#print (usearch_db)
 		print ("db complete parsing")
+		print (get_current_db())
+		#print (query_gi_association_db_0)
+		db_count += 1
 		return usearch_db
 
 
@@ -521,29 +597,48 @@ def match_fasta(db):
 	global fasta_db_species
 	global fasta_no_gi
 	
+
+	global query_gi_association_db_0
+	global query_gi_association_db_1
+	global query_gi_association_db_2
+
+	global db_count
+
+
 	annotation_log_entries = dict()	
 	print ("matching fasta")
 	if fasta_no_gi != "no_file":
 		#scan through every elemeny in fasta_no_gi and return the best match from DB
 		for element in fasta_no_gi:
 			#print (fasta_no_gi[element])
-			[key, is_present] = is_query_in_db(element, db)
-			key = str(key)
+			#[key, is_present] = is_query_in_db(element, db)
+			#key = str(key)
 			#print (key)
 			#print (db[key])
 			#print (is_present)
-			if is_present:
-				key_new = str(get_gi_num_from_string(db[key][1]))
-				if annotation_log_entries.get(key) is None:
-					annotation_log_entries[key] = db[key] + [fasta_db_description[key_new]] + [fasta_db_species[key_new]]
-				else:
-					annotation_log_entries[key] = annotation_log_entries[key] + (db[key] + [fasta_db_description[key_new]] + [fasta_db_species[key_new]])
-				del db[key]
-			else:
-				#print ("no hit += 1")
-				#print (element)
-				num_queries_no_hit += 1
+			
+			# The query variable is the line from the DB containing the matching query
+			if db_count == 0:
+				query = query_gi_association_db_0.get(element)
+			elif db_count == 1:
+				query = query_gi_association_db_1.get(element)
+			elif db_count == 2:
+				query = query_gi_association_db_2.get(element)
 
+	
+			if not query is None:
+				key = str(get_gi_num_from_string(query[1]))
+				#print (key)
+				if annotation_log_entries.get(key) is None:
+					annotation_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+				else:
+					#print (db[key])
+					#print ([fasta_db_description[key]] + [fasta_db_species[key]])
+					annotation_log_entries[key] = annotation_log_entries[key] + db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+			else:
+				num_queries_no_hit += 1
+	print ("finished matching db: " + str(db_count))
+	db_count += 1			
 
 def parse_fasta_no_gi(file_name):
 	return_dict = dict()
@@ -571,7 +666,6 @@ def parse_fasta_no_gi(file_name):
 	return_dict[query] = description
 	print ("finished parsing query fasta")
 	return return_dict	
-
 
 
 '''
@@ -738,7 +832,20 @@ if __name__ == '__main__':
 	global fasta_db_species
 
 	global fasta_no_gi
+
+
+	global db_count # this var keeps track of which db is currently being loaded into memory (in order to keep query/gi associations per db)
+	db_count = 0
+
+	# These three contain the query name gi number associations for the three DBs so matching can be done in O(1) speed, at the cost of additional ram usage
+	global query_gi_association_db_0
+	global query_gi_association_db_1
+	global query_gi_association_db_2
 	
+	query_gi_association_db_0 = dict()
+	query_gi_association_db_1 = dict()
+	query_gi_association_db_2 = dict()
+
 	global e_value # this constant refers to the threshold to use for determining a "best match" in terms of queries
 	e_value = parse_e_value(settings[14]) 
 	print("min e val is :: " + str(e_value))
@@ -826,6 +933,7 @@ if __name__ == '__main__':
 				db = usearch_format_db_parse(settings[6])
 			print ("db complete -- now matching")
 			print (str(time.clock() - start_time) + " ::  time to complete db")
+			db_count = 0
 			match_fasta(db)
 			
 			if settings[15] == "yes" or settings[15] == "y":
@@ -862,7 +970,8 @@ if __name__ == '__main__':
 			
 			print("db, db2 complete -- now matching")
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2")
-			match_fasta(db)
+			db_count = 0
+			ch_fasta(db)
 
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
@@ -903,9 +1012,10 @@ if __name__ == '__main__':
 				db = usearch_format_db_parse(settings[6])
 				db2 = usearch_format_db_parse(settings[9])
 				db3 = usearch_format_db_parse(settings[12])
-
+			
 			print("db, db2, db3 complete -- now matching")
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2, db3")
+			db_count = 0
 			match_fasta(db)
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
