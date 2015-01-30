@@ -144,6 +144,7 @@ def multi_fasta_parse(file_name):
 	#print ("test:  " + str(fasta_db["224126497"]))
 	#print (fasta_db)
 	print ("finished building a fasta db")
+	print ("fasta db contains: " + str(len(fasta_db)) + " elements")
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
 '''
@@ -170,9 +171,9 @@ def find_best_query_result(query1, query2):
 	global fasta_no_gi
 	global contaminants_found
 
-	global num_queries_informative_hit
+	#global num_queries_informative_hit
 	#global num_queries_no_hit #no hits
-	global num_queries_uninformative
+	#global num_queries_uninformative
 
 	global min_coverage # 0.7 --> refers to 70% coverage
         global e_value # 1e-5 / 0.00001
@@ -227,8 +228,6 @@ def find_best_query_result(query1, query2):
 	if is_uninformative(fasta_db_description[query2_gi]):
 		fasta_db_description[query2_gi] = "uninformative"
 	
-
-
 	'''
 	print (str(query1) + " : uninformative : " + str(is_uninformative(fasta_db_description[query1_gi])))
 	print (str(query2) + " : uninformative : " + str(is_uninformative(fasta_db_description[query2_gi])))
@@ -333,7 +332,7 @@ def ncbi_format_db_parse(file_name):
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
 		for line in file_tsv:
-			num_queries += 1	
+			#num_queries += 1	
 			[key, in_db] = is_query_in_db(line[0], ncbi_db)
 
 			if in_db:
@@ -341,7 +340,7 @@ def ncbi_format_db_parse(file_name):
 			else:
 				ncbi_db[get_gi_num_from_string(line[1])] = line
 		
-
+		'''
 		length = int(line[4])
 		avg_length_query_sequence = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
 		median_query_length.append(length)
@@ -349,7 +348,7 @@ def ncbi_format_db_parse(file_name):
 			longest_query_length = length
 		if length < shortest_query_length:
 			shortest_query_length = length	
-
+		'''
 		return ncbi_db
 	
 
@@ -411,7 +410,7 @@ def usearch_format_db_parse(file_name):
 		print ("Now parsing DB")
 		for line in file_tsv:
 			if not fasta_db.get(str(get_gi_num_from_string(line[1]))) is None:
-				num_queries += 1
+				#num_queries += 1
 				#print (get_gi_num_from_string(line[1]))
 				#[key, in_db] = is_query_in_db(line[0], usearch_db)		
 				#print (fasta_db_description)
@@ -420,8 +419,9 @@ def usearch_format_db_parse(file_name):
 
 				line[0] = trim_query_name(line[0])
 
-				if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
-					num_queries_uninformative += 1
+
+				#if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
+				#	num_queries_uninformative += 1
 				
 				if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
 					contaminants_found[str(get_gi_num_from_string(line[1]))] = line
@@ -436,7 +436,7 @@ def usearch_format_db_parse(file_name):
 
 				#length = int(line[7]) - int(line[6])
 				length = float(line[3])
-		
+				'''
 				#print (length)
 				avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
 				#print (avg_length_query_sequences)
@@ -446,6 +446,7 @@ def usearch_format_db_parse(file_name):
 					longest_query_length = length
 				if length < shortest_query_length:
 					shortest_query_length = length
+				'''
 			else:
 				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
 				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
@@ -467,6 +468,7 @@ def usearch_format_db_parse(file_name):
 		#print (get_current_db())
 		#print (query_gi_association_db_0)
 		db_count += 1
+		print ("usearch db #" + str(db_count) + " contains: " + str(len(usearch_db)) + " elements")
 		return usearch_db
 
 
@@ -683,6 +685,7 @@ def parse_fasta_no_gi(file_name):
 	
 	return_dict[query] = description
 	print ("finished parsing query fasta")
+	print ("query fasta contains: " + str(len(return_dict)) + " elements")
 	#print (return_dict)
 	return return_dict	
 
@@ -731,6 +734,7 @@ def write_xml(filename, results_db):
 	global number_db
 	global fasta_no_gi
 	global fasta_db
+	global is_tair
 	print (filename)
 	#rite header first
 	if not os.path.exists(filename+".xml"): # if file doesnt exist create it
@@ -757,7 +761,10 @@ def write_xml(filename, results_db):
 			file.write("\t<BlastOutput_reference>Altschul, et. al.</BlastOutput_reference>\n")
 			file.write("\t<BlastOutput_db>" + "db" + "</BlastOutput_db>\n")
 			file.write("\t<BlastOutput_query-ID>1</BlastOutput_query-ID>\n")
-			file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
+			if not is_tair:
+				file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
+			else:
+				file.write("\t<BlastOutput_query-def>" + result[1] + "</BlastOutput_query-def>\n")
 			file.write("\t<BlastOutput_query-len>" + result[3] + "</BlastOutput_query-len>\n")
 			file.write("\t<BlastOutput_param>\n")
 			file.write("\t\t<Parameters>\n")
@@ -774,7 +781,10 @@ def write_xml(filename, results_db):
 			file.write("\t\t<Iteration>\n")		
 			file.write("\t\t\t<Iteration_iter-num>1</Iteration_iter-num>\n")
 			file.write("\t\t\t<Iteration_query-ID>1</Iteration_query-ID>\n")
-			file.write("\t\t\t<Iteration_query-def>" + result[0] + "</Iteration_query-def>\n")
+			if not is_tair:
+				file.write("\t\t\t<Iteration_query-def>" + result[0] + "</Iteration_query-def>\n")
+			else:
+				file.write("\t\t\t<Iteration_query-def>" + result[1] + "</Iteration_query-def>\n")
 			file.write("\t\t\t<Iteration_query-len>" + result[3] + "</Iteration_query-len>\n")
 			file.write("\t\t\t<Iteration_hits>\n")
 			
@@ -792,7 +802,7 @@ def write_xml(filename, results_db):
 					file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
 					file.write("\t\t\t\t\t<Hit_hsps>\n")
 					file.write("\t\t\t\t\t\t<Hsp>\n")
-					file.write("\t\t\t\t\t\t\t<Hit_num>1</Hit_num>\n")	
+					file.write("\t\t\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")	
 					file.write("\t\t\t\t\t\t\t<Hsp_bit-score>" + result[3] + "</Hsp_bit-score>\n")
 					file.write("\t\t\t\t\t\t\t<Hsp_score>0</Hsp_score>\n")
 					file.write("\t\t\t\t\t\t\t<Hsp_evalue>" + result[10] + "</Hsp_evalue>\n")
@@ -809,7 +819,12 @@ def write_xml(filename, results_db):
 					file.write("\t\t\t\t\t\t\t<Hsp_gaps>0</Hsp_gaps>\n")
 					file.write("\t\t\t\t\t\t\t<Hsp_align-len>" + result[3] + "</Hsp_align-len>\n")
 					file.write("\t\t\t\t\t\t\t<Hsp_density>0</Hsp_density>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_db[get_gi_num_from_string(result[1])].replace("\n", "") + "</Hsp_qseq>\n")
+					
+					#print (fasta_no_gi[str(result[0])])
+					#print ( fasta_db[get_gi_num_from_string(result[1])].replace("\n", ""))
+					file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_no_gi[str(result[0])] + "</Hsp_qseq>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_hseq>" +  fasta_db[get_gi_num_from_string(result[1])].replace("\n", "") + "</Hsp_hseq>\n")
+					
 					file.write("\t\t\t\t\t\t</Hsp>\n")
 					file.write("\t\t\t\t\t</Hit_hsps>\n")
 					file.write("\t\t\t\t</Hit>\n")
@@ -826,6 +841,48 @@ def write_xml(filename, results_db):
 
 	else: #the file already exists
 		print ("The output for the xml file already exists -- check file directory to rename the file/remove it")
+
+
+# input will always be annotation_log_entries
+def calc_stats(results):
+	#global contaminants_found
+	global fasta_no_gi
+	global longest_query_length
+	global shortest_query_length
+	global median_query_length
+
+	global avg_length_query_sequences
+	global num_queries
+	global num_queries_informative_hit
+	#global num_queries_no_hit
+	global num_queries_uninformative
+
+	
+	for element in results:
+		temp = results[element]
+		gi = str(get_gi_num_from_string(temp[1]))
+		query_length = len(fasta_no_gi[temp[0]])
+		num_queries += 1
+		#print (num_queries)
+		#if fasta_db_species[gi] in contaminants:
+			#contami++
+		
+		median_query_length.append(query_length)
+
+		avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + query_length) / num_queries)
+	
+		if query_length > longest_query_length:
+			longest_query_length = query_length
+		elif query_length < shortest_query_length:
+			shortest_query_length = query_length
+
+		if is_uninformative(fasta_db_description[gi]):
+			num_queries_uninformative += 1
+		else:
+			num_queries_informative_hit += 1
+		#print (temp)
+	
+
 
 
 #entry point of script				
@@ -1049,11 +1106,15 @@ if __name__ == '__main__':
 
 
 	
-		print ("calculating n50 statistic")
+		print ("calculating statistics")
+
+		calc_stats(annotation_log_entries)
+
+
 		median_query_length.sort() # sorts least to greatest
 		median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
 		n50_statistic = get_n50_statistic(median_query_length)
-		print (str(time.clock() - start_time) + " :: time to calculate n50 statistic")
+		#print (str(time.clock() - start_time) + " :: time to calculate n50 statistic")
 		
 		median_query_length = get_median(median_query_length)
 
@@ -1097,7 +1158,8 @@ if __name__ == '__main__':
 		print ("no interpro file has been specified, skipping combined annotation step")
 
 
-	num_queries_informative_hit = (num_queries - num_queries_uninformative)
+	#num_queries_informative_hit = (num_queries - num_queries_uninformative)
+	
 	if not os.path.exists(output_log+".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'w') as tsv_log:
 			tsv_log = csv.writer(tsv_log, delimiter='\t')
