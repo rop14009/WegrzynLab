@@ -1020,8 +1020,18 @@ def print_stats():
 			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
 			tsv_log.writerow(["number of contaminants: "] + [str(num_contaminants)])
 			tsv_log.writerow(["The top 10 hits by species: "])
-			for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey):
-				tsv_log.writerow([str(key)+": "] + [value])
+			if top_ten_hits:
+				for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey):
+					tsv_log.writerow([str(key)+": "] + [value])
+			else:
+				tsv_log.writerow(["No Hits from this DB (possible error)"])
+			tsv_log.writerow(["The top 10 contaminants by species: "])
+			if top_ten_contaminants:
+				for key,value in sorted(get_top_ten(top_ten_contaminants).iteritems(), key=getKey):
+					tsv_log.writerow([str(key)+": "] + [value])
+			else:
+				tsv_log.writerow(["No contaminants present"])
+
 			#print ("log files complete -- exititing")
 
 
@@ -1325,7 +1335,7 @@ if __name__ == '__main__':
 			
 		print ("writing contaminants log")
 		for key in contaminants_found:
-			#print (contaminants_found.get(key))
+			print (contaminants_found.get(key))
 			write_contaminants_log([contaminants_found.get(key)],"contaminants_" + date)
 		
 		
