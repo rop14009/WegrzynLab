@@ -12,6 +12,15 @@ import sys
 import os
 import csv
 
+
+# Returns the number of components, functions, and processes (in that order)
+def get_go_counts():
+	global num_component
+	global num_process
+	global num_function
+
+	return [num_component, num_process, num_function]
+
 def combined_anno_id_parser(id):
     current_char = ""
     return_string = ""
@@ -25,6 +34,10 @@ def combined_anno_id_parser(id):
     return return_string
 
 def parse_blast2go_column(row):
+	global num_component
+	global num_process
+	global num_function
+
 	process = list()
 	function = list()
 	component = list()
@@ -35,10 +48,13 @@ def parse_blast2go_column(row):
 		string = string.strip()
 		if string[:2] == "P:":
 			process.append(string)
+			num_process += 1
 		elif string[:2] == "F:":
 			function.append(string)
+			num_function += 1
 		elif string[:2] == "C:":
 			component.append(string)
+			num_component += 1
 	return [" ".join(process), " ".join(function), " ".join(component)]
 
 def make_blast2go_walnut_combined_dict(file_name):
@@ -61,10 +77,11 @@ def make_walnut_interpro_dict(file_name):
 			value_list.append(row[12])
 			walnut_interpro_data[id] = value_list
 			value_list = list()
+	#print (walnut_interpro_data)
 	return walnut_interpro_data
 
-'''
-legacy code from older version may/may not add back in later
+
+#legacy code from older version may/may not add back in later
 def print_usage():
 	print("To run this script use at least one of the following flags:")
 	print("--blast2go --interpro")
@@ -72,7 +89,7 @@ def print_usage():
 	print("EX: py combine_annotations.py --interpro annotation.tsv interpro.raw")
 	print("EX: py combine_annotations.py --blast2go annotation.tsv blast2go.txt output_file_name.tsv")
 	sys.exit(-1)
-'''	
+	
 
 #helper method for parse_flags
 def parse_input_params(param_list):
@@ -118,8 +135,8 @@ def parse_flags(param_list):
 	#check if --output flag is present
 	output = parse_output_param(param_list)
 	
-	print(input)
-	
+	#print(input)
+	#print (output)	
 	if len(output) != 2: #this means use default output
 		if len(input) == 4: #all params
 			return "all_params"
@@ -136,10 +153,30 @@ def parse_flags(param_list):
 				return "blast2go_custom_output"
 			elif determine_blast_or_interpro_input(param_list) == "interpro":
 				return "interpro_custom_output"	
-		
-if __name__ == '__main__':
+	
+
+def get_num_sequences_identification():
+	global count_sequences_identification
+	return count_sequences_identification
+
+	
+def main(args):
+	print ("appending interpro information now...")
+	global count_sequences_identification
+	
+	global num_component
+	global num_process
+	global num_function
+
+	num_component = 0
+	num_process = 0
+	num_function = 0
+	
+	count_sequences_identification = 0
+	
 	start_time = time.clock()
-	arguments_list = sys.argv
+	arguments_list = args
+	print (arguments_list)
 	params = parse_flags(arguments_list)
 	print (params)
 	if params == "all_params" or params == "all_params_custom_output":
@@ -189,11 +226,14 @@ if __name__ == '__main__':
 				tsv_new.writerow(combined_row)	
 	
 	elif params == "interpro" or params == "interpro_custom_output":
-		print("interpro custom output")
+		#print("interpro custom output")
 		if params == "interpro_custom_output":
 			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[2]
-			file_path_walnut_interpro = arguments_list[4]
+			#print (output)
+			file_path_combined_anno = arguments_list[1]
+			#print (file_path_combined_anno)
+			file_path_walnut_interpro = arguments_list[3]# changed to 3 from 4
+			#print (file_path_walnut_interpro)
 			if output == file_path_walnut_interpro or output == file_path_combined_anno:
 				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
 				#print_usage()
@@ -201,7 +241,7 @@ if __name__ == '__main__':
 			
 		else:
 			output = "combine_annotations.tsv"
-			file_path_combined_anno = arguments_list[2]
+			file_path_combined_anno = arguments_list[1]
 			file_path_walnut_interpro = arguments_list[4]
 		
 		file_path_blast2go_walnut = "None"
@@ -210,20 +250,22 @@ if __name__ == '__main__':
 		walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
 		with open(file_path_combined_anno,'r') as tsv_old, \
 		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
-			print(os.path.realpath(__file__) + "//" + output)
+			#print(os.path.realpath(__file__) + "//" + output)
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
 			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
+				#rint (row)
 				id = combined_anno_id_parser(row[0])
 				
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
-				
+				#rint (walnut_results_interpro)	
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
-					
+				else:
+					count_sequences_identification += 1
 				combined_row = row + walnut_results_interpro + ["N/A","N/A","N/A"]
 				tsv_new.writerow(combined_row)		
 		

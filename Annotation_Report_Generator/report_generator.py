@@ -7,6 +7,8 @@ import string
 import subprocess
 
 
+import combine_annotations
+
 def parse_config_line(line):
 	count = 0
 	return_string = ""
@@ -147,6 +149,20 @@ def multi_fasta_parse(file_name):
 	print ("fasta db contains: " + str(len(fasta_db)) + " elements")
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
+
+
+def uninformative_debug_log(element):
+	global date
+	if not os.path.exists("uninformative_" + date + ".txt"):
+		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + "uninformative_" + date + ".txt", 'a') as tsv_log:
+			tsv_log = csv.writer(tsv_log, delimiter='\t')
+			for key,value in element.items():
+				tsv_log.writerow([str(key)])
+
+
+
+
+
 '''
 [12:34:19 PM] Jill Wegrzyn: Yes for the e-value to make this decision on when to accept the "next best" hit where one would increment through 
 contaminants and no hits in the top five list - I would set a default e-value to 1e-5 in the configuration file but the user could modify this if they would like in such a file.
@@ -163,7 +179,13 @@ Some of this logic was built in for non-informative hits in the prior scripts an
 '''	
 
 def find_best_query_result(query1, query2):
-        #note: query1 is the pre-existing value in db
+        
+	#debug var
+	global debug_uninformative_list
+
+
+
+	#note: query1 is the pre-existing value in db
         #these variables are needed to determine informative/contaminant hits
         global fasta_db
         global fasta_db_description
@@ -196,8 +218,8 @@ def find_best_query_result(query1, query2):
 
 	#print (query2)
 
-	query1_coverage = float(query1[3]) / float(len(fasta_no_gi[trim_query_name(query1[0])]))
-	query2_coverage = float(query2[3]) / float(len(fasta_no_gi[trim_query_name(query2[0])]))
+	query1_coverage = float(query1[3]) / float(len(fasta_no_gi[query1[0]]))
+	query2_coverage = float(query2[3]) / float(len(fasta_no_gi[query2[0]]))
 
 	#print ("query1 coverage: " + str(query1_coverage))
 	#print ("query2 coverage: " + str(query2_coverage))
@@ -223,9 +245,15 @@ def find_best_query_result(query1, query2):
 
 
 	if is_uninformative(fasta_db_description[query1_gi]):
-		fasta_db_description[query1_gi] = "uninformative"
+		if fasta_db_description[query2_gi] != "uninformative":
+			debug_uninformative_list[fasta_db_description[query1_gi]] = fasta_db_description[query1_gi]
 
+		fasta_db_description[query1_gi] = "uninformative"					
 	if is_uninformative(fasta_db_description[query2_gi]):
+		
+		if fasta_db_description[query2_gi] != "uninformative":
+			debug_uninformative_list[fasta_db_description[query2_gi]] = fasta_db_description[query2_gi]
+		
 		fasta_db_description[query2_gi] = "uninformative"
 	
 	'''
@@ -416,8 +444,8 @@ def usearch_format_db_parse(file_name):
 				#print (fasta_db_description)
 
 				#print (line)
-
-				line[0] = trim_query_name(line[0])
+				if "|" in line[0]:
+					line[0] = trim_query_name(line[0])
 
 
 				#if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
@@ -426,10 +454,9 @@ def usearch_format_db_parse(file_name):
 				if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
 					contaminants_found[str(get_gi_num_from_string(line[1]))] = line
 				
-				if not fasta_no_gi.get(trim_query_name(line[0])) is None and not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None:
-					
+				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = find_best_query_result(usearch_db[str(get_gi_num_from_string(line[1]))], line)
-				elif not fasta_no_gi.get(trim_query_name(line[0])) is None:
+				elif not fasta_no_gi.get(line[0]) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = line
 				
 				#print (usearch_db)
@@ -611,7 +638,8 @@ def match_fasta(db):
 	global num_queries_uninformative
 	
 	global annotation_log_entries
-	
+	global temp_log_entries
+	temp_log_entries = dict()	
 	global fasta_db
 	global fasta_db_description
 	global fasta_db_species
@@ -648,15 +676,25 @@ def match_fasta(db):
 	
 			if not query is None:
 				key = str(get_gi_num_from_string(query[1]))
+				#print (query[0])
 				#print (key)
 				if annotation_log_entries.get(key) is None:
 					annotation_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					temp_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
 				else:
 					#print (db[key])
 					#print ([fasta_db_description[key]] + [fasta_db_species[key]])
 					annotation_log_entries[key] = annotation_log_entries[key] + db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					temp_log_entries[key] = temp_log_entries[key] + db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
 			else:
-				num_queries_no_hit += 1
+				#print (element)
+				num_queries_no_hit += 1	
+				#temp_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+				#temp_log_entries[key] = ["N/A","no_hit"]
+				
+				#print (fasta_no_gi[element])
+
+
 	print ("finished matching db: " + str(db_count))
 	db_count += 1			
 
@@ -664,16 +702,18 @@ def parse_fasta_no_gi(file_name):
 	return_dict = dict()
 	query = ""
 	description = ""
+	counter = 0
         with open(file_name,'r') as file:
                 for line in file:
 			if ">" in line:
+				#counter += 1
 				#print (query)
 				#print (description)
 				if description != "":
 					#print (query)
-					return_dict[trim_query_name(query)] = description
+					counter += 1
+					return_dict[query] = description
 					description = ""
-				
 				query = str(line[1:-1])
 				#print (query)
 				#return_dict[query] = description
@@ -686,7 +726,8 @@ def parse_fasta_no_gi(file_name):
 	return_dict[query] = description
 	print ("finished parsing query fasta")
 	print ("query fasta contains: " + str(len(return_dict)) + " elements")
-	#print (return_dict)
+	#print (len(return_dict))
+	#print (str(counter))
 	return return_dict	
 
 
@@ -704,7 +745,7 @@ step 4) return lengths[i-1]
 '''
 
 def get_n50_statistic(lengths):
-	print ("starting n50 calcs")
+	#print ("starting n50 calcs")
 	n50_lengths = 0
 	n50_index = 0
 	sum = 0
@@ -745,12 +786,6 @@ def write_xml(filename, results_db):
 		for key in results_db:
 
 			result = results_db[key]
-			#print (result)
-			# ['Contig_PtPAL2', 'gi|15228074|ref|NP_181241.1|', '63.2', '734', '242', '13', '182', '2329', '1', '724', '4.9e-255', '887.5', 'phenylalanine ammonia-lyase 1 [Arabidopsis thaliana]', 'Arabidopsis thaliana']
-
-			#print (fasta_no_gi[result[0]])
-
-
 			file.write("<?xml version=\"1.0\" ?>\n")
 			file.write("<!DOCTYPE BlastOutput\n")
 			file.write("\tPUBLIC \'-//NCBI//NCBI BlastOutput/EN\'\n")
@@ -846,27 +881,52 @@ def write_xml(filename, results_db):
 # input will always be annotation_log_entries
 def calc_stats(results):
 	#global contaminants_found
+	global db_count
 	global fasta_no_gi
 	global longest_query_length
 	global shortest_query_length
 	global median_query_length
-
+	global num_contaminants
 	global avg_length_query_sequences
 	global num_queries
 	global num_queries_informative_hit
-	#global num_queries_no_hit
+	global num_queries_no_hit
 	global num_queries_uninformative
+	global n50_statistic
+	global top_ten_hits
+	global top_ten_contaminants
 
-	
+	top_ten_hits = dict()
+	top_ten_contaminants = dict()
+	num_queries_uninformative = 0
+	num_queries_informative_hit = 0
+	num_queries = 0
+
+	median_query_length = list()
+	avg_length_query_sequences = 0
+
+	print ("calc stats called")
+
 	for element in results:
 		temp = results[element]
+		#print (temp)
+		num_queries += 1
 		gi = str(get_gi_num_from_string(temp[1]))
 		query_length = len(fasta_no_gi[temp[0]])
-		num_queries += 1
-		#print (num_queries)
-		#if fasta_db_species[gi] in contaminants:
-			#contami++
-		
+	
+
+		if not top_ten_hits.get(str(temp[13])) is None:
+			top_ten_hits[str(temp[13])] += 1 
+		else:
+			top_ten_hits[str(temp[13])] = 1
+	
+		if fasta_db_species[gi] in contaminants:
+			num_contaminants += 1
+			if not top_ten_contaminants.get(fasta_db_species[gi]) is None:
+				top_ten_contaminants[fasta_db_species[gi]] += 1		
+			else:
+				top_ten_contaminants[fasta_db_species[gi]] = 1
+
 		median_query_length.append(query_length)
 
 		avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + query_length) / num_queries)
@@ -880,23 +940,148 @@ def calc_stats(results):
 			num_queries_uninformative += 1
 		else:
 			num_queries_informative_hit += 1
-		#print (temp)
+#num_queries = len(results)
+	median_query_length.sort() # sorts least to greatest
+	median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
+	n50_statistic = get_n50_statistic(median_query_length)
+	median_query_length = get_median(median_query_length)
+	num_queries = num_queries_uninformative + num_queries_informative_hit + num_queries_no_hit
+	
+	#print (top_ten_hits)
 	
 
 
+def remove_smallest(top_list):
+	#print (len(top_list))
+	min_value = None
+	k = None
+	for key, value in top_list.iteritems():
+		#print (key)
+		#print (value)
+		if min_value is None:
+			min_value = value
+			k = key
+		elif value < min_value:
+			min_value = value	
+			k = key 
+	
+	#print (k)
+	#print (min_value)	
+	#print (top_list[k])
+	if top_list:
+		del top_list[k]
+	return top_list
+
+
+
+def get_top_ten(top_list):
+	#ret_list = list()
+	
+	if len(top_list) < 10:
+		return top_list
+	else:
+		while len(top_list) > 10:
+			top_list = remove_smallest(top_list)
+			#print (top_list)
+	return top_list
+
+
+# this is a helper method to allow the sorted() call to sort the tuples by second value
+def getKey(item):
+	return item[1]
+
+def print_stats():
+	global fasta_no_gi
+	global longest_query_length
+	global shortest_query_length
+	global median_query_length
+	global num_contaminants
+	global avg_length_query_sequences
+	global num_queries
+	global num_queries_informative_hit
+	#global num_queries_no_hit
+	global num_queries_uninformative
+	global db_count
+	global n50_statistic	
+	global top_ten_hits
+
+	if not os.path.exists(output_log + ".txt"):
+		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
+			tsv_log = csv.writer(tsv_log, delimiter='\t')
+			tsv_log.writerow(["DB number: "] + [str(db_count)])
+			tsv_log.writerow(["num_queries: "] + [str(num_queries)])
+			tsv_log.writerow(["median query length: "] + [str(median_query_length)])
+			tsv_log.writerow(["average query length: "] + [str(round(avg_length_query_sequences,2))])
+			tsv_log.writerow(["shortest query length: "] + [str(shortest_query_length)])
+			tsv_log.writerow(["longest query length: "] + [str(longest_query_length)])
+			tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
+			tsv_log.writerow(["num_queries_informative_hit: "] + [str(num_queries_informative_hit)])
+			tsv_log.writerow(["num_queries_no_hit: "] + [str(num_queries_no_hit)])
+			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
+			tsv_log.writerow(["number of contaminants: "] + [str(num_contaminants)])
+			tsv_log.writerow(["The top 10 hits by species: "])
+			for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey):
+				tsv_log.writerow([str(key)+": "] + [value])
+			#print ("log files complete -- exititing")
+
+
+def print_summary_stats():
+	global annotation_log_entries
+	global longest_query_length
+	global shortest_query_length
+	global median_query_length
+	global num_contaminants
+	global avg_length_query_sequences
+	global num_queries
+	global num_queries_informative_hit
+
+	global top_ten_contaminants
+
+
+
+	calc_stats(annotation_log_entries)
+
+	if not os.path.exists(output_log + ".txt"):
+		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
+			tsv_log = csv.writer(tsv_log, delimiter='\t')
+			tsv_log.writerow(["Summary Statistics"])
+			tsv_log.writerow(["num_queries: "] + [str(num_queries)])
+			tsv_log.writerow(["median query length: "] + [str(median_query_length)])
+			tsv_log.writerow(["average query length: "] + [str(round(avg_length_query_sequences,2))])
+			tsv_log.writerow(["shortest query length: "] + [str(shortest_query_length)])
+			tsv_log.writerow(["longest query length: "] + [str(longest_query_length)])
+			tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
+			tsv_log.writerow(["num_queries_informative_hit: "] + [str(num_queries_informative_hit)])
+			tsv_log.writerow(["num_queries_no_hit: "] + [str(num_queries_no_hit)])
+			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
+			tsv_log.writerow(["number of contaminants: "] + [str(num_contaminants)])
+			tsv_log.writerow(["The top 10 contaminants: "])
+			#print (top_ten_contaminants)
+			if top_ten_contaminants:
+				for key,value in sorted(get_top_ten(top_ten_contaminants).iteritems(), key=getKey):
+					tsv_log.writerow([str(key)+": "] + [value])
+			else:
+				tsv_log.writerow(["No contaminants present"])
 
 #entry point of script				
 if __name__ == '__main__':
 	start_time = time.clock()
-	arguments_list = sys.argv
 	
+	global debug_uninformative_list
+	debug_uninformative_list = dict()
+	arguments_list = sys.argv
+	global date	
 	date = str(datetime.datetime.now())
 	print(date)
 	settings = parse_config_file("configuration_file.txt") #sets up the settings
 	output_log = "log_" + date + ".txt"
 	
+	global top_ten_hits
+	global top_ten_contaminants	
 	global annotation_log_entries
 	annotation_log_entries = dict()
+	global temp_log_entries
+	temp_log_entries = dict() # used for calculating statistics on DBs
 	global filter_list
 	global contaminants
 	global number_db
@@ -932,7 +1117,10 @@ if __name__ == '__main__':
 	global longest_query_length
 	global shortest_query_length
 	global median_query_length
-	
+	global num_contaminants
+	global n50_statistic
+	n50_statistic = 0
+	num_contaminants = 0	
 	longest_query_length = -2147483648
 	shortest_query_length = 2147483647
 	median_query_length = list()
@@ -991,8 +1179,6 @@ if __name__ == '__main__':
 		
 		#print(range (0, (number_db)))
 		
-		n50_statistic = None
-
 		if number_db == 1: #database/fasta pair 1
 			print("1 database/fasta pair")
 			#print (settings[6] != "")
@@ -1012,7 +1198,12 @@ if __name__ == '__main__':
 			print (str(time.clock() - start_time) + " ::  time to complete db")
 			db_count = 0
 			match_fasta(db)
+			calc_stats(temp_log_entries)
+			print_stats()
 			
+
+			uninformative_debug_log(debug_uninformative_list)
+
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1" + "_" + date, annotation_log_entries)
 				#write_xml("blastxml_" + date, annotation_log_entries)
@@ -1031,6 +1222,9 @@ if __name__ == '__main__':
 			[fasta_db, fasta_db_description, fasta_db_species] = multi_fasta_parse(settings[5])
 			[fasta_db2, fasta_db_description2, fasta_db_species2] = multi_fasta_parse(settings[8])
 
+			
+
+
 			fasta_db.update(fasta_db2)
 			fasta_db_description.update(fasta_db_description2)
 			fasta_db_species.update(fasta_db_species2)
@@ -1048,13 +1242,15 @@ if __name__ == '__main__':
 			print("db, db2 complete -- now matching")
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2")
 			db_count = 0
-			ch_fasta(db)
-
+			match_fasta(db)
+			calc_stats(temp_log_entries)
+			print_stats()
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
 
 			match_fasta(db2)
-			
+			calc_stats(temp_log_entries)
+			print_stats()
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")	
@@ -1094,30 +1290,28 @@ if __name__ == '__main__':
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2, db3")
 			db_count = 0
 			match_fasta(db)
+			calc_stats(temp_log_entries)
+			print_stats()
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
 			match_fasta(db2)
+			calc_stats(temp_log_entries)
+			print_stats()
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
 			match_fasta(db3)
+			calc_stats(temp_log_entries)
+			print_stats()
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db3_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")
 
-
 	
-		print ("calculating statistics")
+		#print ("calculating statistics")
 
-		calc_stats(annotation_log_entries)
+		#calc_stats(annotation_log_entries)
 
-
-		median_query_length.sort() # sorts least to greatest
-		median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
-		n50_statistic = get_n50_statistic(median_query_length)
-		#print (str(time.clock() - start_time) + " :: time to calculate n50 statistic")
 		
-		median_query_length = get_median(median_query_length)
-
 		print ("writing annotation log entires")
 		for key in annotation_log_entries:
 			tsv_new.writerow(annotation_log_entries[key])
@@ -1127,8 +1321,8 @@ if __name__ == '__main__':
 		#after parsing of all fasta elements add all missed hits to nohits file
 		for key in db:
 			write_log(db.get(key)[0],"nohits_"+ date)
-
-
+		
+			
 		print ("writing contaminants log")
 		for key in contaminants_found:
 			#print (contaminants_found.get(key))
@@ -1147,30 +1341,27 @@ if __name__ == '__main__':
 		print ("option to include interpro output has been checked, filepath to interpro: " + settings[16]) 
 		print ("calling external script to complete task")
 		
+		#combine_annotations.main(" --input "  + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv")
+		combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
+		print ("num sequences ID: " + str(combine_annotations.get_num_sequences_identification()))
+		go_counts = combine_annotations.get_go_counts()
+		print ("number GO: C: " +str(go_counts[0]) + " F: " + str(go_counts[1]) + " P: " + str(go_counts[2]))		
+			
+		
+		if not os.path.exists(output_log + ".txt"):
+			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
+				tsv_log = csv.writer(tsv_log, delimiter='\t')
+				tsv_log.writerow(["Gene Ontology Stats (from interpro file)"])
+				tsv_log.writerow(["Component: "] + [str(go_counts[0])])
+				tsv_log.writerow(["Function: "] + [str(go_counts[1])])
+				tsv_log.writerow(["Process: "] + [str(go_counts[2])])
 
-		ret_val = subprocess.Popen("python combine_annotations.py --input " + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv", shell=False)
 
-		if ret_val != 0:
-			print ("external script failed to generate files and terminated with error code: " + ret_val)
-		else:
-			print ("external script executed correctly and successfully generated the output annotation file, with name: " )
+
 	else:
 		print ("no interpro file has been specified, skipping combined annotation step")
 
 
 	#num_queries_informative_hit = (num_queries - num_queries_uninformative)
-	
-	if not os.path.exists(output_log+".txt"):
-		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'w') as tsv_log:
-			tsv_log = csv.writer(tsv_log, delimiter='\t')
-			tsv_log.writerow(["num_queries: "] + [str(num_queries)])
-			tsv_log.writerow(["median query length: "] + [str(median_query_length)])
-			tsv_log.writerow(["average query length: "] + [str(round(avg_length_query_sequences,2))])
-			tsv_log.writerow(["shortest query length: "] + [str(shortest_query_length)])
-			tsv_log.writerow(["longest query length: "] + [str(longest_query_length)])
-			tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
-			tsv_log.writerow(["num_queries_informative_hit: "] + [str(num_queries_informative_hit)])
-			tsv_log.writerow(["num_queries_no_hit: "] + [str(num_queries_no_hit)])
-			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
-			print ("log files complete -- exititing")
-			exit()
+	print_summary_stats()
+	print ("Completed everything -- Now exiting")
