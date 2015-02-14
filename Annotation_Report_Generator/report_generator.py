@@ -444,6 +444,9 @@ def usearch_format_db_parse(file_name):
 				#print (fasta_db_description)
 
 				#print (line)
+				
+				line[0] = str(line[0].split(" ")[0])
+
 				if "|" in line[0]:
 					line[0] = trim_query_name(line[0])
 
@@ -453,11 +456,17 @@ def usearch_format_db_parse(file_name):
 				
 				if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
 					contaminants_found[str(get_gi_num_from_string(line[1]))] = line
-				
+				'''					
+				if not fasta_no_gi.get(line[0]):
+					print ("not in fasta db")
+					print (line[0])
+				'''	
+
 				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = find_best_query_result(usearch_db[str(get_gi_num_from_string(line[1]))], line)
 				elif not fasta_no_gi.get(line[0]) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = line
+		
 				
 				#print (usearch_db)
 
@@ -532,6 +541,7 @@ def is_uninformative(fasta_db_element):
 	return False
 
 def write_log(element, log_name):
+	global counter
 	if number_db == 1:
 		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
 			print ("creating new logfile with name: " + log_name)
@@ -584,6 +594,7 @@ Re-evaluate the logic within this method later, it seems some of the else clause
 '''
 
 def write_contaminants_log(element,log_name):
+	global counter
 	element = "".join(str(element))
 	if number_db == 1:
 		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
@@ -710,6 +721,7 @@ def parse_fasta_no_gi(file_name):
 				#print (query)
 				#print (description)
 				if description != "":
+					query = str(query.split(" ")[0])
 					#print (query)
 					counter += 1
 					return_dict[query] = description
@@ -1248,7 +1260,10 @@ if __name__ == '__main__':
 			else:
 				db = usearch_format_db_parse(settings[6])
 				db2 = usearch_format_db_parse(settings[9])
-			
+		
+			#print (len(db))
+			#print (len(db2))
+	
 			print("db, db2 complete -- now matching")
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2")
 			db_count = 0
@@ -1335,14 +1350,13 @@ if __name__ == '__main__':
 			
 		print ("writing contaminants log")
 		for key in contaminants_found:
-			print (contaminants_found.get(key))
 			write_contaminants_log([contaminants_found.get(key)],"contaminants_" + date)
 		
 		
 	
 	print (str(time.clock() - start_time) + " seconds")
 	print("complete -- annotation file now available")
-	print ("printing db")
+	#print ("printing db")
 	#print (db)
 
 
