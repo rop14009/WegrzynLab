@@ -696,6 +696,7 @@ def match_fasta(db):
 					#print (db[key])
 					#print ([fasta_db_description[key]] + [fasta_db_species[key]])
 					annotation_log_entries[key] = annotation_log_entries[key] + db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					#print (db[key])
 					temp_log_entries[key] = temp_log_entries[key] + db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
 			else:
 				#print (element)
@@ -907,7 +908,7 @@ def calc_stats(results):
 	global n50_statistic
 	global top_ten_hits
 	global top_ten_contaminants
-
+	#print ("db length:   " + str(len(results)))
 	top_ten_hits = dict()
 	top_ten_contaminants = dict()
 	num_queries_uninformative = 0
@@ -952,13 +953,12 @@ def calc_stats(results):
 			num_queries_uninformative += 1
 		else:
 			num_queries_informative_hit += 1
-#num_queries = len(results)
+	num_queries = len(results)
 	median_query_length.sort() # sorts least to greatest
 	median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
 	n50_statistic = get_n50_statistic(median_query_length)
 	median_query_length = get_median(median_query_length)
-	num_queries = num_queries_uninformative + num_queries_informative_hit + num_queries_no_hit
-	
+	num_queries = num_queries_uninformative + num_queries_informative_hit + num_queries_no_hit	
 	#print (top_ten_hits)
 	
 
@@ -1059,9 +1059,9 @@ def print_summary_stats():
 
 	global top_ten_contaminants
 
+	global  final_output
 
-
-	calc_stats(annotation_log_entries)
+	calc_stats(final_output)
 
 	if not os.path.exists(output_log + ".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
@@ -1097,6 +1097,8 @@ if __name__ == '__main__':
 	print(date)
 	settings = parse_config_file("configuration_file.txt") #sets up the settings
 	output_log = "log_" + date + ".txt"
+
+	global final_output
 	
 	global top_ten_hits
 	global top_ten_contaminants	
@@ -1222,7 +1224,7 @@ if __name__ == '__main__':
 			match_fasta(db)
 			calc_stats(temp_log_entries)
 			print_stats()
-			
+			final_output = temp_log_entries
 
 			uninformative_debug_log(debug_uninformative_list)
 
@@ -1270,12 +1272,18 @@ if __name__ == '__main__':
 			match_fasta(db)
 			calc_stats(temp_log_entries)
 			print_stats()
+
+			final_output = temp_log_entries
+
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
 
 			match_fasta(db2)
 			calc_stats(temp_log_entries)
 			print_stats()
+			
+			final_output.update(temp_log_entries)
+
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")	
@@ -1317,16 +1325,19 @@ if __name__ == '__main__':
 			match_fasta(db)
 			calc_stats(temp_log_entries)
 			print_stats()
+			final_output = temp_log_entries
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
 			match_fasta(db2)
 			calc_stats(temp_log_entries)
 			print_stats()
+			final_output.update(temp_log_entries)
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
 			match_fasta(db3)
 			calc_stats(temp_log_entries)
 			print_stats()
+			final_output.update(temp_log_entries)
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db3_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")
@@ -1339,7 +1350,7 @@ if __name__ == '__main__':
 		
 		print ("writing annotation log entires")
 		for key in annotation_log_entries:
-			tsv_new.writerow(annotation_log_entries[key])
+			tsv_new.writerow(final_output[key])
 		
 			
 		print ("writing no hits log")
@@ -1367,9 +1378,9 @@ if __name__ == '__main__':
 		
 		#combine_annotations.main(" --input "  + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv")
 		combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
-		print ("num sequences ID: " + str(combine_annotations.get_num_sequences_identification()))
+		#print ("num sequences ID: " + str(combine_annotations.get_num_sequences_identification()))
 		go_counts = combine_annotations.get_go_counts()
-		print ("number GO: C: " +str(go_counts[0]) + " F: " + str(go_counts[1]) + " P: " + str(go_counts[2]))		
+		#print ("number GO: C: " +str(go_counts[0]) + " F: " + str(go_counts[1]) + " P: " + str(go_counts[2]))		
 			
 		
 		if not os.path.exists(output_log + ".txt"):
