@@ -446,9 +446,10 @@ def usearch_format_db_parse(file_name):
 				#print (line)
 				
 				line[0] = str(line[0].split(" ")[0])
-
-				if "|" in line[0]:
-					line[0] = trim_query_name(line[0])
+				line[0] = str(line[0].split("|")[0])
+				#print (line[0])
+				#if "|" in line[0]:
+				#	line[0] = trim_query_name(line[0])
 
 
 				#if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
@@ -723,6 +724,7 @@ def parse_fasta_no_gi(file_name):
 				#print (description)
 				if description != "":
 					query = str(query.split(" ")[0])
+					query = str(query.split("|")[0])
 					#print (query)
 					counter += 1
 					return_dict[query] = description
