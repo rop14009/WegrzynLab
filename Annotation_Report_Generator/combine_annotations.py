@@ -13,13 +13,24 @@ import os
 import csv
 
 
-# Returns the number of components, functions, and processes (in that order)
+
 def get_go_counts():
 	global num_component
 	global num_process
 	global num_function
 
 	return [num_component, num_process, num_function]
+
+
+
+
+# Returns the number of components, functions, and processes (in that order)
+def get_go_interpro_counts():
+	global num_component_interpro
+	global num_process_interpro
+	global num_function_interpro
+
+	return [num_component_interpro, num_process_interpro, num_function_interpro]
 
 def combined_anno_id_parser(id):
     #print (id)
@@ -34,25 +45,38 @@ def combined_anno_id_parser(id):
    
     return return_string
 
-def parse_blast2go_column(row):
+def parse_column(row, file_type):
+	global num_component_interpro
+	global num_process_interpro
+	global num_function_interpro
+
+
 	global num_component
 	global num_process
 	global num_function
 
+
 	process = list()
 	function = list()
 	component = list()
+	
 	return_string = ""
 
 	#print (row)
 	#print (len(row))
-	if len(row) > 13:
-		if ";" in row[13]:
-			split_string = row[13].split(";") # splits the column by ;
-		elif "," in row[13]:
-			split_string = row[13].split(",") # splits the column by ;	
+	
+	if file_type == "blast":
+		row_num = 7	
+	else:
+		row_num = 13
+
+	if len(row) > row_num:
+		if ";" in row[row_num]:
+			split_string = row[row_num].split(";") # splits the column by ;
+		elif "," in row[row_num]:
+			split_string = row[row_num].split(",") # splits the column by ;	
 		else:
-			split_string = row[13]
+			split_string = row[row_num]
 	else:
 		split_string = ""
 
@@ -61,13 +85,22 @@ def parse_blast2go_column(row):
 		string = string.strip()
 		if "P:" in string or "Biological Process:" in string:
 			process.append(string)
-			num_process += 1
+			if file_type == "blast":
+				num_process += 1
+			else:
+				num_process_interpro += 1
 		if "F:" in string or "Molecular Function:" in string:
 			function.append(string)
-			num_function += 1
+			if file_type == "blast":
+				num_function += 1
+			else:
+				num_function_interpro += 1
 		if "C:" in string or "Cellular Component:" in string:
 			component.append(string)
-			num_component += 1
+			if file_type == "blast":
+				num_component += 1
+			else:
+				num_component_interpro += 1
 	return [" ".join(process), " ".join(function), " ".join(component)]
 
 def make_blast2go_walnut_combined_dict(file_name):
@@ -77,7 +110,7 @@ def make_blast2go_walnut_combined_dict(file_name):
 		for row in csv.reader(tsv_old, delimiter='\t'):
 			#print (row)
 			id = row[0] #oombined_anno_id_parser(row[0]) #get the key
-			blast2go_data[id] = parse_blast2go_column(row)
+			blast2go_data[id] = parse_column(row,"blast")
 	return blast2go_data
 
 def make_walnut_interpro_dict(file_name):
@@ -88,6 +121,7 @@ def make_walnut_interpro_dict(file_name):
 			#print (row)
 			#id = row[1][8:] #get the key
 			id = str(row[0])
+			parse_column(row, "interpro") # this is done to calc interpro GO terms
 			#print (id)
 			value_list.append(row[5])
 			value_list.append(row[11])
@@ -187,15 +221,25 @@ def main(args):
 	print ("appending interpro information now...")
 	global count_sequences_identification
 	
+	global num_component_interpro
+	global num_process_interpro
+	global num_function_interpro
+	
 	global num_component
 	global num_process
 	global num_function
-
+	
+	num_component_interpro = 0
+	num_process_interpro = 0
+	num_function_interpro = 0
+	
 	num_component = 0
 	num_process = 0
 	num_function = 0
-	
-	count_sequences_identification = 0
+
+
+
+	count_sequences_identification = []
 	
 	start_time = time.clock()
 	arguments_list = args
@@ -205,9 +249,9 @@ def main(args):
 	if params == "all_params" or params == "all_params_custom_output":
 		if params == "all_params_custom_output":
 			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[2]
-			file_path_blast2go_walnut = arguments_list[4]
-			file_path_walnut_interpro = arguments_list[6]
+			file_path_combined_anno = arguments_list[1]
+			file_path_blast2go_walnut = arguments_list[3]
+			file_path_walnut_interpro = arguments_list[5]
 			
 			if output == file_path_walnut_interpro or output == file_path_combined_anno or output == file_path_blast2go_walnut:
 				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
@@ -233,13 +277,15 @@ def main(args):
 			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
-				#id = combined_anno_id_parser(row[0])
-				id = combined_anno_id_parser(row[1])
+				id = str(row[0])
+				#id = combined_anno_id_parser(row[1])
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
 				
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
-					
+					count_sequences_identification[1] += 1
+				else:
+					count_sequences_identification[0] += 1
 				walnut_results_blast2go = blast2go_hastable.get(id)
 				
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
