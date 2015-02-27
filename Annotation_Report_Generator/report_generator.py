@@ -490,8 +490,8 @@ def usearch_format_db_parse(file_name):
 					print ("not in fasta db")
 					print (line[0])
 				'''	
-
-				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(str(get_gi_num_from_string(line[1]))) is None:
+				previous_record = usearch_db.get(str(get_gi_num_from_string(line[1])))
+				if not fasta_no_gi.get(line[0]) is None and not previous_record is None and previous_record[0] is line[0]:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = find_best_query_result(usearch_db[str(get_gi_num_from_string(line[1]))], line)
 				elif not fasta_no_gi.get(line[0]) is None:
 					usearch_db[str(get_gi_num_from_string(line[1]))] = line
@@ -678,7 +678,7 @@ def match_fasta(db):
 	global num_queries_informative_hit #1 or more informative hits
 	global num_queries_no_hit #no hits
 	global num_queries_uninformative
-	
+	global db_count
 	global annotation_log_entries
 	global temp_log_entries
 	temp_log_entries = dict()	
@@ -706,9 +706,6 @@ def match_fasta(db):
 
 	
 
-	global db_count
-	
-	#print (db_count)
 
 	num_queries_no_hit = 0
 	annotation_log_entries = dict()	
@@ -839,7 +836,9 @@ def write_xml(filename, results_db):
 	global fasta_no_gi
 	global fasta_db
 	global is_tair
+	global fasta_db_species
 	print (filename)
+	print (number_db)
 	#rite header first
 	if not os.path.exists(filename+".xml"): # if file doesnt exist create it
 		file = open(filename+".xml", "w")
@@ -857,7 +856,7 @@ def write_xml(filename, results_db):
 			file.write("\t<BlastOutput_program>BLASTX</BlastOutput_program>\n")
 			file.write("\t<BlastOutput_version>BLASTX 2.2.25+</BlastOutput_version>\n")
 			file.write("\t<BlastOutput_reference>Altschul, et. al.</BlastOutput_reference>\n")
-			file.write("\t<BlastOutput_db>" + "db" + "</BlastOutput_db>\n")
+			file.write("\t<BlastOutput_db>" + str(get_db_name(number_db)) + "</BlastOutput_db>\n")
 			file.write("\t<BlastOutput_query-ID>1</BlastOutput_query-ID>\n")
 			if not is_tair:
 				file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
@@ -895,7 +894,7 @@ def write_xml(filename, results_db):
 					file.write("\t\t\t\t<Hit>\n")
 					file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
 					file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
-					file.write("\t\t\t\t\t<Hit_def>" + result[12] + "</Hit_def>\n")
+					file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
 					file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
 					file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
 					file.write("\t\t\t\t\t<Hit_hsps>\n")
