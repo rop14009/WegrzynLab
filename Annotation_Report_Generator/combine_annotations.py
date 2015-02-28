@@ -239,7 +239,7 @@ def main(args):
 
 
 
-	count_sequences_identification = []
+	count_sequences_identification = [0, 0]
 	
 	start_time = time.clock()
 	arguments_list = args

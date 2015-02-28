@@ -1469,8 +1469,8 @@ if __name__ == '__main__':
 			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
 				tsv_log = csv.writer(tsv_log, delimiter='\t')
 				tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and 
-				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
-				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
+				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[1])])
+				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[0])])
 				tsv_log.writerow(["Gene Ontology Stats"])
 				tsv_log.writerow(["Component: "] + [str(go_counts[0])])
 				tsv_log.writerow(["Function: "] + [str(go_counts[1])])
