@@ -6,7 +6,6 @@ import csv
 import string
 import subprocess
 
-
 import combine_annotations
 
 def parse_config_line(line):
@@ -960,7 +959,7 @@ def calc_stats(results):
 	avg_length_query_sequences = 0
 	num_contaminants = 0
 	longest_query_length = 0
-	shortest_query_length = 0
+	shortest_query_length = sys.maxint
 
 
 	print ("calc stats called")
