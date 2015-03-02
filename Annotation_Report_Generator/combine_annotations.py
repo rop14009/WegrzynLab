@@ -55,6 +55,12 @@ def parse_column(row, file_type):
 	global num_process
 	global num_function
 
+	#global at_least_1_c
+	#global at_least_1_p
+	#global at_least_1_f
+	
+
+
 
 	process = list()
 	function = list()
@@ -75,12 +81,16 @@ def parse_column(row, file_type):
 			split_string = row[row_num].split(";") # splits the column by ;
 		elif "," in row[row_num]:
 			split_string = row[row_num].split(",") # splits the column by ;	
+		elif " " in row[row_num]:
+			split_string = row[row_num].split(" ") # splits the column by " "
 		else:
 			split_string = row[row_num]
 	else:
 		split_string = ""
 
 	#print("splitstring: " + str(split_string))
+
+
 	for string in split_string:
 		string = string.strip()
 		if "P:" in string or "Biological Process:" in string:
@@ -101,7 +111,8 @@ def parse_column(row, file_type):
 				num_component += 1
 			else:
 				num_component_interpro += 1
-	return [" ".join(process), " ".join(function), " ".join(component)]
+
+		return [" ".join(process), " ".join(function), " ".join(component)]
 
 def make_blast2go_walnut_combined_dict(file_name):
 	blast2go_data = dict()
@@ -111,6 +122,7 @@ def make_blast2go_walnut_combined_dict(file_name):
 			#print (row)
 			id = row[0] #oombined_anno_id_parser(row[0]) #get the key
 			blast2go_data[id] = parse_column(row,"blast")
+	print (len(blast2go_data))
 	return blast2go_data
 
 def make_walnut_interpro_dict(file_name):
@@ -128,7 +140,7 @@ def make_walnut_interpro_dict(file_name):
 			value_list.append(row[12])
 			walnut_interpro_data[id] = value_list
 			value_list = list()
-	#print (walnut_interpro_data)
+	print (len(walnut_interpro_data))
 	return walnut_interpro_data
 
 
@@ -210,10 +222,37 @@ def get_num_sequences_identification():
 	global count_sequences_identification
 	return count_sequences_identification
 
+
+def get_at_least_1():
+	global at_least_1_c
+	global at_least_1_p
+	global at_least_1_f
+	return [at_least_1_c, at_least_1_p, at_least_1_f]
 	
 
+def check_cpf(l):
+	global at_least_1_c
+	global at_least_1_p
+	global at_least_1_f
+	
+	c = False
+	p = False
+	f = False
 
-
+	for element in l:
+		if "C:" in element or "Cellular Component:" in element:		
+			c = True
+		if "P:" in element or "Biological Process:" in element:
+			p = True
+		if "F:" in element or "Molecular Function:" in element:
+			f = True
+	
+	if c:
+		at_least_1_c += 1
+	if p:
+		at_least_1_p += 1
+	if f:
+		at_least_1_f += 1
 
 
 
@@ -229,6 +268,17 @@ def main(args):
 	global num_process
 	global num_function
 	
+	
+	global at_least_1_c
+	global at_least_1_p
+	global at_least_1_f
+
+
+	at_least_1_c = 0
+	at_least_1_p = 0
+	at_least_1_f = 0
+
+
 	num_component_interpro = 0
 	num_process_interpro = 0
 	num_function_interpro = 0
@@ -283,14 +333,17 @@ def main(args):
 				
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
-					count_sequences_identification[1] += 1
-				else:
-					count_sequences_identification[0] += 1
+					#count_sequences_identification[1] += 1
+				#else:
+				#	count_sequences_identification[0] += 1
 				walnut_results_blast2go = blast2go_hastable.get(id)
 				
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
 					walnut_results_blast2go = ["N/A","N/A","N/A"]
-					
+					count_sequences_identification[1] += 1
+				else:
+					count_sequences_identification[0] += 1	
+					check_cpf(walnut_results_blast2go)
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
 	
@@ -333,14 +386,18 @@ def main(args):
 				#print (walnut_results_interpro)	
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
+					count_sequences_identification[1] += 1
 				else:
-					count_sequences_identification += 1
+					count_sequences_identification[0] += 1
 				
 				walnut_results_blast2go = blast2go_hastable.get(id)
 
 				if not walnut_results_blast2go:
 					walnut_results_blast2go = ["N/A","N/A","N/A"]
-					
+					count_sequences_identification[1] += 1
+				else:
+					count_sequences_identification[0] += 1
+					check_cpf(walnut_results_blast2go)		
 
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)		

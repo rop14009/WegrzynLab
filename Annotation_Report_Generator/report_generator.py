@@ -237,16 +237,23 @@ def find_best_query_result(query1, query2):
 	print (query1_coverage)
 	print (query2_coverage)
 	'''
+
+	species = fasta_db_species[query1_gi]
+	species = species.split(" ")[0]
 	
-	
-	#print (query1_gi)
-	#print (query2_gi)
+	species2 = fasta_db_species[query2_gi]
+	species2 = species2.split(" ")[0]
 
 
-	if fasta_db_species[query1_gi] in contaminants and query1_coverage > min_coverage:
+	#print (species)
+	#print (species2)
+
+
+
+	if species in contaminants and query1_coverage > min_coverage:
 		contaminants_found[query1_gi] = fasta_db_species[query1_gi]
 		fasta_db_species[query1_gi] = "contaminant"
-	if fasta_db_species[query2_gi] in contaminants and query2_coverage > min_coverage:
+	if species2 in contaminants and query2_coverage > min_coverage:
 		contaminants_found[query2_gi] = fasta_db_species[query2_gi]
 		fasta_db_species[query2_gi] = "contaminant"
 
@@ -262,51 +269,31 @@ def find_best_query_result(query1, query2):
 		
 		fasta_db_description[query2_gi] = "uninformative"
 	
-	'''
-	print (str(query1) + " : uninformative : " + str(is_uninformative(fasta_db_description[query1_gi])))
-	print (str(query2) + " : uninformative : " + str(is_uninformative(fasta_db_description[query2_gi])))
-
-	print (str(query1) + " description : " + str(fasta_db_description[query1_gi]))
-	print (str(query2) + " description : " + str(fasta_db_description[query2_gi]))
-	'''
-
-	'''	
-	
-	if not is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
-		#print ("ret query1 informative")
-		return query1
-
-	if is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
-		#print ("ret query2 informative")
-		return query2
-
-	if is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
-		#print ("test --  both uninformative")
-		if (query1_coverage > query2_coverage):
-			return query1
-
-		if (query2_coverage > query1_coverage):
-			#print ("returning query2, uninformative")
-			return query2
-		return query1
-
-	if not is_uninformative(fasta_db_description[query1_gi]) and not is_uninformative(fasta_db_description[query2_gi]):
-		#print ("test --  both informative")
-		if (query1_coverage > query2_coverage):
-			#print ()
-			return query1
-
-		if (query2_coverage > query1_coverage):
-			#print ("returning query2, informative")
-			return query2
-		return query1
-	
-	'''
-	
-
 	# new algorithm --  if both queries are over the min cov requirement, chose the one with smaller e-value
 
 
+	# if one is uninformative and the other a contaminant or vice-versa, pick the uninformative hit over the conta
+
+	
+
+	# if 1 is a contaminant and the other isn't, pick the one that isn't a contaminant
+	# in all situtations
+
+	if not fasta_db_species[query1_gi] is "contaminant" and fasta_db_species[query2_gi] is "contaminant":
+		return query1
+	elif fasta_db_species[query1_gi] is "contaminant" and not fasta_db_species[query2_gi] is "contaminant":
+		return query2
+	
+	# next if one is uninformative and the other is informative, pick the informative hit in all situations
+
+	if fasta_db_description[query1_gi] is "uninformative" and not fasta_db_description[query2_gi] is "uninformative":
+		return query2
+	elif not fasta_db_description[query1_gi] is "uninformative" and fasta_db_description[query2_gi] is "uninformative":
+		return query1
+
+
+	# if this point is reached, then compare the query coverages and e values to determine the better hit
+	
 	if query1_coverage >= min_coverage and query2_coverage >= min_coverage:
 		if parse_e_value(query1[10]) >= parse_e_value(query2[10]):
 			return query1
@@ -318,6 +305,8 @@ def find_best_query_result(query1, query2):
 		return query2
 	else: # the scenario where both are below the min coverage
 		return query1
+
+
 	print ("this statement has been reached, when it should never be reached")
 	
 
@@ -605,15 +594,23 @@ def build_contaminants_db():
 	contaminant_db = dict()
 	bacteria_db = open("bacteria_db.txt", "r")
 	fungi_db = open("fungi_db.txt","r")
-	
+	insects_db = open("insects.txt","r")	
 	#bacteria first
 	file_tsv = csv.reader(bacteria_db, delimiter='\t')
 	for line in file_tsv:
+		line[0] = line[0].split(" ")[0]
+		#print (line[0])
 		contaminant_db[line[0]] = line[0] #its faster to check if value exists in a hashtable than a regular list
 		
 	for line in fungi_db:
+		line = line.split(" ")[0]
+		#print(line)
 		contaminant_db[line] = line
 	
+	for line in insects_db:	
+		line = line.split(" ")[0]
+		#print (line)
+		contaminant_db[line] = line
 	return contaminant_db
 	
 
@@ -894,7 +891,7 @@ def write_xml(filename, results_db):
 					file.write("\t\t\t\t<Hit>\n")
 					file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
 					file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
-					file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
+					file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species.get(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
 					file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
 					file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
 					file.write("\t\t\t\t\t<Hit_hsps>\n")
@@ -945,6 +942,8 @@ def calc_stats(results):
 	#global contaminants_found
 	global db_count
 	global fasta_no_gi
+	global fasta_db
+	global fasta_db_species
 	global longest_query_length
 	global shortest_query_length
 	global median_query_length
@@ -963,11 +962,13 @@ def calc_stats(results):
 	num_queries_uninformative = 0
 	num_queries_informative_hit = 0
 	num_queries = 0
-	#num_queries_no_hit = 0
-	#num_queries_no_hit = 0
 	median_query_length = list()
 	avg_length_query_sequences = 0
 	num_contaminants = 0
+	longest_query_length = 0
+	shortest_query_length = 0
+
+
 	print ("calc stats called")
 
 	for element in results:
@@ -983,14 +984,14 @@ def calc_stats(results):
 		else:
 			top_ten_hits[str(temp[13])] = 1
 	
-		if fasta_db_species[gi] in contaminants:
+		if fasta_db_species[gi] is "contaminant":
 			num_contaminants += 1
 			if not top_ten_contaminants.get(fasta_db_species[gi]) is None:
 				top_ten_contaminants[fasta_db_species[gi]] += 1		
 			else:
 				top_ten_contaminants[fasta_db_species[gi]] = 1
 		else:	
-			if is_uninformative(fasta_db_description[gi]):
+			if fasta_db_description[gi] is "uninformative":
 				num_queries_uninformative += 1
 			else:
 				num_queries_informative_hit += 1
@@ -1071,19 +1072,17 @@ def print_stats():
 	if not os.path.exists(output_log + ".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
 			tsv_log = csv.writer(tsv_log, delimiter='\t')
-			#print (db_count)
-			#print (get_db_name(db_count))
 			tsv_log.writerow(["DB: "] + [get_db_name(db_count)])
-			tsv_log.writerow(["num_queries: "] + [str(num_queries)])
-			tsv_log.writerow(["median query length: "] + [str(median_query_length)])
-			tsv_log.writerow(["average query length: "] + [str(round(avg_length_query_sequences,2))])
-			tsv_log.writerow(["shortest query length: "] + [str(shortest_query_length)])
-			tsv_log.writerow(["longest query length: "] + [str(longest_query_length)])
-			tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
-			tsv_log.writerow(["num_queries_informative_hit: "] + [str(num_queries_informative_hit)])
-			tsv_log.writerow(["num_queries_no_hit: "] + [str(num_queries_no_hit)])
-			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
-			tsv_log.writerow(["number of contaminants: "] + [str(num_contaminants)])
+			tsv_log.writerow(["Total Number of Query Sequences: "] + [str(len(fasta_no_gi))])
+			tsv_log.writerow(["Median Query Length: "] + [str(median_query_length)])
+			tsv_log.writerow(["Average Query Length: "] + [str(round(avg_length_query_sequences,2))])
+			tsv_log.writerow(["Shortest Query Length: "] + [str(shortest_query_length)])
+			tsv_log.writerow(["Longest Query Length: "] + [str(longest_query_length)])
+			tsv_log.writerow(["N50 Statistic: "] + [str(n50_statistic)])
+			tsv_log.writerow(["Number of queries with an informative hit: "] + [str(num_queries_informative_hit)])
+			tsv_log.writerow(["Number of queries with an uninformative hit: "] + [str(num_queries_uninformative)])
+			tsv_log.writerow(["Number of queries with no hit: "] + [str(num_queries_no_hit)])
+			tsv_log.writerow(["Number of contaminants: "] + [str(num_contaminants)])
 			tsv_log.writerow(["The top 10 hits by species: "])
 			if top_ten_hits:
 				for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey, reverse=True):
@@ -1096,7 +1095,7 @@ def print_stats():
 					tsv_log.writerow([str(key)+": "] + [value])
 			else:
 				tsv_log.writerow(["No contaminants present"])
-
+			tsv_log.writerow([])
 			#print ("log files complete -- exititing")
 
 
@@ -1129,19 +1128,20 @@ def print_summary_stats():
 	if not os.path.exists(output_log + ".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
 			tsv_log = csv.writer(tsv_log, delimiter='\t')
+			tsv_log.writerow([])
 			tsv_log.writerow(["Summary Statistics on the Transcriptome Assembly Input (Query)"])
-			tsv_log.writerow(["num_queries: "] + [str(num_queries)])
-			tsv_log.writerow(["median query length: "] + [str(median_query_length)])
-			tsv_log.writerow(["average query length: "] + [str(round(avg_length_query_sequences,2))])
-			tsv_log.writerow(["shortest query length: "] + [str(shortest_query_length)])
-			tsv_log.writerow(["longest query length: "] + [str(longest_query_length)])
-			tsv_log.writerow(["n50 statistic: "] + [str(n50_statistic)])
-			tsv_log.writerow(["num_queries_informative_hit: "] + [str(num_queries_informative_hit)])
-			tsv_log.writerow(["num_queries_no_hit: "] + [str(num_queries_no_hit)])
-			tsv_log.writerow(["num_queries_uninformative: "] + [str(num_queries_uninformative)])
-			tsv_log.writerow(["number of contaminants: "] + [str(num_contaminants)])
-			
+			tsv_log.writerow(["Total Number of Query Sequences: "] + [str(len(fasta_no_gi))])
+			tsv_log.writerow(["Median Query Length: "] + [str(median_query_length)])
+			tsv_log.writerow(["Average Query Length: "] + [str(round(avg_length_query_sequences,2))])
+			tsv_log.writerow(["Shortest Query Length: "] + [str(shortest_query_length)])
+			tsv_log.writerow(["Longest Query Length: "] + [str(longest_query_length)])
+			tsv_log.writerow(["N50 Statistic: "] + [str(n50_statistic)])
+			tsv_log.writerow(["Number of queries with an informative hit: "] + [str(num_queries_informative_hit)])
+			tsv_log.writerow(["Number of queries with an uninformative hit: "] + [str(num_queries_uninformative)])
+			tsv_log.writerow(["Number of queries with no hit: "] + [str(num_queries_no_hit)])
+			tsv_log.writerow(["Number of contaminants: "] + [str(num_contaminants)])
 			tsv_log.writerow(["The top 10 hits by species: "])
+
 			if top_ten_hits:
 				for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey, reverse=True):
 					tsv_log.writerow([str(key)+": "] + [value])
@@ -1462,6 +1462,8 @@ if __name__ == '__main__':
 		go_interpro_counts = combine_annotations.get_go_interpro_counts()
 		go_counts = combine_annotations.get_go_counts()
 		domain_ids = combine_annotations.get_num_sequences_identification()	
+		at_least_1 = combine_annotations.get_at_least_1() # C, P, F
+
 		#print ("number GO: C: " +str(go_counts[0]) + " F: " + str(go_counts[1]) + " P: " + str(go_counts[2]))		
 			
 		
@@ -1469,19 +1471,22 @@ if __name__ == '__main__':
 			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
 				tsv_log = csv.writer(tsv_log, delimiter='\t')
 				tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and 
-				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[1])])
-				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[0])])
-				tsv_log.writerow(["Gene Ontology Stats"])
+				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
+				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
+				tsv_log.writerow(["Number of GO Terms with at least 1 Component: "] + [str(at_least_1[0])])
+				tsv_log.writerow(["Number of GO Terms with at least 1 Function: "] + [str(at_least_1[2])])
+				tsv_log.writerow(["Number of GO Terms with at least 1 Process: "] + [str(at_least_1[1])])
+				tsv_log.writerow(["Gene Ontology Stats (Totals)"])
 				tsv_log.writerow(["Component: "] + [str(go_counts[0])])
 				tsv_log.writerow(["Function: "] + [str(go_counts[1])])
 				tsv_log.writerow(["Process: "] + [str(go_counts[2])])
-				tsv_log.writerow(["Interpro Gene Ontology Stats"])
+				tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
 				tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
 				tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
 				tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
 
-
-
+	
+		
 	else:
 		print ("no interpro file has been specified, skipping combined annotation step")
 

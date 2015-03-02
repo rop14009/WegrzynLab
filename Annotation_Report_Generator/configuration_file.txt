@@ -15,3 +15,4 @@ Full-length coverage requirement: 0.75
 Minimum Evalue:1e-5
 Generate XML for Blast2GO:no
 Path to Interpro Results: 
+Path to Blast2GO Results:
