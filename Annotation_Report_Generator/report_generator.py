@@ -237,26 +237,6 @@ def find_best_query_result(query1, query2):
 	print (query1_coverage)
 	print (query2_coverage)
 	'''
-
-	species = fasta_db_species[query1_gi]
-	species = species.split(" ")[0]
-	
-	species2 = fasta_db_species[query2_gi]
-	species2 = species2.split(" ")[0]
-
-
-	#print (species)
-	#print (species2)
-
-
-
-	if species in contaminants and query1_coverage > min_coverage:
-		contaminants_found[query1_gi] = fasta_db_species[query1_gi]
-		fasta_db_species[query1_gi] = "contaminant"
-	if species2 in contaminants and query2_coverage > min_coverage:
-		contaminants_found[query2_gi] = fasta_db_species[query2_gi]
-		fasta_db_species[query2_gi] = "contaminant"
-
 	if is_uninformative(fasta_db_description[query1_gi]):
 		if fasta_db_description[query2_gi] != "uninformative":
 			debug_uninformative_list[fasta_db_description[query1_gi]] = fasta_db_description[query1_gi]
@@ -268,7 +248,21 @@ def find_best_query_result(query1, query2):
 			debug_uninformative_list[fasta_db_description[query2_gi]] = fasta_db_description[query2_gi]
 		
 		fasta_db_description[query2_gi] = "uninformative"
-	
+
+
+	species = fasta_db_species[query1_gi]
+	species = species.split(" ")[0]
+
+	species2 = fasta_db_species[query2_gi]
+	species2 = species2.split(" ")[0]
+
+	if species in contaminants and query1_coverage > min_coverage:
+		contaminants_found[query1_gi] = fasta_db_species[query1_gi]
+		fasta_db_species[query1_gi] = "contaminant"
+	if species2 in contaminants and query2_coverage > min_coverage:
+		contaminants_found[query2_gi] = fasta_db_species[query2_gi]
+		fasta_db_species[query2_gi] = "contaminant"
+
 	# new algorithm --  if both queries are over the min cov requirement, chose the one with smaller e-value
 
 
