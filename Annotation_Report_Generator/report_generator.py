@@ -996,7 +996,7 @@ def calc_stats(results):
 	
 		if query_length > longest_query_length:
 			longest_query_length = query_length
-		elif query_length < shortest_query_length:
+		if query_length < shortest_query_length:
 			shortest_query_length = query_length
 
 	num_queries = len(results)
