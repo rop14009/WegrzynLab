@@ -271,7 +271,7 @@ def find_best_query_result(query1, query2):
 
 	# if 1 is a contaminant and the other isn't, pick the one that isn't a contaminant
 	# in all situtations
-
+	'''
 	if not fasta_db_species[query1_gi] is "contaminant" and fasta_db_species[query2_gi] is "contaminant":
 		return query1
 	elif fasta_db_species[query1_gi] is "contaminant" and not fasta_db_species[query2_gi] is "contaminant":
@@ -283,7 +283,7 @@ def find_best_query_result(query1, query2):
 		return query2
 	elif not fasta_db_description[query1_gi] is "uninformative" and fasta_db_description[query2_gi] is "uninformative":
 		return query1
-
+	'''
 
 	# if this point is reached, then compare the query coverages and e values to determine the better hit
 	
