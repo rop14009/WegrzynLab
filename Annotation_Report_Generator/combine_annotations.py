@@ -131,6 +131,7 @@ def make_walnut_interpro_dict(file_name):
 	with open(file_name,'r') as tsv_old:
 		for row in csv.reader(tsv_old, delimiter='\t'):
 			#print (row)
+			#print (len(row))
 			#id = row[1][8:] #get the key
 			id = str(row[0])
 			parse_column(row, "interpro") # this is done to calc interpro GO terms
@@ -138,6 +139,9 @@ def make_walnut_interpro_dict(file_name):
 			value_list.append(row[5])
 			value_list.append(row[11])
 			value_list.append(row[12])
+			if len(row) > 13:
+				#print ("interpro go terms being added...")
+				value_list.append(row[13]) #interpro go terms
 			walnut_interpro_data[id] = value_list
 			value_list = list()
 	print (len(walnut_interpro_data))
@@ -230,14 +234,32 @@ def get_at_least_1():
 	return [at_least_1_c, at_least_1_p, at_least_1_f]
 	
 
-def check_cpf(l):
+
+
+
+def get_at_least_1_interpro():
+        global at_least_1_c_interpro
+        global at_least_1_p_interpro
+        global at_least_1_f_interpro
+        return [at_least_1_c_interpro, at_least_1_p_interpro, at_least_1_f_interpro]
+
+
+
+def check_cpf(l, t):
 	global at_least_1_c
 	global at_least_1_p
 	global at_least_1_f
-	
+	global at_least_1_c_interpro
+	global at_least_1_p_interpro
+	global at_least_1_f_interpro
+		
 	c = False
 	p = False
 	f = False
+
+	if t == "interpro":	
+		#print ("interpro GO:")
+		#print (l)
 
 	for element in l:
 		if "C:" in element or "Cellular Component:" in element:		
@@ -246,14 +268,20 @@ def check_cpf(l):
 			p = True
 		if "F:" in element or "Molecular Function:" in element:
 			f = True
-	
-	if c:
-		at_least_1_c += 1
-	if p:
-		at_least_1_p += 1
-	if f:
-		at_least_1_f += 1
-
+	if t == "blast2go":
+		if c:
+			at_least_1_c += 1
+		if p:
+			at_least_1_p += 1
+		if f:
+			at_least_1_f += 1
+	elif t == "interpro":
+		if c:
+			at_least_1_c_interpro += 1
+		if p:
+			at_least_1_p_interpro += 1
+		if f:
+			at_least_1_f_interpro += 1
 
 
 def main(args):
@@ -272,11 +300,18 @@ def main(args):
 	global at_least_1_c
 	global at_least_1_p
 	global at_least_1_f
-
+	global at_least_1_c_interpro
+	global at_least_1_p_interpro
+	global at_least_1_f_interpro
 
 	at_least_1_c = 0
 	at_least_1_p = 0
 	at_least_1_f = 0
+
+
+	at_least_1_c_interpro = 0
+	at_least_1_p_interpro = 0
+	at_least_1_f_interpro = 0
 
 
 	num_component_interpro = 0
@@ -343,7 +378,10 @@ def main(args):
 					count_sequences_identification[1] += 1
 				else:
 					count_sequences_identification[0] += 1	
-					check_cpf(walnut_results_blast2go)
+					check_cpf(walnut_results_blast2go,"blast2go")
+					if len(walnut_results_interpro) > 3:
+						#print (walnut_results_interpro)
+						check_cpf(walnut_results_interpro[3],"interpro")
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
 	
@@ -398,7 +436,9 @@ def main(args):
 				else:
 					count_sequences_identification[0] += 1
 					check_cpf(walnut_results_blast2go)		
-
+					if len(walnut_results_interpro) > 3:
+						#print (walnut_results_interpro)
+						check_cpf(walnut_results_interpro[3],"interpro")
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)		
 		

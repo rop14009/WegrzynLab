@@ -178,6 +178,20 @@ Some of this logic was built in for non-informative hits in the prior scripts an
 '''	
 
 def find_best_query_result(query1, query2):
+
+
+	# None detection
+
+	if query1 is None and not query2 is None:
+		return query2
+
+	if not query1 is None and query2 is None:
+		return query1
+
+	if query1 is None and query2 is None:
+		return None
+
+
         
 	#debug var
 	global debug_uninformative_list
@@ -191,10 +205,6 @@ def find_best_query_result(query1, query2):
         global fasta_db_species
 	global fasta_no_gi
 	global contaminants_found
-
-	#global num_queries_informative_hit
-	#global num_queries_no_hit #no hits
-	#global num_queries_uninformative
 
 	global min_coverage # 0.7 --> refers to 70% coverage
         global e_value # 1e-5 / 0.00001
@@ -254,12 +264,21 @@ def find_best_query_result(query1, query2):
 
 	species2 = fasta_db_species[query2_gi]
 	species2 = species2.split(" ")[0]
+	'''
+	if species in contaminants:
+		print ("contaminant:   " + str(species))
+	if species2 in contaminants:
+		print ("contaminant:   " + str(species2))
+	'''
+
 
 	if species in contaminants and query1_coverage > min_coverage:
 		contaminants_found[query1_gi] = fasta_db_species[query1_gi]
+		print ("contam found")
 		fasta_db_species[query1_gi] = "contaminant"
 	if species2 in contaminants and query2_coverage > min_coverage:
 		contaminants_found[query2_gi] = fasta_db_species[query2_gi]
+		print ("contam found")
 		fasta_db_species[query2_gi] = "contaminant"
 
 	# new algorithm --  if both queries are over the min cov requirement, chose the one with smaller e-value
@@ -267,42 +286,28 @@ def find_best_query_result(query1, query2):
 
 	# if one is uninformative and the other a contaminant or vice-versa, pick the uninformative hit over the conta
 
-	
-
-	# if 1 is a contaminant and the other isn't, pick the one that isn't a contaminant
-	# in all situtations
-	'''
-	if not fasta_db_species[query1_gi] is "contaminant" and fasta_db_species[query2_gi] is "contaminant":
-		return query1
-	elif fasta_db_species[query1_gi] is "contaminant" and not fasta_db_species[query2_gi] is "contaminant":
-		return query2
-	
-	# next if one is uninformative and the other is informative, pick the informative hit in all situations
-
-	if fasta_db_description[query1_gi] is "uninformative" and not fasta_db_description[query2_gi] is "uninformative":
-		return query2
-	elif not fasta_db_description[query1_gi] is "uninformative" and fasta_db_description[query2_gi] is "uninformative":
-		return query1
-	'''
 
 	# if this point is reached, then compare the query coverages and e values to determine the better hit
 	
 	if query1_coverage >= min_coverage and query2_coverage >= min_coverage:
 		if parse_e_value(query1[10]) >= parse_e_value(query2[10]):
+	                del query2
 			return query1
 		else:
+			del query1
 			return query2
 	elif query1_coverage >= min_coverage and not query2_coverage >= min_coverage:
+		del query2
 		return query1
 	elif query2_coverage >= min_coverage and not query1_coverage >= min_coverage:	
 		return query2
 	else: # the scenario where both are below the min coverage
+		del query2
 		return query1
 
 
 	print ("this statement has been reached, when it should never be reached")
 	
-
 def parse_e_value(e_val):
 	number = e_val
 	exp = ""
@@ -456,61 +461,38 @@ def usearch_format_db_parse(file_name):
 				#print (line)
 				
 				line[0] = str(line[0].split(" ")[0])
-				#line[0] = str(line[0].split("|")[0])
-				#print (line[0])
-				#if "|" in line[0]:
-				#	line[0] = trim_query_name(line[0])
-
-
-				#if is_uninformative(fasta_db_description[str(get_gi_num_from_string(line[1]))]):
-				#	num_queries_uninformative += 1
 				
-				#if fasta_db_species[str(get_gi_num_from_string(line[1]))] in contaminants:
-				#	contaminants_found[str(get_gi_num_from_string(line[1]))] = line
-				'''					
-				if not fasta_no_gi.get(line[0]):
-					print ("not in fasta db")
-					print (line[0])
-				'''	
-				previous_record = usearch_db.get(str(get_gi_num_from_string(line[1])))
-				if not fasta_no_gi.get(line[0]) is None and not previous_record is None and previous_record[0] is line[0]:
-					usearch_db[str(get_gi_num_from_string(line[1]))] = find_best_query_result(usearch_db[str(get_gi_num_from_string(line[1]))], line)
+				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(line[0]) is None:
+					usearch_db[line[0]] = find_best_query_result(usearch_db[line[0]], line)
 				elif not fasta_no_gi.get(line[0]) is None:
-					usearch_db[str(get_gi_num_from_string(line[1]))] = line
-		
+					usearch_db[line[0]] = line
 				
 				#print (usearch_db)
 
 				#length = int(line[7]) - int(line[6])
-				length = float(line[3])
-				'''
-				#print (length)
-				avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + length) / num_queries)
-				#print (avg_length_query_sequences)
-				#insert_in_order(median_query_length, length)
-				median_query_length.append(length)	
-				if length > longest_query_length:
-					longest_query_length = length
-				if length < shortest_query_length:
-					shortest_query_length = length
-				'''
+				#length = float(line[3])
 			else:
 				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
 				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
 				sys.exit()
+		'''
 		for key,value in usearch_db.items():
 			#print (key)
 			#print (value)
 			#print (element)	
 			# if query is present then compare to existing version to see which is better
-			if not is_query_present(value[0]) is None:
-				get_current_db()[value[0]] = find_best_query_result(value,  get_current_db()[value[0]])
+			if not is_query_present(str(value[0])) is None:
+				current_value = is_query_present(str(value[0]))
+				current_value.append(value)
+				get_current_db()[str(value[0])] = current_value
 			# else if query is not present then add the current db
 			else:
-				get_current_db()[value[0]] = value
-
+				value_list = list()
+				value_list.append(value)
+				get_current_db()[str(value[0])] = value_list
+		'''
 		#print (len(get_current_db()))
-		#print (usearch_db)
+		print (len(usearch_db))
 		print ("db complete parsing")
 		#print (get_current_db())
 		#print (query_gi_association_db_0)
@@ -553,15 +535,16 @@ def is_uninformative(fasta_db_element):
 
 def write_log(element, log_name):
 	global counter
+	element = str(element)
 	if number_db == 1:
 		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
 			print ("creating new logfile with name: " + log_name)
 			file = open(log_name+".txt", "w")
-			file.write(element+"\n")
+			file.write(str(element)+"\n")
 			file.close()
 		else:
 			file = open(log_name+".txt", "a")
-			file.write(element+"\n")
+			file.write(str(element)+"\n")
 			file.close()
 	else:
 		counter -= 1
@@ -569,16 +552,16 @@ def write_log(element, log_name):
 			print ("creating log file with name: " + log_name)
 			file = open(log_name+".txt", "w")
 			if not counter > 0:
-				file.write(element)
+				file.write(str(element)+"\n")
 			else:
-				file.write(element+"\n")
+				file.write(str(element)+"\n")
 			file.close()
 		else:
 			file = open(log_name+".txt", "a")
 			if not counter > 0:
-				file.write(element)
+				file.write(str(element)+"\n")
 			else:
-				file.write(element+"\n")
+				file.write(str(element)+"\n")
 			file.close()
 
 
@@ -647,7 +630,8 @@ def write_contaminants_log(element,log_name):
 			else:
 				file.write(element)
 				file.write("\n")
-			file.close()
+			#file.close()
+
 
 '''
 Assumptions before matching
@@ -683,54 +667,39 @@ def match_fasta(db):
 	global query_gi_association_db_2
 
 	global nohits_found
-
+	nohits_found = dict()
 	query_gi_final = dict()
 
-	#print (db_count)
-	if db_count == 999:
-		query_gi_final.update(query_gi_association_db_0)
-		query_gi_final.update(query_gi_association_db_1)
-		query_gi_final.update(query_gi_association_db_2)
-		#print (query_gi_final)
-
-
 	
-
-
+	
 	num_queries_no_hit = 0
 	annotation_log_entries = dict()	
 	print ("matching fasta")
 	if fasta_no_gi != "no_file":
 		#scan through every elemeny in fasta_no_gi and return the best match from DB
 		for element in fasta_no_gi:
-			
 			# The query variable is the line from the DB containing the matching query
-			if db_count == 0:
-				query = query_gi_association_db_0.get(element)
-			elif db_count == 1:
-				query = query_gi_association_db_1.get(element)
-			elif db_count == 2:
-				query = query_gi_association_db_2.get(element)
-			elif db_count == 999:
-				query = query_gi_final.get(element)
+			
+			query = db.get(element)
 	
 			if not query is None:
 				key = str(get_gi_num_from_string(query[1]))
 				#print (query[0])
 				#print (key)
+				
 				if annotation_log_entries.get(key) is None:
-					annotation_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
-					temp_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					temp_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
 				else:
+					#print ("hit from more than 1 DB detected")
 					#print (db[key])
 					#print ([fasta_db_description[key]] + [fasta_db_species[key]])
-					annotation_log_entries[key] = annotation_log_entries[key] + db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
-					#print (db[key])
-					temp_log_entries[key] = temp_log_entries[key] + db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					
+					annotation_log_entries[element] = find_best_query_result(annotation_log_entries[element], query)
+					temp_log_entries[element] = find_best_query_result(temp_log_entries[element], query)
 			else:
-				#print ("Nohit: " + str(element))
-				num_queries_no_hit += 1	
-				nohits_found.extend(element)	
+				#num_queries_no_hit += 1	
+				nohits_found[element] = ""	
 
 				#temp_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
 				#temp_log_entries[key] = ["N/A","no_hit"]
@@ -739,8 +708,7 @@ def match_fasta(db):
 
 
 	print ("finished matching db: " + str(get_db_name(db_count)))
-	#print (num_queries_no_hit)
-	db_count += 1			
+	#db_count += 1			
 
 def parse_fasta_no_gi(file_name):
 	return_dict = dict()
@@ -838,91 +806,91 @@ def write_xml(filename, results_db):
 		for key in results_db:
 
 			result = results_db[key]
-			file.write("<?xml version=\"1.0\" ?>\n")
-			file.write("<!DOCTYPE BlastOutput\n")
-			file.write("\tPUBLIC \'-//NCBI//NCBI BlastOutput/EN\'\n")
-			file.write("\t'NCBI_BlastOutput.dtd'>\n")
-			file.write("<BlastOutput>\n")
-			file.write("\t<BlastOutput_program>BLASTX</BlastOutput_program>\n")
-			file.write("\t<BlastOutput_version>BLASTX 2.2.25+</BlastOutput_version>\n")
-			file.write("\t<BlastOutput_reference>Altschul, et. al.</BlastOutput_reference>\n")
-			file.write("\t<BlastOutput_db>" + str(get_db_name(number_db)) + "</BlastOutput_db>\n")
-			file.write("\t<BlastOutput_query-ID>1</BlastOutput_query-ID>\n")
-			if not is_tair:
-				file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
-			else:
-				file.write("\t<BlastOutput_query-def>" + result[1] + "</BlastOutput_query-def>\n")
-			file.write("\t<BlastOutput_query-len>" + result[3] + "</BlastOutput_query-len>\n")
-			file.write("\t<BlastOutput_param>\n")
-			file.write("\t\t<Parameters>\n")
-			file.write("\t\t\t<Parameters_expect>10</Parameters_expect>\n")
-			file.write("\t\t\t<Parameters_include>0</Parameters_include>\n")
-			file.write("\t\t\t<Parameters_sc-match>1</Parameters_sc-match>\n")
-			file.write("\t\t\t<Parameters_sc-mismatch>-3</Parameters_sc-mismatch>\n")
-			file.write("\t\t\t<Parameters_gap-open>5</Parameters_gap-open>\n")
-			file.write("\t\t\t<Parameters_gap-extend>2</Parameters_gap-extend>\n")
-			file.write("\t\t\t<Parameters_filter>D</Parameters_filter>\n")
-			file.write("\t\t</Parameters>\n")
-			file.write("\t</BlastOutput_param>\n")	
-			file.write("\t<BlastOutput_iterations>\n")
-			file.write("\t\t<Iteration>\n")		
-			file.write("\t\t\t<Iteration_iter-num>1</Iteration_iter-num>\n")
-			file.write("\t\t\t<Iteration_query-ID>1</Iteration_query-ID>\n")
-			if not is_tair:
-				file.write("\t\t\t<Iteration_query-def>" + result[0] + "</Iteration_query-def>\n")
-			else:
-				file.write("\t\t\t<Iteration_query-def>" + result[1] + "</Iteration_query-def>\n")
-			file.write("\t\t\t<Iteration_query-len>" + result[3] + "</Iteration_query-len>\n")
-			file.write("\t\t\t<Iteration_hits>\n")
+			if not fasta_db_species.get(get_gi_num_from_string(result[1])) == "contaminant":
+				file.write("<?xml version=\"1.0\" ?>\n")
+				file.write("<!DOCTYPE BlastOutput\n")
+				file.write("\tPUBLIC \'-//NCBI//NCBI BlastOutput/EN\'\n")
+				file.write("\t'NCBI_BlastOutput.dtd'>\n")
+				file.write("<BlastOutput>\n")
+				file.write("\t<BlastOutput_program>BLASTX</BlastOutput_program>\n")
+				file.write("\t<BlastOutput_version>BLASTX 2.2.25+</BlastOutput_version>\n")
+				file.write("\t<BlastOutput_reference>Altschul, et. al.</BlastOutput_reference>\n")
+				file.write("\t<BlastOutput_db>" + str(get_db_name(number_db)) + "</BlastOutput_db>\n")
+				file.write("\t<BlastOutput_query-ID>1</BlastOutput_query-ID>\n")
+				if not is_tair:
+					file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
+				else:
+					file.write("\t<BlastOutput_query-def>" + result[1] + "</BlastOutput_query-def>\n")
+				file.write("\t<BlastOutput_query-len>" + result[3] + "</BlastOutput_query-len>\n")
+				file.write("\t<BlastOutput_param>\n")
+				file.write("\t\t<Parameters>\n")
+				file.write("\t\t\t<Parameters_expect>10</Parameters_expect>\n")
+				file.write("\t\t\t<Parameters_include>0</Parameters_include>\n")
+				file.write("\t\t\t<Parameters_sc-match>1</Parameters_sc-match>\n")
+				file.write("\t\t\t<Parameters_sc-mismatch>-3</Parameters_sc-mismatch>\n")
+				file.write("\t\t\t<Parameters_gap-open>5</Parameters_gap-open>\n")
+				file.write("\t\t\t<Parameters_gap-extend>2</Parameters_gap-extend>\n")
+				file.write("\t\t\t<Parameters_filter>D</Parameters_filter>\n")
+				file.write("\t\t</Parameters>\n")
+				file.write("\t</BlastOutput_param>\n")	
+				file.write("\t<BlastOutput_iterations>\n")
+				file.write("\t\t<Iteration>\n")		
+				file.write("\t\t\t<Iteration_iter-num>1</Iteration_iter-num>\n")
+				file.write("\t\t\t<Iteration_query-ID>1</Iteration_query-ID>\n")
+				if not is_tair:
+					file.write("\t\t\t<Iteration_query-def>" + result[0] + "</Iteration_query-def>\n")
+				else:
+					file.write("\t\t\t<Iteration_query-def>" + result[1] + "</Iteration_query-def>\n")
+				file.write("\t\t\t<Iteration_query-len>" + result[3] + "</Iteration_query-len>\n")
+				file.write("\t\t\t<Iteration_hits>\n")
+				
+
+				#depending on legnth of result loop through this later
 			
 
-			#depending on legnth of result loop through this later
-		
-
-			for count in range(0, number_db):
-				if not fasta_db.get(get_gi_num_from_string(result[1])) is None:
-					file.write("\t\t\t\t<Hit>\n")
-					file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
-					file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
-					file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species.get(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
-					file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
-					file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
-					file.write("\t\t\t\t\t<Hit_hsps>\n")
-					file.write("\t\t\t\t\t\t<Hsp>\n")
-					file.write("\t\t\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")	
-					file.write("\t\t\t\t\t\t\t<Hsp_bit-score>" + result[3] + "</Hsp_bit-score>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_score>0</Hsp_score>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_evalue>" + result[10] + "</Hsp_evalue>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_query-from>" + result[6] + "</Hsp_query-from>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_query-to>" + result[7] + "</Hsp_query-to>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_hit-from>0</Hsp_hit-from>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_hit-to>0</Hsp_hit-to>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_pattern-from>0</Hsp_pattern-from>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_pattern-to>0</Hsp_pattern-to>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_query-frame>0</Hsp_query-frame>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_hit-frame>0</Hsp_hit-frame>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_identity>0</Hsp_identity>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_positive>0</Hsp_positive>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_gaps>0</Hsp_gaps>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_align-len>" + result[3] + "</Hsp_align-len>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_density>0</Hsp_density>\n")
-					
-					#print (fasta_no_gi[str(result[0])])
-					#print ( fasta_db[get_gi_num_from_string(result[1])].replace("\n", ""))
-					file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_no_gi[str(result[0])] + "</Hsp_qseq>\n")
-					file.write("\t\t\t\t\t\t\t<Hsp_hseq>" +  fasta_db[get_gi_num_from_string(result[1])].replace("\n", "") + "</Hsp_hseq>\n")
-					
-					file.write("\t\t\t\t\t\t</Hsp>\n")
-					file.write("\t\t\t\t\t</Hit_hsps>\n")
-					file.write("\t\t\t\t</Hit>\n")
-					
+				for count in range(0, number_db):
+					if not fasta_db.get(get_gi_num_from_string(result[1])) is None:
+						file.write("\t\t\t\t<Hit>\n")
+						file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
+						file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
+						file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species.get(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
+						file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
+						file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
+						file.write("\t\t\t\t\t<Hit_hsps>\n")
+						file.write("\t\t\t\t\t\t<Hsp>\n")
+						file.write("\t\t\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")	
+						file.write("\t\t\t\t\t\t\t<Hsp_bit-score>" + result[3] + "</Hsp_bit-score>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_score>0</Hsp_score>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_evalue>" + result[10] + "</Hsp_evalue>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_query-from>" + result[6] + "</Hsp_query-from>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_query-to>" + result[7] + "</Hsp_query-to>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_hit-from>0</Hsp_hit-from>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_hit-to>0</Hsp_hit-to>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_pattern-from>0</Hsp_pattern-from>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_pattern-to>0</Hsp_pattern-to>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_query-frame>0</Hsp_query-frame>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_hit-frame>0</Hsp_hit-frame>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_identity>0</Hsp_identity>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_positive>0</Hsp_positive>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_gaps>0</Hsp_gaps>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_align-len>" + result[3] + "</Hsp_align-len>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_density>0</Hsp_density>\n")
+						
+						#print (fasta_no_gi[str(result[0])])
+						#print ( fasta_db[get_gi_num_from_string(result[1])].replace("\n", ""))
+						file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_no_gi[str(result[0])] + "</Hsp_qseq>\n")
+						file.write("\t\t\t\t\t\t\t<Hsp_hseq>" +  fasta_db[get_gi_num_from_string(result[1])].replace("\n", "") + "</Hsp_hseq>\n")
+						
+						file.write("\t\t\t\t\t\t</Hsp>\n")
+						file.write("\t\t\t\t\t</Hit_hsps>\n")
+						file.write("\t\t\t\t</Hit>\n")
+						
 
 
-			file.write("\t\t\t</Iteration_hits>\n")
-			file.write("\t\t</Iteration>\n")
-			file.write("\t</BlastOutput_iterations>\n")
-			file.write("</BlastOutput>\n")
-		file.close()
+				file.write("\t\t\t</Iteration_hits>\n")
+				file.write("\t\t</Iteration>\n")
+				file.write("\t</BlastOutput_iterations>\n")
+				file.write("</BlastOutput>\n")
 
 
 
@@ -963,28 +931,27 @@ def calc_stats(results):
 
 
 	print ("calc stats called")
-
+	#print ("len results: " + str(len(results)))
 	for element in results:
 		temp = results[element]
 		#print (temp)
 		num_queries += 1
 		gi = str(get_gi_num_from_string(temp[1]))
 		query_length = len(fasta_no_gi[temp[0]])
-	
+			
 
 		if not top_ten_hits.get(str(temp[13])) is None:
 			top_ten_hits[str(temp[13])] += 1 
 		else:
 			top_ten_hits[str(temp[13])] = 1
-	
-		if fasta_db_species[gi] is "contaminant":
+		if fasta_db_species[gi] == "contaminant":
 			num_contaminants += 1
 			if not top_ten_contaminants.get(fasta_db_species[gi]) is None:
 				top_ten_contaminants[fasta_db_species[gi]] += 1		
 			else:
 				top_ten_contaminants[fasta_db_species[gi]] = 1
 		else:	
-			if fasta_db_description[gi] is "uninformative":
+			if fasta_db_description[gi] == "uninformative":
 				num_queries_uninformative += 1
 			else:
 				num_queries_informative_hit += 1
@@ -998,6 +965,7 @@ def calc_stats(results):
 		if query_length < shortest_query_length:
 			shortest_query_length = query_length
 
+	num_queries_no_hit = len(fasta_no_gi) - len(results)
 	num_queries = len(results)
 	median_query_length.sort() # sorts least to greatest
 	median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
@@ -1048,6 +1016,7 @@ def getKey(item):
 	return item[1]
 
 def print_stats():
+	global final_output_temp
 	global fasta_no_gi
 	global longest_query_length
 	global shortest_query_length
@@ -1056,52 +1025,57 @@ def print_stats():
 	global avg_length_query_sequences
 	global num_queries
 	global num_queries_informative_hit
-	#global num_queries_no_hit
+	global num_queries_no_hit
 	global num_queries_uninformative
 	global db_count
 	global n50_statistic	
 	global top_ten_hits
+	
+	temp = list()
 
-	if not os.path.exists(output_log + ".txt"):
-		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
-			tsv_log = csv.writer(tsv_log, delimiter='\t')
-			tsv_log.writerow(["DB: "] + [get_db_name(db_count)])
-			tsv_log.writerow(["Total Number of Query Sequences: "] + [str(len(fasta_no_gi))])
-			tsv_log.writerow(["Median Query Length: "] + [str(median_query_length)])
-			tsv_log.writerow(["Average Query Length: "] + [str(round(avg_length_query_sequences,2))])
-			tsv_log.writerow(["Shortest Query Length: "] + [str(shortest_query_length)])
-			tsv_log.writerow(["Longest Query Length: "] + [str(longest_query_length)])
-			tsv_log.writerow(["N50 Statistic: "] + [str(n50_statistic)])
-			tsv_log.writerow(["Number of queries with an informative hit: "] + [str(num_queries_informative_hit)])
-			tsv_log.writerow(["Number of queries with an uninformative hit: "] + [str(num_queries_uninformative)])
-			tsv_log.writerow(["Number of queries with no hit: "] + [str(num_queries_no_hit)])
-			tsv_log.writerow(["Number of contaminants: "] + [str(num_contaminants)])
-			tsv_log.writerow(["The top 10 hits by species: "])
-			if top_ten_hits:
-				for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey, reverse=True):
-					tsv_log.writerow([str(key)+": "] + [value])
-			else:
-				tsv_log.writerow(["No Hits from this DB (possible error)"])
-			tsv_log.writerow(["The top 10 contaminants by species: "])
-			if top_ten_contaminants:
-				for key,value in sorted(get_top_ten(top_ten_contaminants).iteritems(), key=getKey, reverse=True):
-					tsv_log.writerow([str(key)+": "] + [value])
-			else:
-				tsv_log.writerow(["No contaminants present"])
-			tsv_log.writerow([])
-			#print ("log files complete -- exititing")
+	temp.append(["DB: "] + [str(get_db_name(db_count))])
+	temp.append(["Number of queries with an informative hit:"] + [str(num_queries_informative_hit)])
+	temp.append(["Number of queries with an uninformative hit:"] + [str(num_queries_uninformative)])
+	temp.append(["Number of contaminants:"] + [str(num_contaminants)])
+	temp.append(["Number of queries with no hit:"] + [str(num_queries_no_hit)])
+	temp.append(["The top 10 hits by species:"])
+	if top_ten_hits:
+		for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey, reverse=True):
+			temp.append([str(key)+":"] + [str(value)])
+	else:
+		temp.append(["No hits from this DB (possible error)"])
+
+	temp.append(["The top 10 contaminants by species:"])
+	
+	if top_ten_contaminants:
+		for key,value in sorted(get_top_ten(top_ten_contaminants).iteritems(), key=getKey, reverse=True):
+			temp.append([str(key)+": "]+ [str(value)])
+	else:
+		temp.append(["No contaminants present"])
+	
+	temp.append([])	
+	
+	final_output_temp.append(temp)
+	db_count += 1
+
+	
+
 
 
 def get_db_name(db_number):
-	if db_number == 1:
+	if db_number == 0:
 		return str(settings[6])
-	elif db_number == 2:
+	elif db_number == 1:
 		return str(settings[9])
-	elif db_number == 3:
+	elif db_number == 2:
 		return str(settings[12])
-
+	elif db_number == 999:
+		return "combined_db (sum of previous DBs)"
+	else:
+		return "error"
 
 def print_summary_stats():
+	global final_output_temp
 	global annotation_log_entries
 	global longest_query_length
 	global shortest_query_length
@@ -1114,47 +1088,64 @@ def print_summary_stats():
 	global top_ten_contaminants
 	global num_queries_no_hit
 	global final_output
-	#num_queries_no_hit = 0	
-	match_fasta(final_output)
-	calc_stats(final_output)
+	global temp_log_entries	
+	global db
+	global db2
+	global db3
 
-	if not os.path.exists(output_log + ".txt"):
-		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
-			tsv_log = csv.writer(tsv_log, delimiter='\t')
-			tsv_log.writerow([])
-			tsv_log.writerow(["Summary Statistics on the Transcriptome Assembly Input (Query)"])
-			tsv_log.writerow(["Total Number of Query Sequences: "] + [str(len(fasta_no_gi))])
-			tsv_log.writerow(["Median Query Length: "] + [str(median_query_length)])
-			tsv_log.writerow(["Average Query Length: "] + [str(round(avg_length_query_sequences,2))])
-			tsv_log.writerow(["Shortest Query Length: "] + [str(shortest_query_length)])
-			tsv_log.writerow(["Longest Query Length: "] + [str(longest_query_length)])
-			tsv_log.writerow(["N50 Statistic: "] + [str(n50_statistic)])
-			tsv_log.writerow(["Number of queries with an informative hit: "] + [str(num_queries_informative_hit)])
-			tsv_log.writerow(["Number of queries with an uninformative hit: "] + [str(num_queries_uninformative)])
-			tsv_log.writerow(["Number of queries with no hit: "] + [str(num_queries_no_hit)])
-			tsv_log.writerow(["Number of contaminants: "] + [str(num_contaminants)])
-			tsv_log.writerow(["The top 10 hits by species: "])
+	db_combined = dict()
+	
 
-			if top_ten_hits:
-				for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey, reverse=True):
-					tsv_log.writerow([str(key)+": "] + [value])
-			else:
-				tsv_log.writerow(["No Hits from this DB (possible error)"])
-			
+	db_combined.update(db)
+	db_combined.update(db2)
+	db_combined.update(db3)
 
-			tsv_log.writerow(["The top 10 contaminants: "])
 
-			#print (top_ten_contaminants)
-			if top_ten_contaminants:
-				for key,value in sorted(get_top_ten(top_ten_contaminants).iteritems(), key=getKey, reverse=True):
-					tsv_log.writerow([str(key)+": "] + [value])
-			else:
-				tsv_log.writerow(["No contaminants present"])
+
+	num_queries_no_hit = 0	
+	db_count = 999 
+	match_fasta(db_combined)
+	calc_stats(temp_log_entries)
+	#print (len(fasta_no_gi) - num_queries_uninformative - num_queries_informative_hit)
+	num_queries_no_hit = len(fasta_no_gi) - len(temp_log_entries)
+	temp = list()
+	#print (num_queries_no_hit)
+	
+	temp.append(["Summary Statistics on the Transcriptome Assembly Input (Query)"])
+	temp.append(["Total Number of Query Sequences: "] + [str(len(fasta_no_gi))])
+	temp.append(["Median Query Length: "] + [str(median_query_length)])
+	temp.append(["Average Query Length: "] + [str(round(avg_length_query_sequences,2))])
+	temp.append(["Shortest Query Length: "] + [str(shortest_query_length)])
+	temp.append(["Longest Query Length: "] + [str(longest_query_length)])
+	temp.append(["N50 Statistic: "] + [str(n50_statistic)])
+	temp.append(["Number of queries with an informative hit: "] + [str(num_queries_informative_hit)])
+	temp.append(["Number of queries with an uninformative hit: "] + [str(num_queries_uninformative)])
+	temp.append(["Number of queries with no hit: "] + [str(num_queries_no_hit)])
+	temp.append(["Number of contaminants: "] + [str(num_contaminants)])
+	temp.append(["The top 10 hits by species: "])
+	if top_ten_hits:
+		for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey, reverse=True):
+			temp.append([str(key) + ":"] + [str(value)])
+	else:
+		temp.append(["No Hits from this DB (possible error)"])
+	
+	temp.append(["The top 10 contaminants: "])
+	
+	if top_ten_contaminants:
+		for key,value in sorted(get_top_ten(top_ten_contaminants).iteritems(), key=getKey, reverse=True):
+			temp.append([str(key)] + [str(value)])
+	else:
+		temp.append(["No contaminants present"])
+	temp.append([])
+	final_output_temp.append(temp)
+		
+
 
 #entry point of script				
 if __name__ == '__main__':
 	start_time = time.clock()
-	
+	global final_output_temp
+	final_output_temp = list()
 	global debug_uninformative_list
 	debug_uninformative_list = dict()
 	arguments_list = sys.argv
@@ -1182,7 +1173,7 @@ if __name__ == '__main__':
 	global fasta_db_description
 	global fasta_db_species
 	
-	nohits_found = list()
+	nohits_found = dict()
 
 	global fasta_no_gi
 
@@ -1246,6 +1237,12 @@ if __name__ == '__main__':
 	output = "default_output_annotation_" + date +".tsv"
 	number_db = int(settings[1]) # the number of databases being parsed
 	counter = number_db
+
+	global db
+	global db2
+	global db3
+
+
 	db = dict()
 	db2 = dict()
 	db3 = dict()
@@ -1289,10 +1286,11 @@ if __name__ == '__main__':
 			print ("db complete -- now matching")
 			print (str(time.clock() - start_time) + " ::  time to complete db")
 			db_count = 0
+			
 			match_fasta(db)
 			calc_stats(temp_log_entries)
 			print_stats()
-			final_output = temp_log_entries
+			final_output.update(temp_log_entries)
 
 			uninformative_debug_log(debug_uninformative_list)
 
@@ -1341,17 +1339,18 @@ if __name__ == '__main__':
 			calc_stats(temp_log_entries)
 			print_stats()
 
-			final_output = temp_log_entries
-
+			final_output.update(temp_log_entries)
+			print (len(temp_log_entries))
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
 
 			match_fasta(db2)
 			calc_stats(temp_log_entries)
+			print (len(temp_log_entries))
 			print_stats()
 			
-			final_output.update(temp_log_entries)
-
+			#final_output.update(temp_log_entries)
+			#print (len(final_output))
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")	
@@ -1393,7 +1392,7 @@ if __name__ == '__main__':
 			match_fasta(db)
 			calc_stats(temp_log_entries)
 			print_stats()
-			final_output = temp_log_entries
+			final_output.update(temp_log_entries)
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
 			match_fasta(db2)
@@ -1416,75 +1415,100 @@ if __name__ == '__main__':
 		#calc_stats(annotation_log_entries)
 
 		
-		print ("writing annotation log entires")
-		for key in annotation_log_entries:
-			tsv_new.writerow(final_output[key])
+		#print ("writing annotation log entires")
+		#for key in annotation_log_entries:
+		#	tsv_new.writerow(final_output[key])
 		
+		#del annotation_log_entries
 			
 		print ("writing no hits log")
 		#after parsing of all fasta elements add all missed hits to nohits file
 		for item in nohits_found:
-			write_log(item,"nohits_"+ date)
+			write_log([item],"nohits_"+ date)
 		
-			
+		#del nohits_found		
+
 		print ("writing contaminants log")
 		for key in contaminants_found:
 			write_contaminants_log([contaminants_found.get(key)],"contaminants_" + date)
 		
-		
+		#del contaminants_found	
 	
-	print (str(time.clock() - start_time) + " seconds")
-	print("complete -- annotation file now available")
-	#print ("printing db")
-	#print (db)
+		print (str(time.clock() - start_time) + " seconds")
+		print("complete -- annotation file now available")
+		#print ("printing db")
+		#print (db)
+
+		#num_queries_informative_hit = (num_queries - num_queries_uninformative)
+		db_count = 999 # signifies that this is the summary results
+		print_summary_stats()
+		for key in temp_log_entries:
+			tsv_new.writerow(temp_log_entries[key])	
 
 
-	
-	if settings[16] != "":
-		print ("option to include interpro output has been checked, filepath to interpro: " + settings[16]) 
-		print ("calling external script to complete task")
-		
-		#combine_annotations.main(" --input "  + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv")
-		
-		if settings[17] == "":
-			combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
-		else:
-			combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
+	write_xml("blastxml_" + "combined_db" + "_" + date, temp_log_entries)
 
-		#print ("num sequences ID: " + str(combine_annotations.get_num_sequences_identification()))
-		go_interpro_counts = combine_annotations.get_go_interpro_counts()
-		go_counts = combine_annotations.get_go_counts()
-		domain_ids = combine_annotations.get_num_sequences_identification()	
-		at_least_1 = combine_annotations.get_at_least_1() # C, P, F
-
-		#print ("number GO: C: " +str(go_counts[0]) + " F: " + str(go_counts[1]) + " P: " + str(go_counts[2]))		
+	#TODO when config file becomes a parameter => make it display the given filepath
+	final_output_temp.append([["Path to configuration file: " + str(os.path.dirname(os.path.realpath(__file__))) + "/configuration_file.txt\n"]])
+	print (final_output_temp)
+	if not os.path.exists(output_log + ".txt"):
+		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
+			tsv_log = csv.writer(tsv_log, delimiter='\t')
+			for count in range(0, len(final_output)):
+				if final_output_temp:
+					temp = final_output_temp.pop()
+					for line in temp:
+						#line = line.replace("\"","")
+						tsv_log.writerow(line)
 			
 		
-		if not os.path.exists(output_log + ".txt"):
-			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
-				tsv_log = csv.writer(tsv_log, delimiter='\t')
-				tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and 
+        if settings[16] != "":
+                print ("option to include interpro output has been checked, filepath to interpro: " + settings[16])
+
+                #combine_annotations.main(" --input "  + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv")
+
+                if settings[17] == "":
+			print ("option to include blast2go output has been checked, filepath to blast2go: " + settings[17])
+                        combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
+                else:
+                        combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
+
+                #print ("num sequences ID: " + str(combine_annotations.get_num_sequences_identification()))
+                go_interpro_counts = combine_annotations.get_go_interpro_counts()
+                go_counts = combine_annotations.get_go_counts()
+                domain_ids = combine_annotations.get_num_sequences_identification()
+                at_least_1 = combine_annotations.get_at_least_1() # C, P, F
+		at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
+                #print ("number GO: C: " +str(go_counts[0]) + " F: " + str(go_counts[1]) + " P: " + str(go_counts[2]))
+
+
+                if not os.path.exists(output_log + ".txt"):
+                        with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
+                                tsv_log = csv.writer(tsv_log, delimiter='\t')
+                                tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and
+                                if settings[17] != "" and not settings[17] is None:
+					tsv_log.writerow(["Blast2GO File: "] + [str(settings[17])]) 
 				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
-				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
-				tsv_log.writerow(["Number of GO Terms with at least 1 Component: "] + [str(at_least_1[0])])
-				tsv_log.writerow(["Number of GO Terms with at least 1 Function: "] + [str(at_least_1[2])])
-				tsv_log.writerow(["Number of GO Terms with at least 1 Process: "] + [str(at_least_1[1])])
-				tsv_log.writerow(["Gene Ontology Stats (Totals)"])
-				tsv_log.writerow(["Component: "] + [str(go_counts[0])])
-				tsv_log.writerow(["Function: "] + [str(go_counts[1])])
-				tsv_log.writerow(["Process: "] + [str(go_counts[2])])
+                                tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
+                                tsv_log.writerow(["Blast2GO Gene Ontology Stats"])
+                                tsv_log.writerow(["Number of Components: "] + [str(go_counts[0])])
+                                tsv_log.writerow(["Number of Functions: "] + [str(go_counts[1])])
+                                tsv_log.writerow(["Number of Processes: "] + [str(go_counts[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1[0])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1[1])])
 				tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
 				tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
-				tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
-				tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
-
-	
-		
-	else:
-		print ("no interpro file has been specified, skipping combined annotation step")
+                                tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
+                                tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
 
 
-	#num_queries_informative_hit = (num_queries - num_queries_uninformative)
-	db_count = 999 # signifies that this is the summary results
-	print_summary_stats()
+        else:
+                print ("no interpro file has been specified, skipping combined annotation step")
+
+
+
 	print ("Completed everything -- Now exiting")
