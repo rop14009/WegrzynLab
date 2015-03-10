@@ -257,7 +257,7 @@ def check_cpf(l, t):
 	p = False
 	f = False
 
-	if t == "interpro":	
+	#if t == "interpro":	
 		#print ("interpro GO:")
 		#print (l)
 
