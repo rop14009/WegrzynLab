@@ -462,9 +462,9 @@ def usearch_format_db_parse(file_name):
 				
 				line[0] = str(line[0].split(" ")[0])
 				
-				if not usearch_db.get(line[0]) is None:
+				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(line[0]) is None:
 					usearch_db[line[0]] = find_best_query_result(usearch_db[line[0]], line)
-				else:
+				elif not fasta_no_gi.get(line[0]) is None:
 					usearch_db[line[0]] = line
 				
 				#print (usearch_db)
