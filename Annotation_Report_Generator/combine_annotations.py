@@ -95,23 +95,28 @@ def parse_column(row, file_type):
 		string = string.strip()
 		if "P:" in string or "Biological Process:" in string:
 			process.append(string)
+			'''	
 			if file_type == "blast":
 				num_process += 1
 			else:
 				num_process_interpro += 1
+			'''
 		if "F:" in string or "Molecular Function:" in string:
 			function.append(string)
+			'''
 			if file_type == "blast":
 				num_function += 1
 			else:
 				num_function_interpro += 1
+			'''
 		if "C:" in string or "Cellular Component:" in string:
 			component.append(string)
+			'''
 			if file_type == "blast":
 				num_component += 1
 			else:
 				num_component_interpro += 1
-
+			'''
 		return [" ".join(process), " ".join(function), " ".join(component)]
 
 def make_blast2go_walnut_combined_dict(file_name):
@@ -120,7 +125,7 @@ def make_blast2go_walnut_combined_dict(file_name):
 		row = next(tsv_old) #skip the first header line
 		for row in csv.reader(tsv_old, delimiter='\t'):
 			#print (row)
-			id = row[0] #oombined_anno_id_parser(row[0]) #get the key
+			id = row[0].split("|")[0] #oombined_anno_id_parser(row[0]) #get the key
 			blast2go_data[id] = parse_column(row,"blast")
 	print (len(blast2go_data))
 	return blast2go_data
@@ -134,6 +139,12 @@ def make_walnut_interpro_dict(file_name):
 			#print (len(row))
 			#id = row[1][8:] #get the key
 			id = str(row[0])
+			
+			if "." in id:
+				id = id[8:]
+			id = id.split("|")[0]
+
+
 			parse_column(row, "interpro") # this is done to calc interpro GO terms
 			#print (id)
 			value_list.append(row[5])
@@ -252,22 +263,58 @@ def check_cpf(l, t):
 	global at_least_1_c_interpro
 	global at_least_1_p_interpro
 	global at_least_1_f_interpro
-		
+	
+
+	global num_component_interpro
+	global num_process_interpro
+	global num_function_interpro
+
+
+	global num_component
+	global num_process
+	global num_function
+
+
+
+	
 	c = False
 	p = False
 	f = False
 
+
+	if ";" in l:
+		l = l.split(";") # splits the column by ;
+	elif "," in l:
+		l = l.split(",") # splits the column by ;
+	elif " " in l:
+		l = l.split(" ") # splits the column by " "
+
 	#if t == "interpro":	
-		#print ("interpro GO:")
-		#print (l)
+	#	print ("interpro GO:")
+	#	print (l)
 
 	for element in l:
 		if "C:" in element or "Cellular Component:" in element:		
 			c = True
+			if t == "blast2go":
+				num_component += 1
+			else:
+				num_component_interpro += 1
+
 		if "P:" in element or "Biological Process:" in element:
 			p = True
+			if t == "blast2go":
+				num_process += 1
+			else:
+				num_process_interpro += 1
+
 		if "F:" in element or "Molecular Function:" in element:
 			f = True
+			if t == "blast2go":
+				num_function += 1
+			else:
+				num_function_interpro += 1
+
 	if t == "blast2go":
 		if c:
 			at_least_1_c += 1
@@ -275,7 +322,7 @@ def check_cpf(l, t):
 			at_least_1_p += 1
 		if f:
 			at_least_1_f += 1
-	elif t == "interpro":
+	if t == "interpro":
 		if c:
 			at_least_1_c_interpro += 1
 		if p:
@@ -362,15 +409,16 @@ def main(args):
 			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
-				id = str(row[0])
+				id = str(row[0]).split("|")[0]
 				#id = combined_anno_id_parser(row[1])
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
 				
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
 					#count_sequences_identification[1] += 1
-				#else:
-				#	count_sequences_identification[0] += 1
+				else:
+					if len(walnut_results_interpro) > 3:
+						check_cpf(walnut_results_interpro[3],"interpro")	
 				walnut_results_blast2go = blast2go_hastable.get(id)
 				
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
@@ -379,9 +427,6 @@ def main(args):
 				else:
 					count_sequences_identification[0] += 1	
 					check_cpf(walnut_results_blast2go,"blast2go")
-					if len(walnut_results_interpro) > 3:
-						#print (walnut_results_interpro)
-						check_cpf(walnut_results_interpro[3],"interpro")
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
 	
@@ -419,7 +464,7 @@ def main(args):
 			for row in tsv_old:
 				#print (row)
 				#id = combined_anno_id_parser(row[1])
-				id = str(row[0])
+				id = str(row[0]).split("|")[0]
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
 				#print (walnut_results_interpro)	
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
@@ -427,7 +472,8 @@ def main(args):
 					count_sequences_identification[1] += 1
 				else:
 					count_sequences_identification[0] += 1
-				
+					if len(walnut_results_interpro) > 3:
+						check_cpf(walnut_results_interpro[3],"interpro")	
 				walnut_results_blast2go = blast2go_hastable.get(id)
 
 				if not walnut_results_blast2go:
@@ -435,10 +481,7 @@ def main(args):
 					count_sequences_identification[1] += 1
 				else:
 					count_sequences_identification[0] += 1
-					check_cpf(walnut_results_blast2go)		
-					if len(walnut_results_interpro) > 3:
-						#print (walnut_results_interpro)
-						check_cpf(walnut_results_interpro[3],"interpro")
+					check_cpf(walnut_results_blast2go,"blast2go")		
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)		
 		

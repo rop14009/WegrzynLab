@@ -462,9 +462,9 @@ def usearch_format_db_parse(file_name):
 				
 				line[0] = str(line[0].split(" ")[0])
 				
-				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(line[0]) is None:
+				if not usearch_db.get(line[0]) is None:
 					usearch_db[line[0]] = find_best_query_result(usearch_db[line[0]], line)
-				elif not fasta_no_gi.get(line[0]) is None:
+				else:
 					usearch_db[line[0]] = line
 				
 				#print (usearch_db)
@@ -681,7 +681,11 @@ def match_fasta(db):
 			# The query variable is the line from the DB containing the matching query
 			
 			query = db.get(element)
-	
+
+			# try to find a match with no isomer in DB
+			if query is None:
+				query = db.get(element.split("|")[0])
+			# if its still None, then there is no hit possible	
 			if not query is None:
 				key = str(get_gi_num_from_string(query[1]))
 				#print (query[0])
@@ -1449,7 +1453,7 @@ if __name__ == '__main__':
 	write_xml("blastxml_" + "combined_db" + "_" + date, temp_log_entries)
 
 	#TODO when config file becomes a parameter => make it display the given filepath
-	final_output_temp.append([["Path to configuration file: " + str(os.path.dirname(os.path.realpath(__file__))) + "/configuration_file.txt\n"]])
+	final_output_temp.append([["Path to configuration file: " + str(os.path.dirname(os.path.realpath(__file__))) + "/configuration_file.txt"]])
 	print (final_output_temp)
 	if not os.path.exists(output_log + ".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
