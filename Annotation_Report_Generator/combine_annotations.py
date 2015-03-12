@@ -478,9 +478,7 @@ def main(args):
 
 				if not walnut_results_blast2go:
 					walnut_results_blast2go = ["N/A","N/A","N/A"]
-					count_sequences_identification[1] += 1
 				else:
-					count_sequences_identification[0] += 1
 					check_cpf(walnut_results_blast2go,"blast2go")		
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)		
