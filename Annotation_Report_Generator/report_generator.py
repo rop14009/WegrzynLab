@@ -274,11 +274,11 @@ def find_best_query_result(query1, query2):
 
 	if species in contaminants and query1_coverage > min_coverage:
 		contaminants_found[query1_gi] = fasta_db_species[query1_gi]
-		print ("contam found")
+		#print ("contam found")
 		fasta_db_species[query1_gi] = "contaminant"
 	if species2 in contaminants and query2_coverage > min_coverage:
 		contaminants_found[query2_gi] = fasta_db_species[query2_gi]
-		print ("contam found")
+		#print ("contam found")
 		fasta_db_species[query2_gi] = "contaminant"
 
 	# new algorithm --  if both queries are over the min cov requirement, chose the one with smaller e-value
