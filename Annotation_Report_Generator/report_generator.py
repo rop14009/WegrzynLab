@@ -197,7 +197,7 @@ def find_best_query_result(query1, query2):
 	global debug_uninformative_list
 
 
-
+	global contaminants
 	#note: query1 is the pre-existing value in db
         #these variables are needed to determine informative/contaminant hits
         global fasta_db
@@ -260,10 +260,10 @@ def find_best_query_result(query1, query2):
 
 
 	species = fasta_db_species[query1_gi]
-	species = species.split(" ")[0]
+	#species = species.split(" ")[0]
 
 	species2 = fasta_db_species[query2_gi]
-	species2 = species2.split(" ")[0]
+	#species2 = species2.split(" ")[0]
 	'''
 	if species in contaminants:
 		print ("contaminant:   " + str(species))
@@ -272,14 +272,14 @@ def find_best_query_result(query1, query2):
 	'''
 
 
-	if species in contaminants and query1_coverage > min_coverage:
-		contaminants_found[query1_gi] = fasta_db_species[query1_gi]
+	if not species in contaminants and species2 in contaminants and query1_coverage < min_coverage:
+		return query1
+		#contaminants_found[query1_gi] = fasta_db_species[query1_gi]
 		#print ("contam found")
-		fasta_db_species[query1_gi] = "contaminant"
-	if species2 in contaminants and query2_coverage > min_coverage:
-		contaminants_found[query2_gi] = fasta_db_species[query2_gi]
+	if not species2 in contaminants and species in contaminants and query2_coverage < min_coverage:
+		return query2
+		#contaminants_found[query2_gi] = fasta_db_species[query2_gi]
 		#print ("contam found")
-		fasta_db_species[query2_gi] = "contaminant"
 
 	# new algorithm --  if both queries are over the min cov requirement, chose the one with smaller e-value
 
@@ -921,6 +921,8 @@ def calc_stats(results):
 	global n50_statistic
 	global top_ten_hits
 	global top_ten_contaminants
+	global contaminants
+	global min_coverage
 	#print ("db length:   " + str(len(results)))
 	top_ten_hits = dict()
 	top_ten_contaminants = dict()
@@ -942,13 +944,9 @@ def calc_stats(results):
 		num_queries += 1
 		gi = str(get_gi_num_from_string(temp[1]))
 		query_length = len(fasta_no_gi[temp[0]])
-			
+		query_coverage = float(temp[3]) / float(query_length)
 
-		if not top_ten_hits.get(str(temp[13])) is None:
-			top_ten_hits[str(temp[13])] += 1 
-		else:
-			top_ten_hits[str(temp[13])] = 1
-		if fasta_db_species[gi] == "contaminant":
+		if fasta_db_species[gi] in contaminants:
 			num_contaminants += 1
 			if not top_ten_contaminants.get(fasta_db_species[gi]) is None:
 				top_ten_contaminants[fasta_db_species[gi]] += 1		
@@ -959,6 +957,15 @@ def calc_stats(results):
 				num_queries_uninformative += 1
 			else:
 				num_queries_informative_hit += 1
+			
+			if not top_ten_hits.get(str(temp[13])) is None:
+				top_ten_hits[str(temp[13])] += 1
+			else:
+				top_ten_hits[str(temp[13])] = 1
+
+
+
+
 
 		median_query_length.append(query_length)
 
