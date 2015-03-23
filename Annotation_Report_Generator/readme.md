@@ -111,12 +111,23 @@ If isoforms are present in the databases, it is necessary that the query fasta a
 After pulling from the repository and insuring that all files from the repository are present, to execute the script you must do the following:
 
 1) Ensure that Python is correctly installed on your machine
+
+
 2) Fill out the configuration file accurately (based upon earlier instructions)
+
+
 3) Place the configuration file IN THE SAME DIRECTORY as the report_generator.py script
+
+
 4) execute the script with the command:
+
+
 ```
 python report_generator.py
 ```
+
+
+
 5) The results from the script will be placed into the same directory as the rest of the files.
 
 
