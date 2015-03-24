@@ -26,13 +26,40 @@ This software tool accomplishes the following:
 * Generates a list of all of the sequences from the query file that did not have a hit from any of the databases (saved as text file)
 * Generates a list of all of the contaminant sequences from the query file (saved as text file)
 
-## Execution Example
+## Execution Examples
 
+Execution example for the script, after the configuration file has been filled out.
 
 ```
 cd /path/to/directory/containing/script/directory_containing_script/
 python report_generator.py
 ```
+
+Execution example for usearch:
+
+```
+usearch -ublast query.fasta -db /path_to_udb_database/refseq_protein.udb -threads 12 -evalue 1e-9 -weak_evalue 0.0001 -blast6out results
+```
+
+Execution example for vsearch:
+
+```
+vsearch query.fasta --db /path_to_udb_database/refseq_protein.udb --threads 12 --id 1e-9 --weak_id 0.0001 --blast6out results
+```
+
+Execution example for Interpro:
+
+Note: $input is binded to the configuration files for your interproscan run (refer to: https://code.google.com/p/interproscan/wiki/RC4HowToRun)
+```
+interproscan.sh -i $input -o $output -f xml -appl pfam, Panther -goterms -iprlookup
+```
+
+Execution example for Blast2GO:
+
+To be added later
+```
+```
+
 
 ## Getting Started
 
@@ -43,6 +70,29 @@ This script requires Python 2.X as a dependency, in order to check which version
 ```
 python -V
 ```
+
+### External Applications
+
+The external applications that are required in order to function with this script are Blast2GO, Interpro, and usearch (or vsearch)
+
+
+Usearch is a sequence analysis tool.
+
+USearch Download Link: http://www.drive5.com/usearch/download.html
+
+Vsearch is a sequence analysis tool that is open source, and free.
+
+Vsearch Download Link: https://github.com/torognes/vsearch
+
+Blast2GO is an application that allows for the functional annotation of sequences, and the analysis of annotation data.
+
+Blast2GO Download Link: https://www.blast2go.com/blast2go-pro/download-b2g
+
+Interpro is an application that provides functional analysis of protein sequences. It is used to generated the gene ontology of the transcripts.
+
+Interpro Download Link: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B76DDDA8BCBB1AD8AFA31F3FE0E476B5
+
+
 
 ### Configuration File
 
