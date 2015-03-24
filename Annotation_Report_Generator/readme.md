@@ -56,9 +56,9 @@ interproscan.sh -i $input -o $output -f xml -appl pfam, Panther -goterms -iprloo
 
 Execution example for Blast2GO:
 
-To be added later
-```
-```
+Please refer to: https://wiki.hpcc.msu.edu/display/Bioinfo/Using+Blast2GO
+
+For Blast2GO execution examples for the GUI and CLI versions of blast.
 
 
 ## Getting Started
@@ -202,6 +202,6 @@ Specifically,
 * Bacteria
 * Fungi
 
-In in configuration file each of these databases can be toggled by writing either "y" or "yes" to include them when searching for contaminants, or write "no" or leave it blank to ignore those types of contaminants.
+In in configuration file each of these databases can be toggled by writing either "y" or "yes" to include them when searching for contaminants, or write "no" or anything that does not include the character "y" or leave it blank to ignore those types of contaminants.
 
 
