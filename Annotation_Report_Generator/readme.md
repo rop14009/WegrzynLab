@@ -206,4 +206,30 @@ Specifically,
 
 In in configuration file each of these databases can be toggled by writing either "y" or "yes" to include them when searching for contaminants, or write "no" or anything that does not include the character "y" or leave it blank to ignore those types of contaminants.
 
+### Output from the script
 
+The script outputs several files.
+
+There will be a text file of the name: log_[date of execution goes here].txt 
+
+This file will contain the log with all of the statistical data generated in respect to each database, and the collection of databases as a whole.
+
+There will be a text file of the name: nohits_[date of execution goes here].txt
+
+This file will contain the log of all of the nohits found while searching for matches to the search queries in the search results from the databases.
+
+There will be a series of XML files of the name: blastxml_[db number OR combined_db]_[date of execution goes here].xml 
+
+These are the file(s) that can be imported back into Blast2GO as an XML file.
+
+There will be a file of the name: uninformative_[date of execution goes here].txt 
+
+This file will contain the log of all the uninformative hits.
+
+There will be a file of the name: default_output_annotation_2015-03-22 13:07:41.898127.tsv
+
+This file will contain all of the search queries from the query fasta that had a hit, along with their best hit and description.
+
+There will be a file of the name: combined_annotation_[date of execution goes here].tsv
+
+This file will contain all of the search queries from the query fasta that had a hit, their respective best hits, descriptions, and InterProScan and Blast2GO results.
