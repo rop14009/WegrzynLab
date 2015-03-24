@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The aim of this project is to create a software tool to improve the accuracy and speed of transcriptime (gene space) annotation of any non-model organism.
+The aim of this project is to create a software tool to improve the accuracy and speed of transcriptome (gene space) annotation of any non-model organism.
 
 This software tool accomplishes the following:
 
