@@ -71,6 +71,8 @@ This script requires Python 2.X as a dependency, in order to check which version
 python -V
 ```
 
+Python can be downloaded for free at: https://www.python.org/downloads/
+
 ### External Applications
 
 The external applications that are required in order to function with this script are Blast2GO, Interpro, and usearch (or vsearch)
