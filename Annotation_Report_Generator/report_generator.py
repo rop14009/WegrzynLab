@@ -567,26 +567,37 @@ def write_log(element, log_name):
 
 	
 def build_contaminants_db():
+	global settings
 	contaminant_db = dict()
 	bacteria_db = open("bacteria_db.txt", "r")
 	fungi_db = open("fungi_db.txt","r")
 	insects_db = open("insects.txt","r")	
 	#bacteria first
 	file_tsv = csv.reader(bacteria_db, delimiter='\t')
-	for line in file_tsv:
-		line[0] = line[0].split(" ")[0]
-		#print (line[0])
-		contaminant_db[line[0]] = line[0] #its faster to check if value exists in a hashtable than a regular list
-		
-	for line in fungi_db:
-		line = line.split(" ")[0]
-		#print(line)
-		contaminant_db[line] = line
 	
-	for line in insects_db:	
-		line = line.split(" ")[0]
-		#print (line)
-		contaminant_db[line] = line
+	if "y" in settings[21] or "yes" in settings[21]: 
+		# loads bacteria DB
+		for line in file_tsv:
+			line[0] = line[0].split(" ")[0]
+			#print (line[0])
+			contaminant_db[line[0]] = line[0] #its faster to check if value exists in a hashtable than a regular list
+	
+	if "y" in settings[20] or "yes" in settings[20]:	
+		# loads fungi DB
+		for line in fungi_db:
+			line = line.split(" ")[0]
+			#print(line)
+			contaminant_db[line] = line
+	
+	if "y" in settings[19] or "yes" in settings[19]:
+		# loads insects DB
+		for line in insects_db:	
+			line = line.split(" ")[0]
+			#print (line)
+			contaminant_db[line] = line
+		
+
+
 	return contaminant_db
 	
 
@@ -1163,6 +1174,7 @@ if __name__ == '__main__':
 	global date	
 	date = str(datetime.datetime.now())
 	print(date)
+	global settings
 	settings = parse_config_file("configuration_file.txt") #sets up the settings
 	output_log = "log_" + date + ".txt"
 
