@@ -1468,8 +1468,8 @@ if __name__ == '__main__':
 		for key in temp_log_entries:
 			tsv_new.writerow(temp_log_entries[key])	
 
-
-	write_xml("blastxml_" + "combined_db" + "_" + date, temp_log_entries)
+	if settings[15] == "yes" or settings[15] == "y":
+		write_xml("blastxml_" + "combined_db" + "_" + date, temp_log_entries)
 
 	#TODO when config file becomes a parameter => make it display the given filepath
 	final_output_temp.append([["Path to configuration file: " + str(os.path.dirname(os.path.realpath(__file__))) + "/configuration_file.txt"]])
