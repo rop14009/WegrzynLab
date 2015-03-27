@@ -7,7 +7,7 @@ The aim of this project is to create a software tool to improve the accuracy and
 This software tool accomplishes the following:
 
 * Determines the best possible hit from a set of search results (from 1, 2, or 3 sets of search results)
-* Appends Blast2GO and Interpro information to the annotation file
+* Appends Blast2GO and InterProScan information to the annotation file
 * Calculates statistics on the set of search queries.
   *  N50 Statistic
   *  Median query length
@@ -19,7 +19,7 @@ This software tool accomplishes the following:
   *  Number of queries with an informative/uninformative hit
   *  Number of contaminants found
   *  Number of sequences with/without domain identification
-  *  Number of Components, Functions, Processes from both Blast2GO and Interpro
+  *  Number of Components, Functions, Processes from both Blast2GO and InterProScan
   *  Number of transcripts with at least 1 Component, Function, or Process
 * Generates an XML version of the results that can be exported to Blast2GO
   * 1 XML file is generated per database input, and 1 XML file is generated from all of the given databases which contains the best hits from all of the given databases.
@@ -47,7 +47,7 @@ Execution example for vsearch:
 vsearch query.fasta --db /path_to_udb_database/refseq_protein.udb --threads 12 --id 1e-9 --weak_id 0.0001 --blast6out results
 ```
 
-Execution example for Interpro:
+Execution example for InterProScan:
 
 Note: $input is binded to the configuration files for your interproscan run (refer to: https://code.google.com/p/interproscan/wiki/RC4HowToRun)
 ```
@@ -79,7 +79,7 @@ Steps:
 
 4) If you do not wish to generate the combined annotation file, you can stop here otherwise, input your XML files back into Blast2GO, so they can be mapped to their respective gene ontology terms.
 
-5) You must also run InterProScan to generate your interpro file (instructions below)
+5) You must also run InterProScan to generate your InterProScan results file (instructions below)
 
 6) Once you have the results from InterProScan and Blast2GO, you can then run the combine_annotations.py script to generate your final, complete annotation file with all of the information from all of the databases.
 
@@ -101,24 +101,24 @@ Python can be downloaded for free at: https://www.python.org/downloads/
 
 ### External Applications
 
-The external applications that are required in order to function with this script are Blast2GO, Interpro, and usearch (or vsearch)
+The external applications that are required in order to function with this script are Blast2GO, InterProScan, and usearch (or vsearch)
 
 
-Usearch is a sequence analysis tool.
+usearch is a sequence analysis tool.
 
-USearch Download Link: http://www.drive5.com/usearch/download.html
+usearch Download Link: http://www.drive5.com/usearch/download.html
 
-Vsearch is a sequence analysis tool that is open source, and free.
+vsearch is a sequence analysis tool that is open source, and free.
 
-Vsearch Download Link: https://github.com/torognes/vsearch
+vsearch Download Link: https://github.com/torognes/vsearch
 
 Blast2GO is an application that allows for the functional annotation of sequences, and the analysis of annotation data.
 
 Blast2GO Download Link: https://www.blast2go.com/blast2go-pro/download-b2g
 
-Interpro is an application that provides functional analysis of protein sequences. It is used to generated the gene ontology of the transcripts.
+InterProScan is an application that provides functional analysis of protein sequences. It is used to generated the gene ontology of the transcripts.
 
-Interpro Download Link: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B76DDDA8BCBB1AD8AFA31F3FE0E476B5
+InterProScan Download Link: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B76DDDA8BCBB1AD8AFA31F3FE0E476B5
 
 
 
