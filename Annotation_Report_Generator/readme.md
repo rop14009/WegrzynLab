@@ -75,8 +75,11 @@ Example usages of the script that will result in correct outputs:
 python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename> --output <output_file_name.tsv>
 
 
-#note this example will generate an output with the default name combined_annotation.tsv in the directory that the script is being executed in
+Note this example will generate an output with the default name combined_annotation.tsv in the directory that the script is being executed in
+
 python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename>
+
+And this example will specify a custom output name
 
 python combine_annotations.py --input <annotation filename> --interpro <interpro filename> --output <output_file_name.tsv>
 
