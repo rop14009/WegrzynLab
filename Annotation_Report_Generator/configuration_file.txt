@@ -1,22 +1,22 @@
-Path to query FASTA: /home/dgi/question/sequences3.fasta
-Source Databases: 1
-Sequence Search Application:usearch
+Path to query FASTA: 
+Source Databases: 
+Sequence Search Application:
 Query Organism:
 Path to formatted database1:
-Path to FASTA-version of database1:/share/nealedata/databases/downloadDir/refseq_protein.fasta
-Path to search results from database1:/home/dgi/question/sequences3_refseq_protein
+Path to FASTA-version of database1:
+Path to search results from database1:
 Path to formatted database2 (organism-specific):
 Path to FASTA-version of database2:
 Path to search results from database2:
 Path to formatted database3 (full length): 
 Path to FASTA-version of database3:
 Path to search results from database3:
-Full-length coverage requirement: 0.70
-Minimum Evalue:1e-5
-Generate XML for Blast2GO:no
-Path to Interpro Results: 
+Full-length coverage requirement:
+Minimum Evalue:
+Generate XML for Blast2GO:
+Path to InterProScan Results: 
 Path to Blast2GO Results:
 Contaminant Detection Options
-Insects: yes
-Fungi: yes
-Bacteria: yes
+Insects:
+Fungi:
+Bacteria:

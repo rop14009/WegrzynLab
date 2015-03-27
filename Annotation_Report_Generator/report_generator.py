@@ -1276,9 +1276,9 @@ if __name__ == '__main__':
 			row = ["Query","Subject_id","Identity(%)","Alignment_length","Mismatches","Number of gap opens","Query_start","Query_end" \
 			,"Subject_start","Subject_end","E-value","Bit_score","Subject Description","Species"]
 			
-			for x in range(0, (number_db - 1)):
-				row += ["Subject_description","Species","Subject_id","Alignment_length", \
-				"Mismatches","Query_start","Query_end","Subject_start","Subject_end","E-value","Bit_score","Subject_description","Species"]
+			#for x in range(0, (number_db - 1)):
+			#	row += ["Subject_description","Species","Subject_id","Alignment_length", \
+			#	"Mismatches","Query_start","Query_end","Subject_start","Subject_end","E-value","Bit_score","Subject_description","Species"]
 			#row +=["has GFF3 data","GFF3 start","GFF3 stop","GFF3 ORF"]
 		else:
 			print("ncbi")
@@ -1491,47 +1491,44 @@ if __name__ == '__main__':
                 #combine_annotations.main(" --input "  + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv")
 
                 if settings[17] == "":
-			print ("option to include blast2go output has been checked, filepath to blast2go: " + settings[17])
                         combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
                 else:
                         combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
 
-                #print ("num sequences ID: " + str(combine_annotations.get_num_sequences_identification()))
-                go_interpro_counts = combine_annotations.get_go_interpro_counts()
-                go_counts = combine_annotations.get_go_counts()
-                domain_ids = combine_annotations.get_num_sequences_identification()
-                at_least_1 = combine_annotations.get_at_least_1() # C, P, F
-		at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
-                #print ("number GO: C: " +str(go_counts[0]) + " F: " + str(go_counts[1]) + " P: " + str(go_counts[2]))
-
-
-                if not os.path.exists(output_log + ".txt"):
-                        with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
-                                tsv_log = csv.writer(tsv_log, delimiter='\t')
-                                tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and
-                                if settings[17] != "" and not settings[17] is None:
-					tsv_log.writerow(["Blast2GO File: "] + [str(settings[17])]) 
-				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
-                                tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
-                                tsv_log.writerow(["Blast2GO Gene Ontology Stats"])
-                                tsv_log.writerow(["Number of Components: "] + [str(go_counts[0])])
-                                tsv_log.writerow(["Number of Functions: "] + [str(go_counts[1])])
-                                tsv_log.writerow(["Number of Processes: "] + [str(go_counts[2])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1[0])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1[2])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1[1])])
-				tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
-				tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
-                                tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
-                                tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
-
-
-        else:
+	elif settings[17] != "":
+		combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--output"] + ["combined_annotation_"+date+".tsv"]) 
+	else:
                 print ("no interpro file has been specified, skipping combined annotation step")
 
+	go_interpro_counts = combine_annotations.get_go_interpro_counts()
+	go_counts = combine_annotations.get_go_counts()
+	domain_ids = combine_annotations.get_num_sequences_identification()
+	at_least_1 = combine_annotations.get_at_least_1() # C, P, F
+	at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
+
+	#potentially move this over combined_annotations.py eventually?
+	if not os.path.exists(output_log + ".txt"):
+		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
+			tsv_log = csv.writer(tsv_log, delimiter='\t')
+			tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and
+			if settings[17] != "" and not settings[17] is None:
+				tsv_log.writerow(["Blast2GO File: "] + [str(settings[17])])
+			tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
+			tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
+			tsv_log.writerow(["Blast2GO Gene Ontology Stats"])
+			tsv_log.writerow(["Number of Components: "] + [str(go_counts[0])])
+			tsv_log.writerow(["Number of Functions: "] + [str(go_counts[1])])
+			tsv_log.writerow(["Number of Processes: "] + [str(go_counts[2])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1[0])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1[2])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1[1])])
+			tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
+			tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
+			tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
+			tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
 
 
 	print ("Completed everything -- Now exiting")

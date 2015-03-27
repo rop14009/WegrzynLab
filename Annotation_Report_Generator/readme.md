@@ -60,6 +60,35 @@ Please refer to: https://wiki.hpcc.msu.edu/display/Bioinfo/Using+Blast2GO
 
 For Blast2GO execution examples for the GUI and CLI versions of blast.
 
+### Executing combined_annotations.py independently
+
+This script takes the Blast2GO, InterProScan, and annotation input and merges them together into one file
+
+@PARAMETERS
+
+--input, --blast2go, --interpro, --output
+
+
+Example usages of the script that will result in correct outputs:
+
+
+python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename> --output <output_file_name.tsv>
+
+
+#note this example will generate an output with the default name combined_annotation.tsv in the directory that the script is being executed in
+python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename>
+
+python combine_annotations.py --input <annotation filename> --interpro <interpro filename> --output <output_file_name.tsv>
+
+
+For performing merges with 2 interpro files:
+
+python combine_annotations.py --input <annotation filename> --interpro <interpro filename> <interpro filename two> --output <output_file_name.tsv>
+
+
+When the script finishes running, the output file will be availible in the output directory.
+
+
 
 ## Getting Started
 
@@ -143,8 +172,8 @@ Path to search results from database3:
 Minimum Evalue: 1e-5
 Full-length coverage requirement: (0 - 1)
 Generate XML for Blast2GO: yes/no
-Path to Interpro Results:
-Path to Blast2GO Results:
+Path to InterProScan Results: (If no results leave blank)
+Path to Blast2GO Results: (If no results leave blank)
 Contaminant Detection Options
 Insects: yes/no
 Fungi: yes/no
@@ -204,17 +233,17 @@ The minimum E-Value can be input in either scientific notation (1e-5) or as a de
 
 The minimum coverage requirement can only be input as a decimal number between 0 and 1 (such as 0.7)
 
-#### Interpro and Blast2GO paths
+#### InterProScan and Blast2GO paths
 
-For these two options you must enter the path to your interpro and blast2go input files.
+For these two options you must enter the path to your InterProScan and Blast2GO input files.
 
-The interpro file format is as follows:
+The InterProScan file format is as follows:
 
 ```
 c10004_g1_i1    3F8F69B8D17CEA7F        185     HMMPfam PF13976 gag_pre-integrs 37      108     1.0E-10 T       06-Nov-2014     IPR025724       GAG-pre-integrase domain
 ```
 
-The blast2go file format is as follows:
+The Blast2GO file format is as follows:
 
 ```
 c58101_g1_i1|m.1        uninformative   390     2       7.2E-10 0.0%    3       F:GO:0003674; P:GO:0008150; C:GO:0005575
