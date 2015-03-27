@@ -63,6 +63,12 @@ For Blast2GO execution examples for the GUI and CLI versions of blast.
 
 ## Getting Started
 
+### Overview of how the script functions
+
+![Diagram of script execution](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/diagram.png)
+
+
+
 ### Dependencies
 
 This script requires Python 2.X as a dependency, in order to check which version you have installed run the command:
