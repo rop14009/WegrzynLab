@@ -67,6 +67,26 @@ For Blast2GO execution examples for the GUI and CLI versions of blast.
 
 ![Diagram of script execution](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/diagram.png)
 
+The diagram above shows the order in which the seperate operations must be performed in order to generate a complete annotation report.
+
+Steps:
+
+1) You must first run your preferred search application (usearch or vsearch) to obtain a correctly formatted set of search results from your database
+
+2) You must correctly fill out the configuration file to run the report_generator.py script (set up correct options and parameters -- see below for how to do this)
+
+3) After completing a successful execution of the report generator script, you will have a default annotation, a log file, and if you set up your configuration file to generate XML versions of the database those will be present as well.
+
+4) If you do not wish to generate the combined annotation file, you can stop here otherwise, input your XML files back into Blast2GO, so they can be mapped to their respective gene ontology terms.
+
+5) You must also run InterProScan to generate your interpro file (instructions below)
+
+6) Once you have the results from InterProScan and Blast2GO, you can then run the combine_annotations.py script to generate your final, complete annotation file with all of the information from all of the databases.
+
+Important Note:
+
+In order for the statistics on the InterProScan results and Blast2GO results to be calculated, you must re-run the report_generator.py script with your InterProScan results and Blast2GO results.
+
 
 
 ### Dependencies

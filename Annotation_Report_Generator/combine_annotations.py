@@ -331,6 +331,9 @@ def check_cpf(l, t):
 			at_least_1_f_interpro += 1
 
 
+
+
+
 def main(args):
 	print ("appending interpro information now...")
 	global count_sequences_identification
@@ -528,3 +531,8 @@ def main(args):
 	
 	print (str(time.clock() - start_time) + " seconds")
 	print("complete -- annotation file now available")
+
+
+if __name__ == '__main__':
+	main(sys.argv)
+
