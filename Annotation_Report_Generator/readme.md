@@ -60,7 +60,7 @@ Please refer to: https://wiki.hpcc.msu.edu/display/Bioinfo/Using+Blast2GO
 
 For Blast2GO execution examples for the GUI and CLI versions of blast.
 
-### Executing combined_annotations.py independently
+### Executing combine_annotations.py independently
 
 This script takes the Blast2GO, InterProScan, and annotation input and merges them together into one file
 
