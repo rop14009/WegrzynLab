@@ -2,13 +2,17 @@
 
 ## Introduction
 
-The aim of this project is to create a software tool to improve the accuracy and speed of transcriptome (gene space) annotation of any non-model organism.
+The software tool, X, is a set of Python scripts designed to improve the accuracy and speed of functional annotations for de novo transcriptome (gene space) assemblies of non-model Eukaryotic species.
 
-This software tool accomplishes the following:
+The scripts in this package enable the following:
 
-* Determines the best possible hit from a set of search results (from 1, 2, or 3 sets of search results)
-* Appends Blast2GO and InterProScan information to the annotation file
-* Calculates statistics on the set of search queries.
+* Integrates BLAST-style search results from up to three unique databases (and selects the most optimal annotation)
+* Generates BLAST2GO compatible XML files from these search results to obtain Gene Ontology term assignments
+* Integrates the results of InterProScan runs against multiple protein domain databases
+* Identifies contaminants through optional filters for fungal, bacterial, and insect annotations.
+* Outputs a full set of spreadsheet compatible results including summary statistics on the assembly and resulting annotations
+ 
+//These details should be included in the detail sections only
   *  N50 Statistic
   *  Median query length
   *  Average query length
@@ -25,6 +29,36 @@ This software tool accomplishes the following:
   * 1 XML file is generated per database input, and 1 XML file is generated from all of the given databases which contains the best hits from all of the given databases.
 * Generates a list of all of the sequences from the query file that did not have a hit from any of the databases (saved as text file)
 * Generates a list of all of the contaminant sequences from the query file (saved as text file)
+
+## Install
+
+### Dependencies
+
+This script requires Python 2.X.   To determine the current version, please use:
+
+```
+python -V
+```
+
+Python can be downloaded for free at: https://www.python.org/downloads/
+
+### External Applications
+
+1.  USEARCH performs seqeunce comparions and prepares BLAST-style output but runs in a fraction of the time as a typical NCBI searches. USEARCH is free for 32-bit systems but for large databases, the 64-bit system is required.
+
+USEARCH download: http://www.drive5.com/usearch/download.html
+
+VSEARCH is a fully open-source alternative to USEARCH:
+
+VSEARCH download: https://github.com/torognes/vsearch
+
+2.  Blast2GO provides a full-featured GUI experience for sequence annotation.  Here, we circumvent some of the limited search options and slow network speeds by limited its use to Gene Ontology aquisition.  Blast2GO will be run as an indepedent application during the workflow to generate a single output file.  
+
+BLAST2GO download: https://www.blast2go.com/blast2go-pro/download-b2g
+
+3.  InterProScan is a sequence comparison tool for the identification of protein domains and wraps around several public protein domain databases.  It is used here to identify those domains and also Ontology terms associated with them.
+
+InterProScan Download: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B76DDDA8BCBB1AD8AFA31F3FE0E476B5
 
 ## Execution Examples
 
@@ -118,39 +152,6 @@ Steps:
 Important Note:
 
 In order for the statistics on the InterProScan results and Blast2GO results to be calculated, you must re-run the report_generator.py script with your InterProScan results and Blast2GO results.
-
-
-
-### Dependencies
-
-This script requires Python 2.X as a dependency, in order to check which version you have installed run the command:
-
-```
-python -V
-```
-
-Python can be downloaded for free at: https://www.python.org/downloads/
-
-### External Applications
-
-The external applications that are required in order to function with this script are Blast2GO, InterProScan, and usearch (or vsearch)
-
-
-usearch is a sequence analysis tool.
-
-usearch Download Link: http://www.drive5.com/usearch/download.html
-
-vsearch is a sequence analysis tool that is open source, and free.
-
-vsearch Download Link: https://github.com/torognes/vsearch
-
-Blast2GO is an application that allows for the functional annotation of sequences, and the analysis of annotation data.
-
-Blast2GO Download Link: https://www.blast2go.com/blast2go-pro/download-b2g
-
-InterProScan is an application that provides functional analysis of protein sequences. It is used to generated the gene ontology of the transcripts.
-
-InterProScan Download Link: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B76DDDA8BCBB1AD8AFA31F3FE0E476B5
 
 
 
