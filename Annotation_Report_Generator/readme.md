@@ -8,7 +8,7 @@ The scripts in this package enable the following:
 
 * Integrates BLAST-style search results from up to three unique databases (and selects the most optimal annotation)
 * Generates BLAST2GO compatible XML files from these search results to obtain Gene Ontology term assignments
-* Integrates the results of InterProScan runs against multiple protein domain databases
+* Integrates the results of InterProScan runs for up to two protein domain databases
 * Identifies contaminants through optional filters for fungal, bacterial, and insect annotations.
 * Outputs a full set of spreadsheet compatible results including summary statistics on the assembly and resulting annotations
  
@@ -29,7 +29,7 @@ The scripts in this package enable the following:
   * 1 XML file is generated per database input, and 1 XML file is generated from all of the given databases which contains the best hits from all of the given databases.
 * Generates a list of all of the sequences from the query file that did not have a hit from any of the databases (saved as text file)
 * Generates a list of all of the contaminant sequences from the query file (saved as text file)
-
+//
 ## Install
 
 ### Dependencies
@@ -44,7 +44,7 @@ Python can be downloaded for free at: https://www.python.org/downloads/
 
 ### External Applications
 
-1.  USEARCH performs seqeunce comparions and prepares BLAST-style output but runs in a fraction of the time as a typical NCBI searches. USEARCH is free for 32-bit systems but for large databases, the 64-bit system is required.
+1)  USEARCH performs seqeunce comparions and prepares BLAST-style output but runs in a fraction of the time as a typical NCBI searches. USEARCH is free for 32-bit systems but for large databases, the 64-bit system is required.
 
 USEARCH download: http://www.drive5.com/usearch/download.html
 
@@ -52,22 +52,25 @@ VSEARCH is a fully open-source alternative to USEARCH:
 
 VSEARCH download: https://github.com/torognes/vsearch
 
-2.  Blast2GO provides a full-featured GUI experience for sequence annotation.  Here, we circumvent some of the limited search options and slow network speeds by limited its use to Gene Ontology aquisition.  Blast2GO will be run as an indepedent application during the workflow to generate a single output file.  
+2)  Blast2GO provides a full-featured GUI experience for sequence annotation.  Here, we circumvent some of the limited search options and slow network speeds by limited its use to Gene Ontology aquisition.  Blast2GO will be run as an indepedent application during the workflow to generate a single output file.  
 
 BLAST2GO download: https://www.blast2go.com/blast2go-pro/download-b2g
 
-3.  InterProScan is a sequence comparison tool for the identification of protein domains and wraps around several public protein domain databases.  It is used here to identify those domains and also Ontology terms associated with them.
+3)  InterProScan is a sequence comparison tool for the identification of protein domains and wraps around several public protein domain databases.  It is used here to identify those domains and also Ontology terms associated with them.
 
 InterProScan Download: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B76DDDA8BCBB1AD8AFA31F3FE0E476B5
 
-## Execution Examples
+## Getting Started
 
-Execution example for the script, after the configuration file has been filled out.
+### Overview of how the script functions
 
-```
-cd /path/to/directory/containing/script/directory_containing_script/
-python report_generator.py
-```
+![Diagram of script execution](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/diagram.png)
+
+The diagram above shows the order in which the seperate operations must be performed in order to generate a complete annotation report.
+
+Steps:
+
+1) Run your preferred search application (usearch or vsearch) to obtain a correctly formatted set of search results from your database.  A total of three database runs can be integrated in the current software version.  The Blast6out tab-delimited text output option is required as is the original FASTA database used (the one formatted into udb format).
 
 Execution example for usearch:
 
@@ -80,6 +83,7 @@ Execution example for vsearch:
 ```
 vsearch query.fasta --db /path_to_udb_database/refseq_protein.udb --threads 12 --id 1e-9 --weak_id 0.0001 --blast6out results
 ```
+2) Run InterProScan to generate your InterProScan results file.  This can be run for up to 2 databases (specified by the appl flag).
 
 Execution example for InterProScan:
 
@@ -88,76 +92,7 @@ Note: $input is binded to the configuration files for your interproscan run (ref
 interproscan.sh -i $input -o $output -f xml -appl pfam, Panther -goterms -iprlookup
 ```
 
-Execution example for Blast2GO:
-
-Please refer to: https://wiki.hpcc.msu.edu/display/Bioinfo/Using+Blast2GO
-
-For Blast2GO execution examples for the GUI and CLI versions of blast.
-
-### Executing combine_annotations.py independently
-
-This script takes the Blast2GO, InterProScan, and annotation input and merges them together into one file
-
-@PARAMETERS
-
---input, --blast2go, --interpro, --output
-
-
-Example usages of the script that will result in correct outputs:
-
-
-python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename> --output <output_file_name.tsv>
-
-
-Note this example will generate an output with the default name combined_annotation.tsv in the directory that the script is being executed in
-
-python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename>
-
-And this example will specify a custom output name
-
-python combine_annotations.py --input <annotation filename> --interpro <interpro filename> --output <output_file_name.tsv>
-
-
-For performing merges with 2 interpro files:
-
-python combine_annotations.py --input <annotation filename> --interpro <interpro filename> <interpro filename two> --output <output_file_name.tsv>
-
-
-When the script finishes running, the output file will be availible in the output directory.
-
-
-
-## Getting Started
-
-### Overview of how the script functions
-
-![Diagram of script execution](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/diagram.png)
-
-The diagram above shows the order in which the seperate operations must be performed in order to generate a complete annotation report.
-
-Steps:
-
-1) You must first run your preferred search application (usearch or vsearch) to obtain a correctly formatted set of search results from your database
-
-2) You must correctly fill out the configuration file to run the report_generator.py script (set up correct options and parameters -- see below for how to do this)
-
-3) After completing a successful execution of the report generator script, you will have a default annotation, a log file, and if you set up your configuration file to generate XML versions of the database those will be present as well.
-
-4) If you do not wish to generate the combined annotation file, you can stop here otherwise, input your XML files back into Blast2GO, so they can be mapped to their respective gene ontology terms.
-
-5) You must also run InterProScan to generate your InterProScan results file (instructions below)
-
-6) Once you have the results from InterProScan and Blast2GO, you can then run the combine_annotations.py script to generate your final, complete annotation file with all of the information from all of the databases.
-
-Important Note:
-
-In order for the statistics on the InterProScan results and Blast2GO results to be calculated, you must re-run the report_generator.py script with your InterProScan results and Blast2GO results.
-
-
-
-### Configuration File
-
-The configuration file is the only file you have to change to run this script, and is of the following form:
+3) Prepare a configuration file with the proper paths and preferences to run the report_generator.py script.  Details on the configuration file are in the section below.
 
 ```
 Path to query FASTA:
@@ -183,10 +118,54 @@ Insects: yes/no
 Fungi: yes/no
 Bacteria: yes/no
 ```
+4) Run the Report Generator script in the same directory with output files from the usearch/vsearch runs and the configuration file:
 
+```
+cd /path/to/directory/containing/script/directory_containing_script/
+python report_generator.py
+```
+
+5) From the combined XML file generated, run Blast2GO:
+Execution example for Blast2GO:
+
+Please refer to: https://wiki.hpcc.msu.edu/display/Bioinfo/Using+Blast2GO
+
+For Blast2GO execution examples for the GUI and CLI versions of blast.
+
+6) Once you have the results from InterProScan and Blast2GO, you can then run the combine_annotations.py script to generate your final, complete annotation file with all of the information from all of the databases.
+
+This script takes the Blast2GO, InterProScan, and annotation input and merges them together into one file
+
+@PARAMETERS
+
+--input, --blast2go, --interpro, --output
+
+python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename> --output <output_file_name.tsv>
+
+Note this example will generate an output with the default name combined_annotation.tsv in the directory that the script is being executed in
+
+python combine_annotations.py --input <annotation filename> --blast2go <blast2go filename> --interpro <interpro filename>
+
+The following will specify a custom output name
+
+python combine_annotations.py --input <annotation filename> --interpro <interpro filename> --output <output_file_name.tsv>
+
+For performing merges with 2 interpro files:
+
+python combine_annotations.py --input <annotation filename> --interpro <interpro filename> <interpro filename two> --output <output_file_name.tsv>
+
+When the script finishes running, the output file will be availible in the output directory.
+
+##Configuration File
 In the configuration file, your option is always placed after the ":". If there is no ":" on that line, then it is not an option.
 
-Also it is important to note that the configuration file is line sensitive, it must always be of the form above, deleting any of the lines in the configuration file will lead to errors
+The configuration file is line sensitive, it must always be of the form above, deleting any of the lines in the configuration file will lead to errors
+
+3) After completing a successful execution of the report generator script, you will have a default annotation, a log file, and if you set up your configuration file to generate XML versions of the database those will be present as well.
+
+4) If you do not wish to generate the combined annotation file, you can stop here otherwise, input your XML files back into Blast2GO, so they can be mapped to their respective gene ontology terms.
+
+
 The first line is where you will place the path to your query fasta file. 
 
 #### Query Fasta
@@ -265,7 +244,8 @@ Specifically,
 
 In in configuration file each of these databases can be toggled by writing either "y" or "yes" to include them when searching for contaminants, or write "no" or anything that does not include the character "y" or leave it blank to ignore those types of contaminants.
 
-### Output from the script
+
+## Output
 
 The script outputs several files.
 
