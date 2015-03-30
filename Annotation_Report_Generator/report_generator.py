@@ -569,38 +569,45 @@ def write_log(element, log_name):
 def build_contaminants_db():
 	global settings
 	contaminant_db = dict()
-	bacteria_db = open("bacteria_db.txt", "r")
+	bacteria_db = open("bacteria_db_new.txt", "r")
 	fungi_db = open("fungi_db.txt","r")
 	insects_db = open("insects.txt","r")	
 	#bacteria first
-	file_tsv = csv.reader(bacteria_db, delimiter='\t')
+	#file_tsv = csv.reader(bacteria_db, delimiter='\t')
 	
 	if "y" in settings[21] or "yes" in settings[21]: 
 		# loads bacteria DB
-		for line in file_tsv:
-			line[0] = line[0].split(" ")[0]
+		for line in bacteria_db:
+			line = line[:-4]
+			line = line.strip()
 			#print (line[0])
-			contaminant_db[line[0]] = line[0] #its faster to check if value exists in a hashtable than a regular list
+			contaminant_db[str(line)] = line #its faster to check if value exists in a hashtable than a regular list
 	
 	if "y" in settings[20] or "yes" in settings[20]:	
 		# loads fungi DB
 		for line in fungi_db:
-			line = line.split(" ")[0]
+			line = line[:-4]
 			#print(line)
-			contaminant_db[line] = line
+			line = line.strip()
+			contaminant_db[str(line)] = line
 	
 	if "y" in settings[19] or "yes" in settings[19]:
 		# loads insects DB
 		for line in insects_db:	
-			line = line.split(" ")[0]
+			line = line[:-4]
 			#print (line)
-			contaminant_db[line] = line
-		
-
-
+			line = line.strip()
+			contaminant_db[str(line)] = line
+	'''	
+	print ("searching in contaminants for bacteria: ")
+	print (contaminant_db.get("Escherichia coli"))
+	print (contaminant_db.get("Agaporomorphus tambopatens"))
+	print (contaminant_db.get("Escherichia albertii"))
+	print (contaminant_db.get("Denticollin"))
+	print (contaminant_db)
+	'''
 	return contaminant_db
 	
-
 ''' 
 Re-evaluate the logic within this method later, it seems some of the else clauses are unneccessary
 
@@ -946,7 +953,7 @@ def calc_stats(results):
 	longest_query_length = 0
 	shortest_query_length = sys.maxint
 
-
+	
 	print ("calc stats called")
 	#print ("len results: " + str(len(results)))
 	for element in results:
@@ -956,8 +963,10 @@ def calc_stats(results):
 		gi = str(get_gi_num_from_string(temp[1]))
 		query_length = len(fasta_no_gi[temp[0]])
 		query_coverage = float(temp[3]) / float(query_length)
-
-		if fasta_db_species[gi] in contaminants:
+		#print (fasta_db_species[gi])
+		#print (contaminants.get(fasta_db_species[gi]))
+		
+		if not contaminants.get(str(fasta_db_species[gi])) is None:
 			num_contaminants += 1
 			if not top_ten_contaminants.get(fasta_db_species[gi]) is None:
 				top_ten_contaminants[fasta_db_species[gi]] += 1		
@@ -1485,26 +1494,35 @@ if __name__ == '__main__':
 						tsv_log.writerow(line)
 			
 		
-        if settings[16] != "":
+        
+	go_counts = [0, 0, 0]
+	go_interpro_counts = [0, 0, 0]
+	at_least_1_interpro = [0, 0, 0]	
+	domain_ids = [0, 0]
+	at_least_1 = [0, 0, 0]
+	
+
+
+	if settings[16] != "":
                 print ("option to include interpro output has been checked, filepath to interpro: " + settings[16])
 
                 #combine_annotations.main(" --input "  + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv")
-
-                if settings[17] == "":
+		go_interpro_counts = combine_annotations.get_go_interpro_counts()
+                at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
+		if settings[17] == "":
                         combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
                 else:
                         combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
-
+			domain_ids = combine_annotations.get_num_sequences_identification()
+			at_least_1 = combine_annotations.get_at_least_1() # C, P, F
+			go_counts = combine_annotations.get_go_counts()
 	elif settings[17] != "":
 		combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--output"] + ["combined_annotation_"+date+".tsv"]) 
+		domain_ids = combine_annotations.get_num_sequences_identification()
+		at_least_1 = combine_annotations.get_at_least_1() # C, P, F
+		go_counts = combine_annotations.get_go_counts()
 	else:
                 print ("no interpro file has been specified, skipping combined annotation step")
-
-	go_interpro_counts = combine_annotations.get_go_interpro_counts()
-	go_counts = combine_annotations.get_go_counts()
-	domain_ids = combine_annotations.get_num_sequences_identification()
-	at_least_1 = combine_annotations.get_at_least_1() # C, P, F
-	at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
 
 	#potentially move this over combined_annotations.py eventually?
 	if not os.path.exists(output_log + ".txt"):
