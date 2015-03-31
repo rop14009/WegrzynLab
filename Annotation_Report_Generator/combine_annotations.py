@@ -3,7 +3,7 @@ Author: Sam Ginzburg
 
 Description: An implementation of a program that combines blast2go, interpro, and previous annotation files
 
-@param 	at least one of the following flags are required to run the program:  --blast2go --interpro --o , (--o : the output file name is optional, but if included MUST be present)
+@param 	at least one of the following flags are required to run the program:  --blast2go --interpro --output , (--output : the output file name is optional, but if included MUST be present)
 		
 '''
 

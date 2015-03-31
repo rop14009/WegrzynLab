@@ -163,18 +163,9 @@ def uninformative_debug_log(element):
 
 
 '''
-[12:34:19 PM] Jill Wegrzyn: Yes for the e-value to make this decision on when to accept the "next best" hit where one would increment through 
-contaminants and no hits in the top five list - I would set a default e-value to 1e-5 in the configuration file but the user could modify this if they would like in such a file.
-[12:34:54 PM] Jill Wegrzyn: Within that e-value set, I would search through the list to find an informative, non-contaminant where possible.  
-When not available - the top hit should be used and marked accordingly.
-[12:35:47 PM] Sam Ginzburg: What should be done if there are no e values less than 1e-5?
-[12:36:33 PM] Sam Ginzburg: and if there are two elements left with identical e values and one is contaminated and the other uninformative which one is chosen as the better hit?
-[12:41:23 PM] Jill Wegrzyn: I would select the contaminant one as it is a better known in that case
-[12:41:37 PM] Jill Wegrzyn: if no evalue are less than 1e-5, then we select the top hit
-	
-Hi Sam, a couple of other notes on the annotation approach - for assigning a contaminated hit, we want to first see if there is another hit that is a non-contam 
-in the top five or so that has an evalue within acceptable limits and select this preferentially (the same is true for a noninformative hit).  
-Some of this logic was built in for non-informative hits in the prior scripts and I wanted to see what it looks like presently	
+Input: query1, query2 (each query is a list)
+
+Output: The "better" query, based upon e-value, query coverage, contaminant, uninformative-ness and null queries (which should not happen but are still accounted for)
 '''	
 
 def find_best_query_result(query1, query2):
