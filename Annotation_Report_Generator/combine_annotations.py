@@ -274,8 +274,6 @@ def check_cpf(l, t):
 	global num_process
 	global num_function
 
-
-
 	
 	c = False
 	p = False
@@ -534,6 +532,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-	print (sys.argv)
-	main(sys.argv)
+	args = sys.argv	
+	args = args[1:]
+	print (args)
+	main(args)
 
