@@ -153,7 +153,19 @@ def make_walnut_interpro_dict(file_name):
 			if len(row) > 13:
 				#print ("interpro go terms being added...")
 				value_list.append(row[13]) #interpro go terms
-			walnut_interpro_data[id] = value_list
+
+			if not walnut_interpro_data.get(id) is None and not value_list[1] in walnut_interpro_data.get(id)[1]:
+				walnut_interpro_data.get(id)[0] = value_list[0] + ", " + walnut_interpro_data.get(id)[0]
+				walnut_interpro_data.get(id)[1] = value_list[1] + ", " + walnut_interpro_data.get(id)[1]
+				walnut_interpro_data.get(id)[2] = value_list[2] + ", " + walnut_interpro_data.get(id)[2]
+				print (walnut_interpro_data.get(id))
+				if len(value_list) > 3 and len(walnut_interpro_data.get(id)) > 3:
+					walnut_interpro_data.get(id)[3] = value_list[3] + ", " + walnut_interpro_data.get(id)[3]
+				elif len(value_list) > 3:
+					walnut_interpro_data.get(id).append(value_list[3])	
+			else:
+				walnut_interpro_data[id] = value_list
+			
 			value_list = list()
 	print (len(walnut_interpro_data))
 	return walnut_interpro_data
