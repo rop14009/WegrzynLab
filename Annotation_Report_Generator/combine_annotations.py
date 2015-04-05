@@ -158,7 +158,7 @@ def make_walnut_interpro_dict(file_name):
 				walnut_interpro_data.get(id)[0] = value_list[0] + ", " + walnut_interpro_data.get(id)[0]
 				walnut_interpro_data.get(id)[1] = value_list[1] + ", " + walnut_interpro_data.get(id)[1]
 				walnut_interpro_data.get(id)[2] = value_list[2] + ", " + walnut_interpro_data.get(id)[2]
-				print (walnut_interpro_data.get(id))
+				#print (walnut_interpro_data.get(id))
 				if len(value_list) > 3 and len(walnut_interpro_data.get(id)) > 3:
 					walnut_interpro_data.get(id)[3] = value_list[3] + ", " + walnut_interpro_data.get(id)[3]
 				elif len(value_list) > 3:
@@ -220,10 +220,22 @@ def determine_blast_or_interpro_input(input):
 	
 
 def parse_flags(param_list):
+	global append_log
 	#parse input paramters first
 	input = parse_input_params(param_list)
 	#check if --output flag is present
 	output = parse_output_param(param_list)
+
+
+	# check for log to append to
+
+	if "--log" in param_list:
+		loc = param_list.index("--log")
+		append_log = param_list[loc+1]
+	else:
+		append_log = None
+
+
 	
 	#print(input)
 	#print (output)	
@@ -363,6 +375,8 @@ def main(args):
 	global at_least_1_c_interpro
 	global at_least_1_p_interpro
 	global at_least_1_f_interpro
+
+	global append_log
 
 	at_least_1_c = 0
 	at_least_1_p = 0
@@ -537,8 +551,38 @@ def main(args):
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
 
+
 		
-	
+	if not append_log is None:	
+		domain_ids = get_num_sequences_identification()
+		at_least_1 = get_at_least_1() # C, P, F
+		go_counts = get_go_counts()
+
+		if os.path.exists(append_log + ".txt"):
+			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + append_log, 'a') as log:
+				tsv_log = csv.writer(log, delimiter='\t')
+				tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and
+				if settings[17] != "" and not settings[17] is None:
+					tsv_log.writerow(["Blast2GO File: "] + [str(settings[17])])
+				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
+				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
+				tsv_log.writerow(["Blast2GO Gene Ontology Stats"])
+				tsv_log.writerow(["Number of Components: "] + [str(go_counts[0])])
+				tsv_log.writerow(["Number of Functions: "] + [str(go_counts[1])])
+				tsv_log.writerow(["Number of Processes: "] + [str(go_counts[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1[0])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1[1])])
+				tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
+				tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
+				tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
+				tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
+
+
+
 	print (str(time.clock() - start_time) + " seconds")
 	print("complete -- annotation file now available")
 

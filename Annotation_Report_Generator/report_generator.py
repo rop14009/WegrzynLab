@@ -676,6 +676,8 @@ def match_fasta(db):
 	global query_gi_association_db_2
 
 	global nohits_found
+
+	global min_coverage
 	nohits_found = dict()
 	query_gi_final = dict()
 
@@ -699,17 +701,18 @@ def match_fasta(db):
 				key = str(get_gi_num_from_string(query[1]))
 				#print (query[0])
 				#print (key)
-				
+				query_coverage = float(query[3]) / float(len(fasta_no_gi[query[0]]))	
 				if annotation_log_entries.get(key) is None:
-					annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
-					temp_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					if not fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants and query_coverage > min_coverage):
+						annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
+						temp_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
 				else:
 					#print ("hit from more than 1 DB detected")
 					#print (db[key])
 					#print ([fasta_db_description[key]] + [fasta_db_species[key]])
-					
-					annotation_log_entries[element] = find_best_query_result(annotation_log_entries[element], query)
-					temp_log_entries[element] = find_best_query_result(temp_log_entries[element], query)
+					if not fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants and query_coverage > min_coverage):					
+						annotation_log_entries[element] = find_best_query_result(annotation_log_entries[element], query)
+						temp_log_entries[element] = find_best_query_result(temp_log_entries[element], query)
 			else:
 				#num_queries_no_hit += 1	
 				nohits_found[element] = ""	
@@ -808,6 +811,8 @@ def write_xml(filename, results_db):
 	global fasta_db
 	global is_tair
 	global fasta_db_species
+	global contaminants
+	global min_coverage
 	print (filename)
 	print (number_db)
 	#rite header first
@@ -819,7 +824,8 @@ def write_xml(filename, results_db):
 		for key in results_db:
 
 			result = results_db[key]
-			if not fasta_db_species.get(get_gi_num_from_string(result[1])) == "contaminant":
+			query_coverage = float(result[3]) / float(len(fasta_no_gi[result[0]])) 
+			if not fasta_db_species.get(get_gi_num_from_string(result[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(result[1])) in contaminants and query_coverage > min_coverage):
 				file.write("<?xml version=\"1.0\" ?>\n")
 				file.write("<!DOCTYPE BlastOutput\n")
 				file.write("\tPUBLIC \'-//NCBI//NCBI BlastOutput/EN\'\n")
@@ -1174,9 +1180,17 @@ if __name__ == '__main__':
 	global date	
 	date = str(datetime.datetime.now())
 	print(date)
+	
+	global output_folder
+
+	output_folder = "output_" + date
+
+	if not os.path.exists(output_folder):
+		os.makedirs(output_folder)
+
 	global settings
 	settings = parse_config_file("configuration_file.txt") #sets up the settings
-	output_log = "log_" + date + ".txt"
+	output_log = output_folder+"//log_" + date + ".txt"
 
 	global final_output
 	final_output = dict()	
@@ -1257,7 +1271,7 @@ if __name__ == '__main__':
 	contaminants = build_contaminants_db()
 	contaminants_found = dict()
 	print("contaminants db built")
-	output = "default_output_annotation_" + date +".tsv"
+	output = output_folder+"//default_output_annotation_" + date +".tsv"
 	number_db = int(settings[1]) # the number of databases being parsed
 	counter = number_db
 
@@ -1318,7 +1332,7 @@ if __name__ == '__main__':
 			uninformative_debug_log(debug_uninformative_list)
 
 			if settings[15] == "yes" or settings[15] == "y":
-				write_xml("blastxml_" + "db1" + "_" + date, annotation_log_entries)
+				write_xml(output_folder+"//blastxml_" + "db1" + "_" + date, annotation_log_entries)
 				#write_xml("blastxml_" + date, annotation_log_entries)
 
 			print (str(time.clock() - start_time) + " :: time to match fasta")
@@ -1365,7 +1379,7 @@ if __name__ == '__main__':
 			final_output.update(temp_log_entries)
 			print (len(temp_log_entries))
 			if settings[15] == "yes" or settings[15] == "y":
-				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
+				write_xml(output_folder+"//blastxml_" + "db1_" + date, annotation_log_entries)
 
 			match_fasta(db2)
 			calc_stats(temp_log_entries)
@@ -1375,7 +1389,7 @@ if __name__ == '__main__':
 			#final_output.update(temp_log_entries)
 			#print (len(final_output))
 			if settings[15] == "yes" or settings[15] == "y":
-				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
+				write_xml(output_folder+"//blastxml_" + "db2_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")	
 
 
@@ -1417,19 +1431,19 @@ if __name__ == '__main__':
 			print_stats()
 			final_output.update(temp_log_entries)
 			if settings[15] == "yes" or settings[15] == "y":
-				write_xml("blastxml_" + "db1_" + date, annotation_log_entries)
+				write_xml(output_folder+"//blastxml_" + "db1_" + date, annotation_log_entries)
 			match_fasta(db2)
 			calc_stats(temp_log_entries)
 			print_stats()
 			final_output.update(temp_log_entries)
 			if settings[15] == "yes" or settings[15] == "y":
-				write_xml("blastxml_" + "db2_" + date, annotation_log_entries)
+				write_xml(output_folder+"//blastxml_" + "db2_" + date, annotation_log_entries)
 			match_fasta(db3)
 			calc_stats(temp_log_entries)
 			print_stats()
 			final_output.update(temp_log_entries)
 			if settings[15] == "yes" or settings[15] == "y":
-				write_xml("blastxml_" + "db3_" + date, annotation_log_entries)
+				write_xml(output_folder+"//blastxml_" + "db3_" + date, annotation_log_entries)
 			print (str(time.clock() - start_time) + " :: time to match fasta")
 
 	
@@ -1447,13 +1461,13 @@ if __name__ == '__main__':
 		print ("writing no hits log")
 		#after parsing of all fasta elements add all missed hits to nohits file
 		for item in nohits_found:
-			write_log([item],"nohits_"+ date)
+			write_log([item],output_folder+"//nohits_"+ date)
 		
 		#del nohits_found		
 
 		print ("writing contaminants log")
 		for key in contaminants_found:
-			write_contaminants_log([contaminants_found.get(key)],"contaminants_" + date)
+			write_contaminants_log([contaminants_found.get(key)],output_folder+"//contaminants_" + date)
 		
 		#del contaminants_found	
 	
@@ -1469,7 +1483,7 @@ if __name__ == '__main__':
 			tsv_new.writerow(temp_log_entries[key])	
 
 	if settings[15] == "yes" or settings[15] == "y":
-		write_xml("blastxml_" + "combined_db" + "_" + date, temp_log_entries)
+		write_xml(output_folder+"//blastxml_" + "combined_db" + "_" + date, temp_log_entries)
 
 	#TODO when config file becomes a parameter => make it display the given filepath
 	final_output_temp.append([["Path to configuration file: " + str(os.path.dirname(os.path.realpath(__file__))) + "/configuration_file.txt"]])
@@ -1496,19 +1510,18 @@ if __name__ == '__main__':
 
 	if settings[16] != "":
                 print ("option to include interpro output has been checked, filepath to interpro: " + settings[16])
-
-                #combine_annotations.main(" --input "  + output + " --interpro " + settings[16] + " --output combined_annotation_" + date + ".tsv")
-		go_interpro_counts = combine_annotations.get_go_interpro_counts()
-                at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
+		
 		if settings[17] == "":
-                        combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
-                else:
-                        combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--interpro"] + [settings[16]] + ["--output"] + ["combined_annotation_"+date+".tsv"])
+                        combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + [output_folder+"//combined_annotation_"+date+".tsv"])
+			go_interpro_counts = combine_annotations.get_go_interpro_counts()
+			at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
+		else:
+                        combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--interpro"] + [settings[16]] + ["--output"] + [output_folder+"//combined_annotation_"+date+".tsv"])
 			domain_ids = combine_annotations.get_num_sequences_identification()
 			at_least_1 = combine_annotations.get_at_least_1() # C, P, F
 			go_counts = combine_annotations.get_go_counts()
 	elif settings[17] != "":
-		combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--output"] + ["combined_annotation_"+date+".tsv"]) 
+		combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--output"] + [output_folder+"//combined_annotation_"+date+".tsv"]) 
 		domain_ids = combine_annotations.get_num_sequences_identification()
 		at_least_1 = combine_annotations.get_at_least_1() # C, P, F
 		go_counts = combine_annotations.get_go_counts()
