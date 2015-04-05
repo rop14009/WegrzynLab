@@ -151,9 +151,9 @@ The following will specify a custom output name
 python combine_annotations.py --input [annotation filename] --interpro [interpro filename] --output [output_file_name.tsv]
 ```
 For performing merges with 2 interpro files:
-
+```
 python combine_annotations.py --input [annotation filename] --interpro [interpro filename] [interpro filename two] --output [output_file_name.tsv]
-
+```
 When the script finishes running, the output file will be availible in the output directory.
 
 ##Configuration File
