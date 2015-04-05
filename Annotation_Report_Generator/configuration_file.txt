@@ -11,7 +11,7 @@ Path to search results from database2:
 Path to formatted database3 (full length): 
 Path to FASTA-version of database3:
 Path to search results from database3:
-Full-length coverage requirement:
+Full-length coverage requirement: 0.7
 Minimum Evalue:
 Generate XML for Blast2GO:
 Path to InterProScan Results: 
