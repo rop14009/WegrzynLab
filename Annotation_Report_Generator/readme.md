@@ -139,17 +139,17 @@ This script takes the Blast2GO, InterProScan, and annotation input and merges th
 @PARAMETERS
 
 --input, --blast2go, --interpro, --output
-
+```
 python combine_annotations.py --input [annotation filename] --blast2go [blast2go filename] --interpro [interpro filename] --output [output_file_name.tsv]
-
+```
 Note this example will generate an output with the default name combined_annotation.tsv in the directory that the script is being executed in
-
+```
 python combine_annotations.py --input [annotation filename] --blast2go [blast2go filename] --interpro [interpro filename]
-
+```
 The following will specify a custom output name
-
+```
 python combine_annotations.py --input [annotation filename] --interpro [interpro filename] --output [output_file_name.tsv]
-
+```
 For performing merges with 2 interpro files:
 
 python combine_annotations.py --input [annotation filename] --interpro [interpro filename] [interpro filename two] --output [output_file_name.tsv]
