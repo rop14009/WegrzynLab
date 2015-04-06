@@ -62,7 +62,7 @@ InterProScan Download: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B
 
 ## Getting Started
 
-### Overview of how the script functions
+### Transcriptome Annotation Overview
 
 ![Diagram of script execution](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/diagram.png)
 
@@ -124,8 +124,9 @@ Bacteria: yes/no
 cd /path/to/directory/containing/script/directory_containing_script/
 python report_generator.py
 ```
+After completing a successful execution of the report generator script, you will have a tab-delimited annotation file, a log file with summary statistics, flat files for contaminants and nohit sequences, and XML files for each database (and combined) if selected
 
-5) From the combined XML file generated, run Blast2GO:
+5) From the combined XML file generated, you have the option to run Blast2GO to assign ontology terms:
 Execution example for Blast2GO:
 
 GUI Version:
@@ -160,7 +161,7 @@ After exporting the text file, you should get a file that looks like this:
 
 This file can then be entered back into combine_annotations.py or report_generator.py to generate a combined annotation file.
 
-6) Once you have the results from InterProScan and Blast2GO, you can then run the combine_annotations.py script to generate your final, complete annotation file with all of the information from all of the databases.
+6) Once you have the results from InterProScan and Blast2GO, you can then run the <i>combine_annotations.py</i> script to generate your final, complete annotation file and summary statistics.
 
 This script takes the Blast2GO, InterProScan, and annotation input and merges them together into one file
 
@@ -182,24 +183,18 @@ For performing merges with 2 interpro files:
 ```
 python combine_annotations.py --input [annotation filename] --interpro [interpro filename] [interpro filename two] --output [output_file_name.tsv]
 ```
-When the script finishes running, the output file will be availible in the output directory.
+When the script is complete, the output file will be availible in the output directory.
 
 ##Configuration File
 In the configuration file, your option is always placed after the ":". If there is no ":" on that line, then it is not an option.
 
 The configuration file is line sensitive, it must always be of the form above, deleting any of the lines in the configuration file will lead to errors
 
-3) After completing a successful execution of the report generator script, you will have a default annotation, a log file, and if you set up your configuration file to generate XML versions of the database those will be present as well.
-
-4) If you do not wish to generate the combined annotation file, you can stop here otherwise, input your XML files back into Blast2GO, so they can be mapped to their respective gene ontology terms.
-
-
 The first line is where you will place the path to your query fasta file. 
 
 #### Query Fasta
 
-This option allows you to specify the multifasta file containing your search queries.
-This file will be of the following format:
+At least one database run is necessary and the query FASTA represents the transcriptome assembly and this should be a multi-FASTA text file:
 
 ```
 >Contig_PtHGO
@@ -210,13 +205,9 @@ ATTTAGTGCAAGAAACAATGGGTAAGGATGGGAGTCAGAGCTTTAAACTGGTGGGATACAAGAACTTTGTTCGCCACAAT
 
 ```
 
-In this format the first line is prefixed with a ">" and then the sequence name is written. The line following contains the sequence.
-
 #### Source Databases
 
 This option contains the number of databases to be parsed by the script, and can be a number between 0 and 3.
-
-Note, if 0 is selected then no databases will be parsed.
 
 #### Sequence Search Application
 
@@ -232,21 +223,17 @@ Contig_PtHGO    gi|460412999|ref|XP_004251883.1|        78.7    432     92      
 
 #### Paths to the Databases
 
-The current version of the script does not support formatted versions of databases (potentially will be included in future versions)
-This option should simply be left blank when filling out the configuration file.
-
-
-The fasta versions of the database will be in the multi-fasta file format (similar to the format of the query fasta), and the search results will be of the format shown above in the "Sequence Search Application" section.
+The current version of the script does not support indexed versions of databases so the flat file (multi-FASTA version) of the database must be supplied for each database queried.
 
 #### Minimum E-Value and Minimum coverage requirements
 
 The minimum E-Value can be input in either scientific notation (1e-5) or as a decimal (0.00001).
 
-The minimum coverage requirement can only be input as a decimal number between 0 and 1 (such as 0.7)
+The minimum coverage requirement is a value between 0 and 1 where 70% coverage represented as 0.7 is the default value.
 
 #### InterProScan and Blast2GO paths
 
-For these two options you must enter the path to your InterProScan and Blast2GO input files.
+For these two options you must enter the path to your InterProScan and Blast2GO output file (Sequence Table format).
 
 The InterProScan file format is as follows:
 
@@ -254,7 +241,7 @@ The InterProScan file format is as follows:
 c10004_g1_i1    3F8F69B8D17CEA7F        185     HMMPfam PF13976 gag_pre-integrs 37      108     1.0E-10 T       06-Nov-2014     IPR025724       GAG-pre-integrase domain
 ```
 
-The Blast2GO file format is as follows:
+The Blast2GO Sequence Table format is as follows:
 
 ```
 c58101_g1_i1|m.1        uninformative   390     2       7.2E-10 0.0%    3       F:GO:0003674; P:GO:0008150; C:GO:0005575
