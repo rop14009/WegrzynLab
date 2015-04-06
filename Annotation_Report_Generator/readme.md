@@ -12,24 +12,7 @@ The scripts in this package enable the following:
 * Identifies contaminants through optional filters for fungal, bacterial, and insect annotations.
 * Outputs a full set of spreadsheet compatible results including summary statistics on the assembly and resulting annotations
  
-//These details should be included in the detail sections only
-  *  N50 Statistic
-  *  Median query length
-  *  Average query length
-  *  Shortest query length
-  *  Longest query length
-  *  Top 10 hits
-  *  Top 10 contaminants found
-  *  Number of queries with an informative/uninformative hit
-  *  Number of contaminants found
-  *  Number of sequences with/without domain identification
-  *  Number of Components, Functions, Processes from both Blast2GO and InterProScan
-  *  Number of transcripts with at least 1 Component, Function, or Process
-* Generates an XML version of the results that can be exported to Blast2GO
-  * 1 XML file is generated per database input, and 1 XML file is generated from all of the given databases which contains the best hits from all of the given databases.
-* Generates a list of all of the sequences from the query file that did not have a hit from any of the databases (saved as text file)
-* Generates a list of all of the contaminant sequences from the query file (saved as text file)
-//
+
 ## Install
 
 ### Dependencies
@@ -249,16 +232,13 @@ c58101_g1_i1|m.1        uninformative   390     2       7.2E-10 0.0%    3       
 
 #### Contaminant DB selection
 
-This script currently has 3 databases containing species and genus information of Kingdoms known to be contaminants.
-
-Specifically,
+This script currently has three optional flat file databases containing genus and species information of organisms that could be filtered as potential contaminants in Eukaryote transcriptome studies:
 
 * Insects
 * Bacteria
 * Fungi
 
-In in configuration file each of these databases can be toggled by writing either "y" or "yes" to include them when searching for contaminants, or write "no" or anything that does not include the character "y" or leave it blank to ignore those types of contaminants.
-
+In in configuration file, each of these can be toggled by writing either "y" or "yes" to include them when searching for contaminants, or write "no" or leave it blank to ignore these filters.
 
 ## Output
 
