@@ -569,33 +569,34 @@ def build_contaminants_db():
 	if "y" in settings[21] or "yes" in settings[21]: 
 		# loads bacteria DB
 		for line in bacteria_db:
-			line = line[:-4]
+			line = line[:-2]
 			line = line.strip()
-			#print (line[0])
-			contaminant_db[str(line)] = line #its faster to check if value exists in a hashtable than a regular list
+			#print (line)
+			
+			contaminant_db[line] = line #its faster to check if value exists in a hashtable than a regular list
 	
 	if "y" in settings[20] or "yes" in settings[20]:	
 		# loads fungi DB
 		for line in fungi_db:
-			line = line[:-4]
+			line = line[:-2]
 			#print(line)
 			line = line.strip()
-			contaminant_db[str(line)] = line
+			contaminant_db[line] = line
 	
 	if "y" in settings[19] or "yes" in settings[19]:
 		# loads insects DB
 		for line in insects_db:	
-			line = line[:-4]
+			line = line[:-2]
 			#print (line)
 			line = line.strip()
-			contaminant_db[str(line)] = line
-	'''	
+			contaminant_db[line] = line
+	'''		
 	print ("searching in contaminants for bacteria: ")
 	print (contaminant_db.get("Escherichia coli"))
-	print (contaminant_db.get("Agaporomorphus tambopatens"))
+	print (contaminant_db.get("Agaporomorphus tambopatensis"))
 	print (contaminant_db.get("Escherichia albertii"))
-	print (contaminant_db.get("Denticollin"))
-	print (contaminant_db)
+	print (contaminant_db.get("Denticollinae"))
+	print (contaminant_db.get("Escherichia coli str. K-12 substr. MG1655"))	
 	'''
 	return contaminant_db
 	
@@ -669,7 +670,7 @@ def match_fasta(db):
 	global fasta_db_description
 	global fasta_db_species
 	global fasta_no_gi
-	
+	global contaminants_found
 
 	global query_gi_association_db_0
 	global query_gi_association_db_1
@@ -701,7 +702,12 @@ def match_fasta(db):
 				key = str(get_gi_num_from_string(query[1]))
 				#print (query[0])
 				#print (key)
-				query_coverage = float(query[3]) / float(len(fasta_no_gi[query[0]]))	
+				query_coverage = float(query[3]) / float(len(fasta_no_gi[query[0]]))
+
+				if db_count == 999 and fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants:
+					contaminants_found[element] = element
+
+	
 				if annotation_log_entries.get(key) is None:
 					if not fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants and query_coverage > min_coverage):
 						annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
@@ -713,16 +719,9 @@ def match_fasta(db):
 					if not fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants and query_coverage > min_coverage):					
 						annotation_log_entries[element] = find_best_query_result(annotation_log_entries[element], query)
 						temp_log_entries[element] = find_best_query_result(temp_log_entries[element], query)
-			else:
+			elif db_count == 999:
 				#num_queries_no_hit += 1	
-				nohits_found[element] = ""	
-
-				#temp_log_entries[key] = db[key] + [fasta_db_description[key]] + [fasta_db_species[key]]
-				#temp_log_entries[key] = ["N/A","no_hit"]
-				
-				#print (fasta_no_gi[element])
-
-
+				nohits_found[element] = element	
 	print ("finished matching db: " + str(get_db_name(db_count)))
 	#db_count += 1			
 
@@ -1510,7 +1509,7 @@ if __name__ == '__main__':
 
 	if settings[16] != "":
                 print ("option to include interpro output has been checked, filepath to interpro: " + settings[16])
-		
+		print (settings[17])	
 		if settings[17] == "":
                         combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + [output_folder+"//combined_annotation_"+date+".tsv"])
 			go_interpro_counts = combine_annotations.get_go_interpro_counts()
