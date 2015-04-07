@@ -1,4 +1,3 @@
-predicted
 predicted protein
 predicted protein, partial
 hypothetical protein
