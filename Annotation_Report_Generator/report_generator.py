@@ -250,6 +250,17 @@ def find_best_query_result(query1, query2):
 		fasta_db_description[query2_gi] = "uninformative"
 
 
+	# because of naming a double contradiction occurs here,
+	# not uninformative = informative hit
+
+	if not is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
+		return query1
+	if not is_uninformative(fasta_db_description[query2_gi]) and is_uninformative(fasta_db_description[query1_gi]):
+		return query2
+
+
+
+
 	species = fasta_db_species[query1_gi]
 	#species = species.split(" ")[0]
 
