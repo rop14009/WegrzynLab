@@ -993,7 +993,7 @@ def calc_stats(results):
 				top_ten_hits[str(temp[13])] = 1
 			# only include non-contaminant hits in statistics calc
 			median_query_length.append(query_length)
-			avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + query_length) / num_queries_no_contamaints)
+			avg_length_query_sequences = float((avg_length_query_sequences * (num_queries_no_contamaints-1) + query_length) / num_queries_no_contamaints)
 		
 			if query_length > longest_query_length:
 				longest_query_length = query_length
