@@ -253,9 +253,10 @@ def find_best_query_result(query1, query2):
 	# because of naming a double contradiction occurs here,
 	# not uninformative = informative hit
 
-	if not is_uninformative(fasta_db_description[query1_gi]) and is_uninformative(fasta_db_description[query2_gi]):
+	if not fasta_db_description[query1_gi] is "uninformative" and fasta_db_description[query2_gi] is "uninformative":
 		return query1
-	if not is_uninformative(fasta_db_description[query2_gi]) and is_uninformative(fasta_db_description[query1_gi]):
+
+	if not fasta_db_description[query1_gi] is "uninformative" and fasta_db_description[query2_gi] is "uninformative":
 		return query2
 
 
@@ -720,16 +721,14 @@ def match_fasta(db):
 
 	
 				if annotation_log_entries.get(key) is None:
-					if not fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants and query_coverage > min_coverage):
-						annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
-						temp_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
+					temp_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
 				else:
 					#print ("hit from more than 1 DB detected")
 					#print (db[key])
 					#print ([fasta_db_description[key]] + [fasta_db_species[key]])
-					if not fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants and query_coverage > min_coverage):					
-						annotation_log_entries[element] = find_best_query_result(annotation_log_entries[element], query)
-						temp_log_entries[element] = find_best_query_result(temp_log_entries[element], query)
+					annotation_log_entries[element] = find_best_query_result(annotation_log_entries[element], query)
+					temp_log_entries[element] = find_best_query_result(temp_log_entries[element], query)
 			elif db_count == 999:
 				#num_queries_no_hit += 1	
 				nohits_found[element] = element	
@@ -835,91 +834,90 @@ def write_xml(filename, results_db):
 
 			result = results_db[key]
 			query_coverage = float(result[3]) / float(len(fasta_no_gi[result[0]])) 
-			if not fasta_db_species.get(get_gi_num_from_string(result[1])) in contaminants or (fasta_db_species.get(get_gi_num_from_string(result[1])) in contaminants and query_coverage > min_coverage):
-				file.write("<?xml version=\"1.0\" ?>\n")
-				file.write("<!DOCTYPE BlastOutput\n")
-				file.write("\tPUBLIC \'-//NCBI//NCBI BlastOutput/EN\'\n")
-				file.write("\t'NCBI_BlastOutput.dtd'>\n")
-				file.write("<BlastOutput>\n")
-				file.write("\t<BlastOutput_program>BLASTX</BlastOutput_program>\n")
-				file.write("\t<BlastOutput_version>BLASTX 2.2.25+</BlastOutput_version>\n")
-				file.write("\t<BlastOutput_reference>Altschul, et. al.</BlastOutput_reference>\n")
-				file.write("\t<BlastOutput_db>" + str(get_db_name(number_db)) + "</BlastOutput_db>\n")
-				file.write("\t<BlastOutput_query-ID>1</BlastOutput_query-ID>\n")
-				if not is_tair:
-					file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
-				else:
-					file.write("\t<BlastOutput_query-def>" + result[1] + "</BlastOutput_query-def>\n")
-				file.write("\t<BlastOutput_query-len>" + result[3] + "</BlastOutput_query-len>\n")
-				file.write("\t<BlastOutput_param>\n")
-				file.write("\t\t<Parameters>\n")
-				file.write("\t\t\t<Parameters_expect>10</Parameters_expect>\n")
-				file.write("\t\t\t<Parameters_include>0</Parameters_include>\n")
-				file.write("\t\t\t<Parameters_sc-match>1</Parameters_sc-match>\n")
-				file.write("\t\t\t<Parameters_sc-mismatch>-3</Parameters_sc-mismatch>\n")
-				file.write("\t\t\t<Parameters_gap-open>5</Parameters_gap-open>\n")
-				file.write("\t\t\t<Parameters_gap-extend>2</Parameters_gap-extend>\n")
-				file.write("\t\t\t<Parameters_filter>D</Parameters_filter>\n")
-				file.write("\t\t</Parameters>\n")
-				file.write("\t</BlastOutput_param>\n")	
-				file.write("\t<BlastOutput_iterations>\n")
-				file.write("\t\t<Iteration>\n")		
-				file.write("\t\t\t<Iteration_iter-num>1</Iteration_iter-num>\n")
-				file.write("\t\t\t<Iteration_query-ID>1</Iteration_query-ID>\n")
-				if not is_tair:
-					file.write("\t\t\t<Iteration_query-def>" + result[0] + "</Iteration_query-def>\n")
-				else:
-					file.write("\t\t\t<Iteration_query-def>" + result[1] + "</Iteration_query-def>\n")
-				file.write("\t\t\t<Iteration_query-len>" + result[3] + "</Iteration_query-len>\n")
-				file.write("\t\t\t<Iteration_hits>\n")
-				
-
-				#depending on legnth of result loop through this later
+			file.write("<?xml version=\"1.0\" ?>\n")
+			file.write("<!DOCTYPE BlastOutput\n")
+			file.write("\tPUBLIC \'-//NCBI//NCBI BlastOutput/EN\'\n")
+			file.write("\t'NCBI_BlastOutput.dtd'>\n")
+			file.write("<BlastOutput>\n")
+			file.write("\t<BlastOutput_program>BLASTX</BlastOutput_program>\n")
+			file.write("\t<BlastOutput_version>BLASTX 2.2.25+</BlastOutput_version>\n")
+			file.write("\t<BlastOutput_reference>Altschul, et. al.</BlastOutput_reference>\n")
+			file.write("\t<BlastOutput_db>" + str(get_db_name(number_db)) + "</BlastOutput_db>\n")
+			file.write("\t<BlastOutput_query-ID>1</BlastOutput_query-ID>\n")
+			if not is_tair:
+				file.write("\t<BlastOutput_query-def>" + result[0] + "</BlastOutput_query-def>\n")
+			else:
+				file.write("\t<BlastOutput_query-def>" + result[1] + "</BlastOutput_query-def>\n")
+			file.write("\t<BlastOutput_query-len>" + result[3] + "</BlastOutput_query-len>\n")
+			file.write("\t<BlastOutput_param>\n")
+			file.write("\t\t<Parameters>\n")
+			file.write("\t\t\t<Parameters_expect>10</Parameters_expect>\n")
+			file.write("\t\t\t<Parameters_include>0</Parameters_include>\n")
+			file.write("\t\t\t<Parameters_sc-match>1</Parameters_sc-match>\n")
+			file.write("\t\t\t<Parameters_sc-mismatch>-3</Parameters_sc-mismatch>\n")
+			file.write("\t\t\t<Parameters_gap-open>5</Parameters_gap-open>\n")
+			file.write("\t\t\t<Parameters_gap-extend>2</Parameters_gap-extend>\n")
+			file.write("\t\t\t<Parameters_filter>D</Parameters_filter>\n")
+			file.write("\t\t</Parameters>\n")
+			file.write("\t</BlastOutput_param>\n")	
+			file.write("\t<BlastOutput_iterations>\n")
+			file.write("\t\t<Iteration>\n")		
+			file.write("\t\t\t<Iteration_iter-num>1</Iteration_iter-num>\n")
+			file.write("\t\t\t<Iteration_query-ID>1</Iteration_query-ID>\n")
+			if not is_tair:
+				file.write("\t\t\t<Iteration_query-def>" + result[0] + "</Iteration_query-def>\n")
+			else:
+				file.write("\t\t\t<Iteration_query-def>" + result[1] + "</Iteration_query-def>\n")
+			file.write("\t\t\t<Iteration_query-len>" + result[3] + "</Iteration_query-len>\n")
+			file.write("\t\t\t<Iteration_hits>\n")
 			
 
-				for count in range(0, number_db):
-					if not fasta_db.get(get_gi_num_from_string(result[1])) is None:
-						file.write("\t\t\t\t<Hit>\n")
-						file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
-						file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
-						file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species.get(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
-						file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
-						file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
-						file.write("\t\t\t\t\t<Hit_hsps>\n")
-						file.write("\t\t\t\t\t\t<Hsp>\n")
-						file.write("\t\t\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")	
-						file.write("\t\t\t\t\t\t\t<Hsp_bit-score>" + result[3] + "</Hsp_bit-score>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_score>0</Hsp_score>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_evalue>" + result[10] + "</Hsp_evalue>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_query-from>" + result[6] + "</Hsp_query-from>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_query-to>" + result[7] + "</Hsp_query-to>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_hit-from>0</Hsp_hit-from>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_hit-to>0</Hsp_hit-to>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_pattern-from>0</Hsp_pattern-from>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_pattern-to>0</Hsp_pattern-to>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_query-frame>0</Hsp_query-frame>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_hit-frame>0</Hsp_hit-frame>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_identity>0</Hsp_identity>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_positive>0</Hsp_positive>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_gaps>0</Hsp_gaps>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_align-len>" + result[3] + "</Hsp_align-len>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_density>0</Hsp_density>\n")
-						
-						#print (fasta_no_gi[str(result[0])])
-						#print ( fasta_db[get_gi_num_from_string(result[1])].replace("\n", ""))
-						file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_no_gi[str(result[0])] + "</Hsp_qseq>\n")
-						file.write("\t\t\t\t\t\t\t<Hsp_hseq>" +  fasta_db[get_gi_num_from_string(result[1])].replace("\n", "") + "</Hsp_hseq>\n")
-						
-						file.write("\t\t\t\t\t\t</Hsp>\n")
-						file.write("\t\t\t\t\t</Hit_hsps>\n")
-						file.write("\t\t\t\t</Hit>\n")
-						
+			#depending on legnth of result loop through this later
+		
+
+			for count in range(0, number_db):
+				if not fasta_db.get(get_gi_num_from_string(result[1])) is None:
+					file.write("\t\t\t\t<Hit>\n")
+					file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
+					file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
+					file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species.get(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
+					file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
+					file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
+					file.write("\t\t\t\t\t<Hit_hsps>\n")
+					file.write("\t\t\t\t\t\t<Hsp>\n")
+					file.write("\t\t\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")	
+					file.write("\t\t\t\t\t\t\t<Hsp_bit-score>" + result[3] + "</Hsp_bit-score>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_score>0</Hsp_score>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_evalue>" + result[10] + "</Hsp_evalue>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_query-from>" + result[6] + "</Hsp_query-from>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_query-to>" + result[7] + "</Hsp_query-to>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_hit-from>0</Hsp_hit-from>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_hit-to>0</Hsp_hit-to>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_pattern-from>0</Hsp_pattern-from>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_pattern-to>0</Hsp_pattern-to>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_query-frame>0</Hsp_query-frame>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_hit-frame>0</Hsp_hit-frame>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_identity>0</Hsp_identity>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_positive>0</Hsp_positive>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_gaps>0</Hsp_gaps>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_align-len>" + result[3] + "</Hsp_align-len>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_density>0</Hsp_density>\n")
+					
+					#print (fasta_no_gi[str(result[0])])
+					#print ( fasta_db[get_gi_num_from_string(result[1])].replace("\n", ""))
+					file.write("\t\t\t\t\t\t\t<Hsp_qseq>" + fasta_no_gi[str(result[0])] + "</Hsp_qseq>\n")
+					file.write("\t\t\t\t\t\t\t<Hsp_hseq>" +  fasta_db[get_gi_num_from_string(result[1])].replace("\n", "") + "</Hsp_hseq>\n")
+					
+					file.write("\t\t\t\t\t\t</Hsp>\n")
+					file.write("\t\t\t\t\t</Hit_hsps>\n")
+					file.write("\t\t\t\t</Hit>\n")
+					
 
 
-				file.write("\t\t\t</Iteration_hits>\n")
-				file.write("\t\t</Iteration>\n")
-				file.write("\t</BlastOutput_iterations>\n")
-				file.write("</BlastOutput>\n")
+			file.write("\t\t\t</Iteration_hits>\n")
+			file.write("\t\t</Iteration>\n")
+			file.write("\t</BlastOutput_iterations>\n")
+			file.write("</BlastOutput>\n")
 
 
 
@@ -930,6 +928,7 @@ def write_xml(filename, results_db):
 # input will always be annotation_log_entries
 def calc_stats(results):
 	#global contaminants_found
+	global temp_log_entries
 	global db_count
 	global fasta_no_gi
 	global fasta_db
@@ -954,6 +953,7 @@ def calc_stats(results):
 	num_queries_uninformative = 0
 	num_queries_informative_hit = 0
 	num_queries = 0
+	num_queries_no_contamaints = 0
 	median_query_length = list()
 	avg_length_query_sequences = 0
 	num_contaminants = 0
@@ -979,7 +979,9 @@ def calc_stats(results):
 				top_ten_contaminants[fasta_db_species[gi]] += 1		
 			else:
 				top_ten_contaminants[fasta_db_species[gi]] = 1
+			del temp
 		else:	
+			num_queries_no_contamaints += 1
 			if fasta_db_description[gi] == "uninformative":
 				num_queries_uninformative += 1
 			else:
@@ -989,22 +991,17 @@ def calc_stats(results):
 				top_ten_hits[str(temp[13])] += 1
 			else:
 				top_ten_hits[str(temp[13])] = 1
-
-
-
-
-
-		median_query_length.append(query_length)
-
-		avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + query_length) / num_queries)
-	
-		if query_length > longest_query_length:
-			longest_query_length = query_length
-		if query_length < shortest_query_length:
-			shortest_query_length = query_length
+			# only include non-contaminant hits in statistics calc
+			median_query_length.append(query_length)
+			avg_length_query_sequences = float((avg_length_query_sequences * (num_queries-1) + query_length) / num_queries_no_contamaints)
+		
+			if query_length > longest_query_length:
+				longest_query_length = query_length
+			if query_length < shortest_query_length:
+				shortest_query_length = query_length
 
 	num_queries_no_hit = len(fasta_no_gi) - len(results)
-	num_queries = len(results)
+	#num_queries = len(results)
 	median_query_length.sort() # sorts least to greatest
 	median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
 	n50_statistic = get_n50_statistic(median_query_length)
