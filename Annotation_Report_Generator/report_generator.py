@@ -263,10 +263,20 @@ def find_best_query_result(query1, query2):
 
 
 	species = fasta_db_species[query1_gi]
-	#species = species.split(" ")[0]
+	species = species.split(" ")
+	if len(species) > 1:
+		species = species[0] + " " + species[1]
+	else:
+		species = species[0]
+	fasta_db_species[query1_gi] = species
 
 	species2 = fasta_db_species[query2_gi]
-	#species2 = species2.split(" ")[0]
+	species2 = species2.split(" ")
+	if len(species2) > 1:
+		species2 = species2[0] + " " + species2[1]
+	else:
+		species2 = species2[0]
+	fasta_db_species[query2_gi] = species2
 	'''
 	if species in contaminants:
 		print ("contaminant:   " + str(species))
@@ -537,38 +547,20 @@ def is_uninformative(fasta_db_element):
 	return False
 
 def write_log(element, log_name):
-	global counter
-	element = str(element)
-	if number_db == 1:
-		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
-			print ("creating new logfile with name: " + log_name)
-			file = open(log_name+".txt", "w")
-			file.write(str(element)+"\n")
-			file.close()
-		else:
-			file = open(log_name+".txt", "a")
-			file.write(str(element)+"\n")
-			file.close()
-	else:
-		counter -= 1
-		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
-			print ("creating log file with name: " + log_name)
-			file = open(log_name+".txt", "w")
-			if not counter > 0:
-				file.write(str(element)+"\n")
-			else:
-				file.write(str(element)+"\n")
-			file.close()
-		else:
-			file = open(log_name+".txt", "a")
-			if not counter > 0:
-				file.write(str(element)+"\n")
-			else:
-				file.write(str(element)+"\n")
-			file.close()
-
-
 	
+	f = open(log_name,"a")
+	f.write(str(element))
+
+
+#this is a helper method for building the contaminants DB
+def parse_contaminant_name(name):
+	name = name.split(" ")
+	if len(name) > 1:
+		name = name[0] + " " + name[1]
+	else:
+		name = name[0]
+	return name
+
 def build_contaminants_db():
 	global settings
 	contaminant_db = dict()
@@ -584,7 +576,7 @@ def build_contaminants_db():
 			line = line[:-2]
 			line = line.strip()
 			#print (line)
-			
+			line = parse_contaminant_name(line)	
 			contaminant_db[line] = line #its faster to check if value exists in a hashtable than a regular list
 	
 	if "y" in settings[20] or "yes" in settings[20]:	
@@ -593,6 +585,7 @@ def build_contaminants_db():
 			line = line[:-2]
 			#print(line)
 			line = line.strip()
+			line = parse_contaminant_name(line)
 			contaminant_db[line] = line
 	
 	if "y" in settings[19] or "yes" in settings[19]:
@@ -601,6 +594,7 @@ def build_contaminants_db():
 			line = line[:-2]
 			#print (line)
 			line = line.strip()
+			line = parse_contaminant_name(line)
 			contaminant_db[line] = line
 	'''		
 	print ("searching in contaminants for bacteria: ")
@@ -618,42 +612,8 @@ Re-evaluate the logic within this method later, it seems some of the else clause
 '''
 
 def write_contaminants_log(element,log_name):
-	global counter
-	element = "".join(str(element))
-	if number_db == 1:
-		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
-			file = open(log_name+".txt", "w")
-			print ("creating contaminants log with name: " + log_name)
-			file.write(element)
-			file.write("\n")
-			file.close()
-		else:
-			file = open(log_name+".txt", "a")
-			file.write(element)
-			file.write("\n")
-			file.close()
-	else:
-		counter -= 1
-		if not os.path.exists(log_name+".txt"): # if file doesnt exist create it
-			file = open(log_name+".txt", "w")
-			print ("creating contaminants log with name: " + log_name)
-			if not counter > 0:
-				file.write(element)
-				file.write("\n")
-			else:
-				file.write(element)
-				file.write("\n")
-			file.close()
-		else:
-			file = open(log_name+".txt", "a")
-			if not counter > 0:
-				file.write(element)
-				file.write("\n")
-			else:
-				file.write(element)
-				file.write("\n")
-			#file.close()
-
+	f = open(log_name, "a")
+	f.write(str(element))
 
 '''
 Assumptions before matching
@@ -963,7 +923,7 @@ def calc_stats(results):
 	
 	print ("calc stats called")
 	#print ("len results: " + str(len(results)))
-	for element in results:
+	for element in dict(results):
 		temp = results[element]
 		#print (temp)
 		num_queries += 1
@@ -979,7 +939,7 @@ def calc_stats(results):
 				top_ten_contaminants[fasta_db_species[gi]] += 1		
 			else:
 				top_ten_contaminants[fasta_db_species[gi]] = 1
-			del temp
+			del results[element] # this deletes the transcript so it will not be included in the XML file or the annotation
 		else:	
 			num_queries_no_contamaints += 1
 			if fasta_db_description[gi] == "uninformative":
@@ -1110,6 +1070,7 @@ def get_db_name(db_number):
 		return "error"
 
 def print_summary_stats():
+	global db_count
 	global final_output_temp
 	global annotation_log_entries
 	global longest_query_length
@@ -1467,15 +1428,19 @@ if __name__ == '__main__':
 			
 		print ("writing no hits log")
 		#after parsing of all fasta elements add all missed hits to nohits file
+		f_nohits = open(output_folder+"//nohits_"+ date + ".txt","a")
 		for item in nohits_found:
-			write_log([item],output_folder+"//nohits_"+ date)
-		
+			f_nohits.write(item+"\n")
+			#write_log([item],output_folder+"//nohits_"+ date + ".txt")
+		f_nohits.close()	
 		#del nohits_found		
-
+	
 		print ("writing contaminants log")
+		f_contaminants = open(output_folder+"//contaminants_" + date + ".txt","a")
 		for key in contaminants_found:
-			write_contaminants_log([contaminants_found.get(key)],output_folder+"//contaminants_" + date)
-		
+			f_contaminants.write(key+"\n")
+			#write_contaminants_log([contaminants_found.get(key)],output_folder+"//contaminants_" + date + ".txt")
+		f_contaminants.close()
 		#del contaminants_found	
 	
 		print (str(time.clock() - start_time) + " seconds")
