@@ -689,9 +689,11 @@ def match_fasta(db):
 					#print ([fasta_db_description[key]] + [fasta_db_species[key]])
 					annotation_log_entries[element] = find_best_query_result(annotation_log_entries[element], query)
 					temp_log_entries[element] = find_best_query_result(temp_log_entries[element], query)
-			elif db_count == 999:
-				#num_queries_no_hit += 1	
-				nohits_found[element] = element	
+			else:
+				num_queries_no_hit += 1	
+				if db_count == 999:
+					#print ("adding to nohits log")
+					nohits_found[element] = element	
 	print ("finished matching db: " + str(get_db_name(db_count)))
 	#db_count += 1			
 
@@ -960,7 +962,7 @@ def calc_stats(results):
 			if query_length < shortest_query_length:
 				shortest_query_length = query_length
 
-	num_queries_no_hit = len(fasta_no_gi) - len(results)
+	#num_queries_no_hit = len(fasta_no_gi) - len(results)
 	#num_queries = len(results)
 	median_query_length.sort() # sorts least to greatest
 	median_query_length.reverse() # reverses the order to greatest to least (median remains identical)
@@ -1103,7 +1105,7 @@ def print_summary_stats():
 	match_fasta(db_combined)
 	calc_stats(temp_log_entries)
 	#print (len(fasta_no_gi) - num_queries_uninformative - num_queries_informative_hit)
-	num_queries_no_hit = len(fasta_no_gi) - len(temp_log_entries)
+	#num_queries_no_hit = len(fasta_no_gi) - len(temp_log_entries)
 	temp = list()
 	#print (num_queries_no_hit)
 	
@@ -1449,7 +1451,6 @@ if __name__ == '__main__':
 		#print (db)
 
 		#num_queries_informative_hit = (num_queries - num_queries_uninformative)
-		db_count = 999 # signifies that this is the summary results
 		print_summary_stats()
 		for key in temp_log_entries:
 			tsv_new.writerow(temp_log_entries[key])	
