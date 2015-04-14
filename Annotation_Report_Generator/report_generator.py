@@ -1512,6 +1512,8 @@ if __name__ == '__main__':
 			domain_ids = combine_annotations.get_num_sequences_identification()
 			at_least_1 = combine_annotations.get_at_least_1() # C, P, F
 			go_counts = combine_annotations.get_go_counts()
+			go_interpro_counts = combine_annotations.get_go_interpro_counts()
+			at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
 	elif settings[17] != "":
 		combine_annotations.main(["--input"] + [output] + ["--blast2go"] + [settings[17]] + ["--output"] + [output_folder+"//combined_annotation_"+date+".tsv"]) 
 		domain_ids = combine_annotations.get_num_sequences_identification()
