@@ -654,7 +654,9 @@ def match_fasta(db):
 	nohits_found = dict()
 	query_gi_final = dict()
 
-	
+	if db_count == 999:
+		f_nohits = open(output_folder+"//nohits_"+ date + ".txt","a")
+		f_contaminants = open(output_folder+"//contaminants_" + date + ".txt","a")		
 	
 	num_queries_no_hit = 0
 	annotation_log_entries = dict()	
@@ -678,7 +680,7 @@ def match_fasta(db):
 
 				if db_count == 999 and fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants:
 					contaminants_found[element] = element
-
+					f_contaminants.write(str(query)+"\n")
 	
 				if annotation_log_entries.get(key) is None:
 					annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
@@ -692,6 +694,7 @@ def match_fasta(db):
 			else:
 				num_queries_no_hit += 1	
 				if db_count == 999:
+					f_nohits.write(element+"\n")
 					#print ("adding to nohits log")
 					nohits_found[element] = element	
 	print ("finished matching db: " + str(get_db_name(db_count)))
@@ -1095,8 +1098,22 @@ def print_summary_stats():
 	
 
 	db_combined.update(db)
-	db_combined.update(db2)
-	db_combined.update(db3)
+	
+	for element in db2:
+		if db_combined.get(element) is None:
+			db_combined[element] = db2[element]
+		else:
+			db_combined[element] = find_best_query_result(db_combined.get(element), db2[element])
+
+
+	for element in db3:
+		if db_combined.get(element) is None:
+			db_combined[element] = db3[element]
+		else:
+			db_combined[element] = find_best_query_result(db_combined.get(element), db3[element])
+
+	#db_combined.update(db2)
+	#db_combined.update(db3)
 
 
 
@@ -1428,23 +1445,25 @@ if __name__ == '__main__':
 		
 		#del annotation_log_entries
 			
-		print ("writing no hits log")
+		#print ("writing no hits log")
 		#after parsing of all fasta elements add all missed hits to nohits file
+		'''
 		f_nohits = open(output_folder+"//nohits_"+ date + ".txt","a")
 		for item in nohits_found:
 			f_nohits.write(item+"\n")
 			#write_log([item],output_folder+"//nohits_"+ date + ".txt")
 		f_nohits.close()	
-		#del nohits_found		
+		'''
 	
-		print ("writing contaminants log")
+		#print ("writing contaminants log")
+		'''
 		f_contaminants = open(output_folder+"//contaminants_" + date + ".txt","a")
 		for key in contaminants_found:
 			f_contaminants.write(key+"\n")
 			#write_contaminants_log([contaminants_found.get(key)],output_folder+"//contaminants_" + date + ".txt")
 		f_contaminants.close()
 		#del contaminants_found	
-	
+		'''
 		print (str(time.clock() - start_time) + " seconds")
 		print("complete -- annotation file now available")
 		#print ("printing db")

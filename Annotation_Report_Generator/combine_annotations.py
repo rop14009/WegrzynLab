@@ -59,9 +59,6 @@ def parse_column(row, file_type):
 	#global at_least_1_p
 	#global at_least_1_f
 	
-
-
-
 	process = list()
 	function = list()
 	component = list()
@@ -183,6 +180,8 @@ def print_usage():
 
 #helper method for parse_flags
 def parse_input_params(param_list):
+	global interpro_path
+	global blast2go_path
 	input = []
 	previous_param = ""
 	for param in param_list:
@@ -194,6 +193,10 @@ def parse_input_params(param_list):
 				input.append(param)
 		elif previous_param == "--blast2go" or previous_param == "--interpro":
 			input.append(param)
+			if previous_param == "--blast2go":
+				blast2go_path = param
+			elif previous_param == "--interpro":
+				interpro_path = param
 	return input
 	
 #helper method for parse_flags
@@ -222,21 +225,26 @@ def determine_blast_or_interpro_input(input):
 def parse_flags(param_list):
 	global append_log
 	#parse input paramters first
-	input = parse_input_params(param_list)
+	#nput = parse_input_params(param_list)
 	#check if --output flag is present
-	output = parse_output_param(param_list)
+	#output = parse_output_param(param_list)
 
 
 	# check for log to append to
-
+	
 	if "--log" in param_list:
 		loc = param_list.index("--log")
 		append_log = param_list[loc+1]
+		param_list.remove("--log")
+		param_list.remove(param_list[loc+1])
 	else:
 		append_log = None
+			
 
-
+	input = parse_input_params(param_list)
+	output = parse_output_param(param_list)
 	
+
 	#print(input)
 	#print (output)	
 	if len(output) != 2: #this means use default output
@@ -377,6 +385,10 @@ def main(args):
 	global at_least_1_f_interpro
 
 	global append_log
+
+	global interpro_path
+	global blast2go_path
+
 
 	at_least_1_c = 0
 	at_least_1_p = 0
@@ -557,13 +569,15 @@ def main(args):
 		domain_ids = get_num_sequences_identification()
 		at_least_1 = get_at_least_1() # C, P, F
 		go_counts = get_go_counts()
-
-		if os.path.exists(append_log + ".txt"):
+		go_interpro_counts = get_go_interpro_counts()
+		at_least_1_interpro = get_at_least_1_interpro()
+ 
+		print ("appending to:\t" + append_log)
+		if True:#os.path.exists(append_log + ".txt"):
 			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + append_log, 'a') as log:
 				tsv_log = csv.writer(log, delimiter='\t')
-				tsv_log.writerow(["Interpro File: "] + [str(settings[16])]) # TODO put an if statement here to check for multiple interpro files and
-				if settings[17] != "" and not settings[17] is None:
-					tsv_log.writerow(["Blast2GO File: "] + [str(settings[17])])
+				tsv_log.writerow(["Interpro File: "] + [str(interpro_path)]) # TODO put an if statement here to check for multiple interpro files and
+				tsv_log.writerow(["Blast2GO File: "] + [str(blast2go_path)])
 				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
 				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
 				tsv_log.writerow(["Blast2GO Gene Ontology Stats"])

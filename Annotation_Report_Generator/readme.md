@@ -150,7 +150,7 @@ This script takes the Blast2GO, InterProScan, and annotation input and merges th
 
 @PARAMETERS
 
---input, --blast2go, --interpro, --output
+--log --input, --blast2go, --interpro, --output
 ```
 python combine_annotations.py --input [annotation filename] --blast2go [blast2go filename] --interpro [interpro filename] --output [output_file_name.tsv]
 ```
@@ -167,6 +167,11 @@ For performing merges with 2 interpro files:
 python combine_annotations.py --input [annotation filename] --interpro [interpro filename] [interpro filename two] --output [output_file_name.tsv]
 ```
 When the script is complete, the output file will be availible in the output directory.
+
+APPENDING TO AN EXISTING LOG
+
+python combine_annotations.py --log [log name] --input [annotation filename] --interpro [interpro filename] [interpro filename two] --output [output_file_name.tsv]
+
 
 ##Configuration File
 In the configuration file, your option is always placed after the ":". If there is no ":" on that line, then it is not an option.
