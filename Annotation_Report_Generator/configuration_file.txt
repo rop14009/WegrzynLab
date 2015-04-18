@@ -20,3 +20,7 @@ Contaminant Detection Options
 Insects:
 Fungi:
 Bacteria:
+Contaminant Database File Paths
+Insects:
+Fungi:
+Bacteria:

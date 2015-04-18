@@ -178,7 +178,25 @@ In the configuration file, your option is always placed after the ":". If there 
 
 The configuration file is line sensitive, it must always be of the form above, deleting any of the lines in the configuration file will lead to errors
 
-The first line is where you will place the path to your query fasta file. 
+The first line is where you will place the path to your query fasta file.
+
+The second line is where you will enter the number of databases (1, 2, 3), make sure that this number is accurate, otherwise some of your databases may not be included in the final results.
+
+The third line is where you will place your sequence search application (currently the only option is the usearch format, NOTE: If you generated your output via vsearch, enter usearch anyways as the formats are identical)
+
+The fourth line serves no function in the current version of the script, future versions will make use of this option.
+
+The next several lines (lines 5-13) are where the file paths to the results from your usearch runs, and the FASTA-versions of those databases as well go. Make sure that the search and FASTA versions go together under the same database number. In addition to this, the databases must be filled out sequentially, which means that the first database you include will go under 1, the next under 2, etc.
+
+Line 15 will be where you include your minimum e-value, which is used in calculating best hits. An example e-value would be 1e-5.
+
+Line 16 will be where you specify whether or not you want XML output to input into Blast2GO.
+
+Lines 17 and 18 are where you include InterProScan and Blast2GO output if you wish to append that to the log file.
+
+Lines 20-22 and 24-26 specify which contaminant databases you want included in the run, and their respective file paths. By default the update.py script will download the databases from the NCBI servers, and place them into a directory called "contaminant_databases". 
+
+
 
 #### Query Fasta
 
@@ -244,6 +262,13 @@ This script currently has three optional flat file databases containing genus an
 * Fungi
 
 In in configuration file, each of these can be toggled by writing either "y" or "yes" to include them when searching for contaminants, or write "no" or leave it blank to ignore these filters.
+
+#### Downloading updated contaminant databases using update.py
+
+The update.py script will automatically download all of the contaminant files required to run report_generator.py
+
+The files will be deposited into a folder titled "contaminant_databases".
+
 
 ## Output
 

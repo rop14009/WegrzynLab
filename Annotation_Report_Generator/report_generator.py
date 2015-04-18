@@ -39,6 +39,11 @@ The following shows the index in list of settings
 15) Generate XML for Blast2GO:ASD
 '''
 def parse_config_file(file_path):
+	if not os.path.exists(file_path):
+		print ("The configuration file is not in the current directory -- please check to see if configuration_file.txt is present - execution ")
+		exit()	
+
+
 	count = 0 # to keep track of which option is currently being parsed
 	config_file = open(file_path, "r" )
 	config_file_settings = []
@@ -93,6 +98,12 @@ def get_nth_index(n, element, l):
 # this method creates hashtable used for looking up fasta seq based off of gi
 def multi_fasta_parse(file_name):
 	global is_tair
+
+
+	if not os.path.exists(file_name):
+		print ("The specified file path to a multi-fasta file:\t"+file_name+" does not exist, please recheck file paths and names -- aborting execution")
+		exit()
+
 	
 	fasta_db = dict()
 	fasta_db_description = dict()
@@ -144,8 +155,8 @@ def multi_fasta_parse(file_name):
 	
 	#print ("test:  " + str(fasta_db["224126497"]))
 	#print (fasta_db)
-	print ("finished building a fasta db")
-	print ("fasta db contains: " + str(len(fasta_db)) + " elements")
+	print ("Finished building fasta db:\t" + str(file_name))
+	print ("Fasta db contains: " + str(len(fasta_db)) + " elements")
 	return [fasta_db, fasta_db_description, fasta_db_species]
 
 
@@ -224,19 +235,6 @@ def find_best_query_result(query1, query2):
 	#print ("query1 coverage: " + str(query1_coverage))
 	#print ("query2 coverage: " + str(query2_coverage))
 
-	
-	
-
-	'''
-	print ("query1: " + str(query1))	
-	print ("query2: " + str(query2))
-	print ("fasta no gi lengths")
-	print (len(fasta_no_gi[str(query1[0])[2:-2]]))
-	print (len(fasta_no_gi[str(query2[0])[2:-2]]))
-	print ("coverages")
-	print (query1_coverage)
-	print (query2_coverage)
-	'''
 	if is_uninformative(fasta_db_description[query1_gi]):
 		if fasta_db_description[query2_gi] != "uninformative":
 			debug_uninformative_list[fasta_db_description[query1_gi]] = fasta_db_description[query1_gi]
@@ -319,8 +317,9 @@ def find_best_query_result(query1, query2):
 		return query1
 
 
-	print ("this statement has been reached, when it should never be reached")
-	
+	print ("This statement has been reached, when it should never be reached")
+	exit()
+
 def parse_e_value(e_val):
 	number = e_val
 	exp = ""
@@ -350,6 +349,7 @@ def trim_query_name(query_name):
 		return query_name
 
 '''
+WARNING THIS SECTION IS CURRENTLY NOT FUNCTIONING CORRECTLY - DO NOT USE
 NCBI format
 Field 1: query label
 Field 2: target label
@@ -460,9 +460,14 @@ def usearch_format_db_parse(file_name):
 	global query_gi_association_db_1
 	global query_gi_association_db_2
 
+	if not os.path.exists(file_name):
+		print ("The usearch results file:\t"+file_name+" does not exist, please recheck name and filepath -- aborting execution")
+		exit()
+
+
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
-		print ("Now parsing DB")
+		print ("Now parsing usearch DB:\t" + str(file_name))
 		for line in file_tsv:
 			line_count += 1
 			if not fasta_db.get(str(get_gi_num_from_string(line[1]))) is None:
@@ -488,29 +493,13 @@ def usearch_format_db_parse(file_name):
 				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
 				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
 				sys.exit()
-		'''
-		for key,value in usearch_db.items():
-			#print (key)
-			#print (value)
-			#print (element)	
-			# if query is present then compare to existing version to see which is better
-			if not is_query_present(str(value[0])) is None:
-				current_value = is_query_present(str(value[0]))
-				current_value.append(value)
-				get_current_db()[str(value[0])] = current_value
-			# else if query is not present then add the current db
-			else:
-				value_list = list()
-				value_list.append(value)
-				get_current_db()[str(value[0])] = value_list
-		'''
 		#print (len(get_current_db()))
-		print (len(usearch_db))
-		print ("db complete parsing")
+		#print (len(usearch_db))
+		#print ("db complete parsing")
 		#print (get_current_db())
 		#print (query_gi_association_db_0)
 		db_count += 1
-		print ("usearch db #" + str(db_count) + " contains: " + str(len(usearch_db)) + " unique best hits and " + str(line_count) + " total elements")
+		#print ("usearch db #" + str(db_count) + " contains: " + str(len(usearch_db)) + " unique best hits and " + str(line_count) + " total elements")
 		return usearch_db
 
 
@@ -564,22 +553,28 @@ def parse_contaminant_name(name):
 def build_contaminants_db():
 	global settings
 	contaminant_db = dict()
-	bacteria_db = open("bacteria_db_new.txt", "r")
-	fungi_db = open("fungi_db.txt","r")
-	insects_db = open("insects.txt","r")	
+
+	bacteria_db = open(settings[25], "r")
+	fungi_db = open(settings[24],"r")
+	insects_db = open(settings[23],"r")	
+	
 	#bacteria first
 	#file_tsv = csv.reader(bacteria_db, delimiter='\t')
 	
-	if "y" in settings[21] or "yes" in settings[21]: 
+	if ("y" in settings[21] or "yes" in settings[21]) and os.path.exists(settings[25]): 
 		# loads bacteria DB
 		for line in bacteria_db:
-			line = line[:-2]
-			line = line.strip()
+			line = line[:-2] # remove the \r\n special characters at end of line
+			line = line.strip() # remove excess spaces
 			#print (line)
 			line = parse_contaminant_name(line)	
 			contaminant_db[line] = line #its faster to check if value exists in a hashtable than a regular list
-	
-	if "y" in settings[20] or "yes" in settings[20]:	
+	elif not os.path.exists(settings[25]) and ("y" in settings[21] or "yes" in settings[21]):
+		print ("The bacteria contaminants database was selected to be included, however the file path is invalid -- exiting now")
+		exit()	
+
+
+	if ("y" in settings[20] or "yes" in settings[20]) and os.path.exists(settings[24]):	
 		# loads fungi DB
 		for line in fungi_db:
 			line = line[:-2]
@@ -587,8 +582,11 @@ def build_contaminants_db():
 			line = line.strip()
 			line = parse_contaminant_name(line)
 			contaminant_db[line] = line
-	
-	if "y" in settings[19] or "yes" in settings[19]:
+	elif not os.path.exists(settings[24]) and ("y" in settings[20] or "yes" in settings[20]): 
+		print ("The fungi contaminants database was selected to be included, however the file path is invalid -- exiting now")
+		exit()
+
+	if ("y" in settings[19] or "yes" in settings[19]) and os.path.exists(settings[23]):
 		# loads insects DB
 		for line in insects_db:	
 			line = line[:-2]
@@ -596,6 +594,10 @@ def build_contaminants_db():
 			line = line.strip()
 			line = parse_contaminant_name(line)
 			contaminant_db[line] = line
+	elif ("y" in settings[19] or "yes" in settings[19]) and not os.path.exists(settings[23]):
+		print ("The insects contaminants database was selected to be included, however the file path is invalid -- exiting now")
+		exit()
+
 	'''		
 	print ("searching in contaminants for bacteria: ")
 	print (contaminant_db.get("Escherichia coli"))
@@ -606,11 +608,6 @@ def build_contaminants_db():
 	'''
 	return contaminant_db
 	
-''' 
-Re-evaluate the logic within this method later, it seems some of the else clauses are unneccessary
-
-'''
-
 def write_contaminants_log(element,log_name):
 	f = open(log_name, "a")
 	f.write(str(element))
@@ -623,7 +620,6 @@ Assumptions before matching
 Steps
 1) IF fasta file w/GI numbers is present, scan through
 2) For each element in the FASTA file without GI numbers, write all matching search results to annotation.tsv
-
 
 '''
 	
@@ -697,7 +693,7 @@ def match_fasta(db):
 					f_nohits.write(element+"\n")
 					#print ("adding to nohits log")
 					nohits_found[element] = element	
-	print ("finished matching db: " + str(get_db_name(db_count)))
+	print ("Finished matching db: " + str(get_db_name(db_count)))
 	#db_count += 1			
 
 def parse_fasta_no_gi(file_name):
@@ -732,8 +728,8 @@ def parse_fasta_no_gi(file_name):
 					description += str(line)
 	
 	return_dict[query] = description
-	print ("finished parsing query fasta")
-	print ("query fasta contains: " + str(len(return_dict)) + " elements")
+	print ("Finished parsing query fasta")
+	print ("Query fasta contains: " + str(len(return_dict)) + " elements")
 	#print (len(return_dict))
 	#print (str(counter))
 	return return_dict	
@@ -787,8 +783,8 @@ def write_xml(filename, results_db):
 	global fasta_db_species
 	global contaminants
 	global min_coverage
-	print (filename)
-	print (number_db)
+	#print (filename)
+	#print (number_db)
 	#rite header first
 	if not os.path.exists(filename+".xml"): # if file doesnt exist create it
 		file = open(filename+".xml", "w")
@@ -926,7 +922,7 @@ def calc_stats(results):
 	shortest_query_length = sys.maxint
 
 	
-	print ("calc stats called")
+	#print ("calc stats called")
 	#print ("len results: " + str(len(results)))
 	for element in dict(results):
 		temp = results[element]
@@ -1217,7 +1213,7 @@ if __name__ == '__main__':
 
 	global e_value # this constant refers to the threshold to use for determining a "best match" in terms of queries
 	e_value = parse_e_value(settings[14]) 
-	print("min e val is :: " + str(e_value))
+	#print("min e val is :: " + str(e_value))
 	#The following global variables are used to record statistical data in order to generate a log
 	
 	#query length variables
@@ -1257,7 +1253,7 @@ if __name__ == '__main__':
 	filter_list = load_filter_list("filter_list.txt")
 	contaminants = build_contaminants_db()
 	contaminants_found = dict()
-	print("contaminants db built")
+	print("Contaminants DB built")
 	output = output_folder+"//default_output_annotation_" + date +".tsv"
 	number_db = int(settings[1]) # the number of databases being parsed
 	counter = number_db
@@ -1282,8 +1278,8 @@ if __name__ == '__main__':
 			#	"Mismatches","Query_start","Query_end","Subject_start","Subject_end","E-value","Bit_score","Subject_description","Species"]
 			#row +=["has GFF3 data","GFF3 start","GFF3 stop","GFF3 ORF"]
 		else:
-			print("ncbi")
-
+			print("ncbi - not supported in this version of the script - now aborting")
+			exit()
 
 
 
@@ -1364,13 +1360,13 @@ if __name__ == '__main__':
 			print_stats()
 
 			final_output.update(temp_log_entries)
-			print (len(temp_log_entries))
+			#print (len(temp_log_entries))
 			if settings[15] == "yes" or settings[15] == "y":
 				write_xml(output_folder+"//blastxml_" + "db1_" + date, annotation_log_entries)
 
 			match_fasta(db2)
 			calc_stats(temp_log_entries)
-			print (len(temp_log_entries))
+			#print (len(temp_log_entries))
 			print_stats()
 			
 			#final_output.update(temp_log_entries)
@@ -1465,7 +1461,7 @@ if __name__ == '__main__':
 		#del contaminants_found	
 		'''
 		print (str(time.clock() - start_time) + " seconds")
-		print("complete -- annotation file now available")
+		print("complete -- annotation file now available -- continuing on to create log file")
 		#print ("printing db")
 		#print (db)
 
@@ -1479,7 +1475,7 @@ if __name__ == '__main__':
 
 	#TODO when config file becomes a parameter => make it display the given filepath
 	final_output_temp.append([["Path to configuration file: " + str(os.path.dirname(os.path.realpath(__file__))) + "/configuration_file.txt"]])
-	print (final_output_temp)
+	#print (final_output_temp)
 	if not os.path.exists(output_log + ".txt"):
 		with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output_log, 'a') as tsv_log:
 			tsv_log = csv.writer(tsv_log, delimiter='\t')
@@ -1500,10 +1496,10 @@ if __name__ == '__main__':
 	
 
 
-	if settings[16] != "":
+	if settings[16] != "" and os.path.exists(settings[16]):
                 print ("option to include interpro output has been checked, filepath to interpro: " + settings[16])
-		print (settings[17])	
-		if settings[17] == "":
+		#print (settings[17])	
+		if settings[17] == "" and os.path.exists(settings[17]):
                         combine_annotations.main(["--input"] + [output] + ["--interpro"] + [settings[16]] + ["--output"] + [output_folder+"//combined_annotation_"+date+".tsv"])
 			go_interpro_counts = combine_annotations.get_go_interpro_counts()
 			at_least_1_interpro = combine_annotations.get_at_least_1_interpro() # same order as other, (C,P,F)
