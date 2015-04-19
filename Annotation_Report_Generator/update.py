@@ -15,14 +15,14 @@ def download(url_info, file_name, download_status):
 	final_url = base_url + "&WebEnv=" + url_info[0] + "&query_key=" + str(url_info[1]) + "&retstart=0" + "&retmax=10000" + "&rettype=taxon&retmode=text"
 	#print (url_info[2])	
 	f = open(os.getcwd() + file_name, 'wb')
-	for x in range(1, (url_info[2]/10000 + 1)):
+	for x in range(1, (url_info[2]/10000 + 2)):
 		try:
 			response = urllib2.urlopen(final_url)
 		except:
 			print ("Unable to get response -- error")
 		f.write(response.read())
 		final_url = base_url + "&WebEnv=" + url_info[0] + "&query_key=" + str(url_info[1]) + "&retstart=" + str((x*10000)) + "&retmax=" + str(10000+(x*10000)) + "&rettype=taxon&retmode=text"
-		download_status.send(round(100.00*float(((x)*10000)) / float(url_info[2]), 2))
+		download_status.send(round(100.00*float(((x)*10000)) / (float(url_info[2])+20000), 2))
 	#print (file_name+" is complete")
 	download_status.send(100.00)
 
@@ -80,8 +80,8 @@ if __name__ == '__main__':
 	url_bacteria = base_url + "&WebEnv=" + bacteria_info[0] + "&query_key=" + str(bacteria_info[1]) + "&retstart=0" + "&retmax=" + str(bacteria_info[2]) + "&rettype=taxon&retmode=text"
 	# check if contaminant_databases folder exists, if not create it
 
-	if not os.path.exists(os.getcwd()+"contaminant_databases"):
-		os.makedirs(os.getcwd()+"contaminant_databases")
+	#if not os.path.exists(os.getcwd()+"contaminant_databases"):
+	#	os.makedirs(os.getcwd()+"contaminant_databases")
 	'''
 	download(bacteria_info, '/contaminant_databases/bacteria_db.txt')
 	download(insects_info, '/contaminant_databases/insects_db.txt')
