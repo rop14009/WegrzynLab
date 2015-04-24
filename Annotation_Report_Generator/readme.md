@@ -1,16 +1,17 @@
-# Transcriptome Annotation Pipeline
+# Eukaryote Non-Model Transcriptome Annotation Pipeline (enTAP)
 
 ## Introduction
 
-The software tool, X, is a set of Python scripts designed to improve the accuracy and speed of functional annotations for de novo transcriptome (gene space) assemblies of non-model Eukaryotic species.
+The software tool, enTAP, is a set of Python scripts designed to improve the accuracy and speed of functional annotations for de novo transcriptome (gene space) assemblies of non-model Eukaryotic species.
 
 The scripts in this package enable the following:
 
 * Integrates BLAST-style search results from up to three unique databases (and selects the most optimal annotation)
-* Generates BLAST2GO compatible XML files from these search results to obtain Gene Ontology term assignments
-* Integrates the results of InterProScan runs for up to two protein domain databases
+* Identifies informative and uninformative annotations consistently
 * Identifies contaminants through optional filters for fungal, bacterial, and insect annotations.
-* Outputs a full set of spreadsheet compatible results including summary statistics on the assembly and resulting annotations
+* Generates BLAST2GO compatible XML files to facilitate Gene Ontology term assignments
+* Integrates the results of InterProScan runs for up to two protein domain databases
+* Produces a full set of spreadsheet compatible results including summary statistics on the assembly and resulting annotations
  
 
 ## Install
@@ -35,7 +36,7 @@ VSEARCH is a fully open-source alternative to USEARCH:
 
 VSEARCH download: https://github.com/torognes/vsearch
 
-2)  Blast2GO provides a full-featured GUI experience for sequence annotation.  Here, we circumvent some of the limited search options and slow network speeds by limited its use to Gene Ontology aquisition.  Blast2GO will be run as an indepedent application during the workflow to generate a single output file.  
+2)  Blast2GO provides a full-featured GUI experience for sequence annotation.  Here, we circumvent some of the limited search options and slow network speeds by limiting its use to Gene Ontology aquisition.  Blast2GO will be run as an indepedent application during the workflow to generate a single output file.  
 
 BLAST2GO download: https://www.blast2go.com/blast2go-pro/download-b2g
 
