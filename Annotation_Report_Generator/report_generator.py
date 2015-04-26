@@ -8,6 +8,61 @@ import subprocess
 
 import combine_annotations
 
+
+def isfloat(value):
+	try:
+		float(value)
+		return True
+	except ValueError:
+		return False
+
+
+
+# this function tests the configuration options to ensure that all the file paths are valid, and the format is correct
+def config_sanity_check(config_list):
+	print ("Performing sanity check on config file before continuing")
+	#check query fasta file
+	if not os.path.exists(config_list[0]):
+		print ("The specified query fasta file does not exist -- aborting execution")
+		exit()
+
+	# ensure number of databases is checked and that it is a number
+	if config_list[1] != "" and config_list[1].isdigit():
+		num_db = int(config_list[1])	
+
+		if num_db > 3:
+			print("The number of databases was set to a number higher than 3, since 3 is the max number allowed currently, this value will be reset to 3")
+		
+		if num_db == 1: # ensure that the data for the first db is entered correctly
+			if (not config_list[4].isdigit()) or not os.path.exists(config_list[5]) or not os.path.exists(config_list[6]):
+				print ("Either the score for database 1 was entered incorrectly, or the file paths for database 1 are invalid -- aborting execution")
+				exit()
+		if num_db == 2: # ensure that the data for the first and second db is entered correctly	
+			if (not config_list[4].isdigit()) or not os.path.exists(config_list[5]) or not os.path.exists(config_list[6]) \
+			       or (not config_list[7].isdigit()) or not os.path.exists(config_list[8]) or not os.path.exists(config_list[9]):
+					print ("Either the score for database 1/2 was entered incorrectly or the file paths for databases 1/2 are invalid -- aborting execution")
+					exit()
+		if num_db == 3: # ensure that the data for all three databases has been entered correctly
+			if (not os.path.exists(config_list[4]) or not config_list[4].isdigit()) or not os.path.exists(config_list[5]) or not os.path.exists(config_list[6]) \
+				or (not config_list[7].isdigit()) or not os.path.exists(config_list[8]) or not os.path.exists(config_list[9]) \
+				or (not config_list[10].isdigit()) or not os.path.exists(config_list[11]) or not os.path.exists(config_list[12]):
+					print ("Either the score for database 1/2/3 was entered incorrectly or the file paths for databases 1/2/3 are invalid -- aborting execution")
+					exit()
+		if num_db <= 0:
+			print ("The number of source databases must be at least 1 -- aborting execution")
+			exit()
+	else:
+		print ("The number of databases was either not entered, or entered incorrectly -- aborting execution")
+		exit()
+
+
+	# check to ensure minimum e-value is entereted and minimum coverage requirement entered as well
+	if not isfloat(config_list[13])	or not isfloat(parse_e_value(config_list[13])):
+		print ("Either the e-value or the minimum coverage requirement has been entered incorrectly --  aborting execution")
+		exit()
+	
+	print ("Sanity check complete --  now continuing with execution")
+
 def parse_config_line(line):
 	count = 0
 	return_string = ""
@@ -52,6 +107,7 @@ def parse_config_file(file_path):
 		count += 1
 	print(config_file_settings)
 	config_file.close()
+	config_sanity_check(config_file_settings)
 	return config_file_settings
 	
 def get_gi_num_from_string(line):
@@ -1114,7 +1170,7 @@ def print_summary_stats():
 
 
 	num_queries_no_hit = 0	
-	db_count = 999 
+	#db_count = 999 
 	match_fasta(db_combined)
 	calc_stats(temp_log_entries)
 	#print (len(fasta_no_gi) - num_queries_uninformative - num_queries_informative_hit)
@@ -1151,6 +1207,112 @@ def print_summary_stats():
 	final_output_temp.append(temp)
 		
 
+def find_best_hit_between_databases(db1_weight, db2_weight, db1_hit, db2_hit):
+	global min_coverage
+	global e_value
+
+	db1_gi = get_gi_num_from_string(db1_hit[1])
+	db2_gi = get_gi_num_from_string(db2_hit[1])
+
+	db1_coverage = float(db1_hit[3]) / float(len(fasta_no_gi[db1_hit[0]]))
+	db2_coverage = float(db2_hit[3]) / float(len(fasta_no_gi[db2_hit[0]]))
+
+
+	if db1_weight == db2_weight:
+		return find_best_query_result(db1_hit, db2_hit)
+	elif db1_weight < db2_weight:
+		if fasta_db_description[db2_gi] != "uninformative" and db2_coverage >= min_coverage and parse_e_value(db2_hit[10]) >= e_value:
+			return db2_hit
+		else:
+			return find_best_query_result(db1_hit, db2_hit)
+	else: # db1_weight > db2_weight
+		if fasta_db_description[db1_gi] != "uninformative" and db1_coverage >= min_coverage and parse_e_value(db1_hit[10]) >= e_value:
+			return db1_hit
+		else:
+			return find_best_query_result(db1_hit, db2_hit)
+
+
+def print_weighted_summary_stats():
+	global db_count
+	global final_output_temp
+	global annotation_log_entries
+	global longest_query_length
+	global shortest_query_length
+	global median_query_length
+	global num_contaminants
+	global avg_length_query_sequences
+	global num_queries
+	global num_queries_informative_hit
+	global num_queries_uninformative
+	global top_ten_contaminants
+	global num_queries_no_hit
+	global final_output
+	global temp_log_entries
+	global db
+	global db2
+	global db3
+	global db_score
+	global db2_score
+	global db3_score
+
+	db_combined = dict()
+	
+	db_combined.update(db)
+	
+	for element in db2:
+		if db_combined.get(element) is None:
+			db_combined[element] = db2[element]
+		else:
+			db_combined[element] = find_best_hit_between_databases(db_score, db2_score, db_combined.get(element), db2[element])
+
+
+	for element in db3:
+		if db_combined.get(element) is None:
+			db_combined[element] = db3[element]
+		else:
+			if not db.get(element) is None:
+				db_combined[element] = find_best_hit_between_databases(db_score, db3_score,db_combined.get(element), db3[element])
+			else:
+				db_combined[element] = find_best_hit_between_databases(db2_score, db3_score,db_combined.get(element), db3[element])
+	
+
+	num_queries_no_hit = 0
+	#db_count = 999
+	match_fasta(db_combined)
+	calc_stats(temp_log_entries)	
+
+	
+
+	temp = list()
+	temp.append(["Weighted Summary Statistics on the Transcriptome Assembly Input (Query)"])
+	temp.append(["Total Number of Query Sequences: "] + [str(len(fasta_no_gi))])
+	temp.append(["Median Query Length: "] + [str(median_query_length)])
+	temp.append(["Average Query Length: "] + [str(round(avg_length_query_sequences,2))])
+	temp.append(["Shortest Query Length: "] + [str(shortest_query_length)])
+	temp.append(["Longest Query Length: "] + [str(longest_query_length)])
+	temp.append(["N50 Statistic: "] + [str(n50_statistic)])
+	temp.append(["Number of queries with an informative hit: "] + [str(num_queries_informative_hit)])
+	temp.append(["Number of queries with an uninformative hit: "] + [str(num_queries_uninformative)])
+	temp.append(["Number of queries with no hit: "] + [str(num_queries_no_hit)])
+	temp.append(["Number of contaminants: "] + [str(num_contaminants)])
+	temp.append(["The top 10 hits by species: "])
+	if top_ten_hits:
+		for key,value in sorted(get_top_ten(top_ten_hits).iteritems(), key=getKey, reverse=True):
+			temp.append([str(key) + ":"] + [str(value)])
+	else:
+		temp.append(["No Hits from this DB (possible error)"])
+
+	temp.append(["The top 10 contaminants: "])
+
+	if top_ten_contaminants:
+		for key,value in sorted(get_top_ten(top_ten_contaminants).iteritems(), key=getKey, reverse=True):
+			temp.append([str(key)] + [str(value)])
+	else:
+		temp.append(["No contaminants present"])
+	temp.append([])
+	final_output_temp.append(temp)
+
+
 
 #entry point of script				
 if __name__ == '__main__':
@@ -1166,13 +1328,28 @@ if __name__ == '__main__':
 	
 	global output_folder
 
-	output_folder = "output_" + date
+	# ensure that the config file given as a parameter exists
+
+	if len(arguments_list) < 2 or len(arguments_list) > 3:
+		print ("No argument entered, this script must be ran with the configuration file as a parameter, of the form:")
+		print ("python report_generator.py configuration_file.txt")
+		print ("Execution of this script will now abort")
+		exit()
+
+	if os.path.exists(arguments_list[1]):
+		settings = parse_config_file(str(arguments_list[1])) #sets up the settings
+	else:
+		print ("The configuration file specified does not exist -- aborting execution")
+		exit()
+
+	if settings[3] != "":	
+		output_folder = str(settings[3]) + "_output_" + date
+	else:
+		output_folder = "output_" + date
 
 	if not os.path.exists(output_folder):
 		os.makedirs(output_folder)
 
-	global settings
-	settings = parse_config_file("configuration_file.txt") #sets up the settings
 	output_log = output_folder+"//log_" + date + ".txt"
 
 	global final_output
@@ -1266,6 +1443,16 @@ if __name__ == '__main__':
 	db = dict()
 	db2 = dict()
 	db3 = dict()
+
+	global db_score
+	global db2_score
+	global db3_score
+
+	db_score = int(settings[4])
+	db2_score = int(settings[7])
+	db3_score = int(settings[10])
+
+
 	with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
 		tsv_new = csv.writer(tsv_new, delimiter='\t')
 		#The first row
@@ -1466,9 +1653,20 @@ if __name__ == '__main__':
 		#print (db)
 
 		#num_queries_informative_hit = (num_queries - num_queries_uninformative)
-		print_summary_stats()
+		if db_score == db2_score == db3_score:	
+			print_summary_stats()
+		else:
+			print_summary_stats()
+			db_count = 999
+			print_weighted_summary_stats()
+
 		for key in temp_log_entries:
 			tsv_new.writerow(temp_log_entries[key])	
+
+
+
+	
+
 
 	if settings[15] == "yes" or settings[15] == "y":
 		write_xml(output_folder+"//blastxml_" + "combined_db" + "_" + date, temp_log_entries)

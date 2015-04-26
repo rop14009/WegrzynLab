@@ -60,9 +60,6 @@ if __name__ == '__main__':
 	# Check file paths, and make them if they don't exist
 	if not os.path.exists("contaminant_databases"):
 		os.makedirs("contaminant_databases")
-
-
-
 	
 	bacteria_parent, bacteria_child = Pipe()
 	fungi_parent, fungi_child = Pipe()
