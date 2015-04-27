@@ -80,27 +80,31 @@ interproscan.sh -i $input -o $output -f xml -appl pfam, Panther -goterms -iprloo
 
 ```
 Path to query FASTA:
-Source Databases: (0, 1, 2, 3)
+Source Databases:
 Sequence Search Application:
 Query Organism:
-Path to formatted database1:
-Path to FASTA-version of database1:
-Path to search results from database1:
-Path to formatted database2 (organism-specific):
-Path to FASTA-version of database2:
-Path to search results from database2:
-Path to formatted database3 (full length):
+Database 1 score:
+Path to FASTA-version of database1: 
+Path to search results from database1: 
+Database 2 score:
+Path to FASTA-version of database 2: 
+Path to search results from database 2: 
+Database 3 score:
 Path to FASTA-version of database3:
 Path to search results from database3:
-Minimum Evalue: 1e-5
-Full-length coverage requirement: (0 - 1)
-Generate XML for Blast2GO: yes/no
-Path to InterProScan Results: (If no results leave blank)
-Path to Blast2GO Results: (If no results leave blank)
+Full-length coverage requirement: 0.7
+Minimum Evalue:1e-5
+Generate XML for Blast2GO:
+Path to InterProScan Results:
+Path to Blast2GO Results:
 Contaminant Detection Options
-Insects: yes/no
-Fungi: yes/no
-Bacteria: yes/no
+Insects:
+Fungi:
+Bacteria:
+Contaminant Database File Paths
+Insects:
+Fungi:
+Bacteria:
 ```
 4) Run the Report Generator script in the same directory with output files from the usearch/vsearch runs and the configuration file:
 
