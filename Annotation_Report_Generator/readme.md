@@ -106,12 +106,13 @@ Insects:
 Fungi:
 Bacteria:
 ```
-4) Run the Report Generator script in the same directory with output files from the usearch/vsearch runs and the configuration file:
+4) Run the Report Generator script in the same directory with output files from the usearch/vsearch runs and with the configuration file as the only parameter.
 
 ```
 cd /path/to/directory/containing/script/directory_containing_script/
-python report_generator.py
+python report_generator.py configuration_file.txt
 ```
+
 After completing a successful execution of the report generator script, you will have a tab-delimited annotation file, a log file with summary statistics, flat files for contaminants and nohit sequences, and XML files for each database (and combined) if selected
 
 5) From the combined XML file generated, you have the option to run Blast2GO to assign ontology terms:
@@ -189,9 +190,9 @@ The second line is where you will enter the number of databases (1, 2, 3), make 
 
 The third line is where you will place your sequence search application (currently the only option is the usearch format, NOTE: If you generated your output via vsearch, enter usearch anyways as the formats are identical)
 
-The fourth line serves no function in the current version of the script, future versions will make use of this option.
+The fourth line serves no function in the current version of the script other than to name the folder in which the results will be placed. Future versions of the script may include more features for this setting.
 
-The next several lines (lines 5-13) are where the file paths to the results from your usearch runs, and the FASTA-versions of those databases as well go. Make sure that the search and FASTA versions go together under the same database number. In addition to this, the databases must be filled out sequentially, which means that the first database you include will go under 1, the next under 2, etc.
+The next several lines (lines 5-13) are where the file paths to the results from your usearch runs, and the FASTA-versions of those databases as well go. Make sure that the search and FASTA versions go together under the same database number. In addition to this, the databases must be filled out sequentially, which means that the first database you include will go under 1, the next under 2, etc. You must also include the database scores for each database as well. The database scores indicate the priorty in which the best hits between databases will be selected. Setting all of the databases to the same number will select between them equally. A higher score indicates a higher priority in best hit selection. (Example: A database with a score of 2 will always have the hit from it selected over the hit from a database with a score of 1, assumming that the minimum e-value and minimum coverage requirements are met for that hit)
 
 Line 15 will be where you include your minimum e-value, which is used in calculating best hits. An example e-value would be 1e-5.
 
@@ -201,6 +202,7 @@ Lines 17 and 18 are where you include InterProScan and Blast2GO output if you wi
 
 Lines 20-22 and 24-26 specify which contaminant databases you want included in the run, and their respective file paths. By default the update.py script will download the databases from the NCBI servers, and place them into a directory called "contaminant_databases". 
 
+Note on the configuration file, the file must be exactly of the form shown above in the getting started guide, otherwise the script will not function correctly, or potentially function with unintended behavior.
 
 
 #### Query Fasta
