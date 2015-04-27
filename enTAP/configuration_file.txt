@@ -1,0 +1,26 @@
+Path to query FASTA:
+Source Databases:
+Sequence Search Application:
+Query Organism:
+Database 1 score:
+Path to FASTA-version of database1: 
+Path to search results from database1: 
+Database 2 score:
+Path to FASTA-version of database2: 
+Path to search results from database2: 
+Database 3 score:
+Path to FASTA-version of database3:
+Path to search results from database3:
+Full-length coverage requirement: 0.7
+Minimum Evalue:1e-5
+Generate XML for Blast2GO:
+Path to InterProScan Results:
+Path to Blast2GO Results:
+Contaminant Detection Options
+Insects:
+Fungi:
+Bacteria:
+Contaminant Database File Paths
+Insects:
+Fungi:
+Bacteria:

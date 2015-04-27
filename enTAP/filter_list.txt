@@ -1,0 +1,56 @@
+predicted protein
+predicted protein, partial
+hypothetical protein
+hypothetical protein, partial
+conserved hypothetical protein
+conserved hypothetical protein, expressed
+conserved hypothetical protein, partial
+conserved hypothetical protein protein
+conserved hypothetical protein, secreted
+conserved hypothetical protein (membrane)
+conserved protein
+conserved protein, partial
+conserved hypothetical protein
+unnamed protein
+unidentified protein
+uncharacterized protein
+ORF
+anonymous loci
+conserved hypothetical protein LOC
+anonymous locus
+unnamed protein product
+hypothetical protein MA4
+hypothetical protein UM
+hypothetical protein AT
+hypothetical protein SDM1
+hypothetical protein Synpcc
+hypothetical protein Ccel
+hypothetical protein
+hypothetical protein aralydraft
+hypothetical protein selmodraft
+hypothetical protein sorbidraft
+uncharacterized protein LOC
+PREDICTED: uncharacterized protein At
+LOC
+putative protein
+putative uncharacterized protein, parial
+putative uncharacterized protein
+unknown protein
+uncultured
+unidentified
+uninformative
+unknown
+hypothetical
+protein with unknown function
+low quality protein
+low quality protein: conserved hypothetical protein
+predicted: similar to conserved hypothetical protein
+expressed unknown protein
+hypothetical_protein
+expressed protein
+expressed protein, partial
+hit
+unspecified
+PREDICTED: hypothetical protein
+similar to predicted protein
+hypothetical conserved gene
