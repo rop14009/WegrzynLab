@@ -186,28 +186,50 @@ The configuration file is line sensitive, it must always be of the form above, d
 
 ```
 Path to query FASTA: This is the location in which you will place the path to your query fasta file
+
 Source Databases: (1, 2, 3) Here you will enter the number of databases you wish to run your query fasta file against
-Sequence Search Application: (usearch) Here you will specify the format of the search results from your databases. vsearch (if used correctly, as specified above) will output in the same format as usearch.
+
+Sequence Search Application: (usearch) Here you will specify the format of the search results from your databases. vsearch
+(if used correctly, as specified above) will output in the same format as usearch.
+
 Query Organism: This setting is optional, and in the current version of the script only affects the name of the folder in which the results are placed, ex: if "walnut" was entered here the output folder would be "walnut_output_[date]"
+
 Database 1 score: (1, 2, 3) Here you will enter the score of database 1, higher values indicate a higher preference in best hit selection
+
 Path to FASTA-version of database1: Here you will enter the path to the fasta version of this database
+
 Path to search results from database1: Here you will enter the path to the search results on this database
-Database 2 score: (1, 2, 3) Here you will enter the score of database 1, higher values indicate a higher preference in best hit selection
+
+Database 2 score: (1, 2, 3) Here you will enter the score of database 2, higher values indicate a higher preference in best hit selection
+
 Path to FASTA-version of database2: Here you will enter the path to the fasta version of this database
+
 Path to search results from database2: Here you will enter the path to the search results on this database
-Database 3 score: (1, 2, 3) Here you will enter the score of database 1, higher values indicate a higher preference in best hit selection
+
+Database 3 score: (1, 2, 3) Here you will enter the score of database 3, higher values indicate a higher preference in best hit selection
+
 Path to FASTA-version of database3: Here you will enter the path to the fasta version of this database
+
 Path to search results from database3: Here you will enter the path to the search results on this database
-Full-length coverage requirement: (0 - 1) Here you will enter the full length coverage requirement (recommended starting value = 0.7)
+
+Full-length coverage requirement: (0 - 1, not including 0) Here you will enter the full length coverage requirement (recommended starting value = 0.7)
+
 Minimum Evalue: (decimal form: 0.00001 or scientific notation form: 1e-5) Here you will enter the minimum e-value to be used in best hit selection (recommended starting value = 1e-5)
+
 Generate XML for Blast2GO: (yes / no)
+
 Path to InterProScan Results: Here you will enter the path to your InterProScan results (if you have them), these results can also be appended later via the combine_annotations.py script.
+
 Path to Blast2GO Results: Here you will enter the path to your Blast2GO results (if you have them), these results can also be appended later via the combine_annotations.py script.
+
 Contaminant Detection Options // Select yes to include these hits when running the script, and no to not include them.
+
 Insects: (yes / no)
 Fungi: (yes / no)
 Bacteria: (yes / no)
+
 Contaminant Database File Paths // These databases can be downloaded using the update.py script
+
 Insects: Path to the insects contaminant database
 Fungi: Path to the fungi contaminant database
 Bacteria: Path to the bacteria contaminant database
@@ -292,9 +314,158 @@ The script outputs several files.
 There will be a text file of the name: log_[date of execution goes here].txt 
 
 This file will contain the log with all of the statistical data generated in respect to each database, and the collection of databases as a whole.
+The file will be of the form:
+
+```
+Weighted Summary Statistics on the Transcriptome Assembly Input (Query)
+Total Number of Query Sequences:        29785
+Median Query Length:    825
+Average Query Length:   1048.32
+Shortest Query Length:  297
+Longest Query Length:   15345
+N50 Statistic:  1344
+Number of queries with an informative hit:      16183
+Number of queries with an uninformative hit:    9404
+Number of queries with no hit:  4140
+Number of contaminants:         58
+The top 10 hits by species:
+uninformative:  9404
+PREDICTED: putative ribonuclease H protein At1g65750-like:      94
+ATP binding protein, putative:  79
+DNA binding protein, putative:  64
+transcription factor, putative: 60
+membrane protein:       59
+PREDICTED: TMV resistance protein N-like:       46
+protein binding protein, putative:      45
+zinc finger protein, putative:  41
+transcriptional regulator:      35
+The top 10 contaminants:
+Escherichia coli        28
+Laccaria bicolor        4
+Zymoseptoria tritici    3
+Coprinopsis cinerea     3
+Magnaporthe oryzae      2
+Ustilago maydis 2
+Pyrenophora teres       2
+Cryptococcus gattii     2
+Pyrenophora tritici-repentis    2
+Mycobacterium kansasii  1
+
+Summary Statistics on the Transcriptome Assembly Input (Query)
+Total Number of Query Sequences:        29785
+Median Query Length:    825
+Average Query Length:   1048.32
+Shortest Query Length:  297
+Longest Query Length:   15345
+N50 Statistic:  1344
+Number of queries with an informative hit:      16183
+Number of queries with an uninformative hit:    9404
+Number of queries with no hit:  4140
+Number of contaminants:         58
+The top 10 hits by species:
+uninformative:  9404
+PREDICTED: putative ribonuclease H protein At1g65750-like:      94
+ATP binding protein, putative:  79
+DNA binding protein, putative:  64
+transcription factor, putative: 60
+membrane protein:       59
+PREDICTED: TMV resistance protein N-like:       46
+protein binding protein, putative:      45
+zinc finger protein, putative:  41
+transcriptional regulator:      35
+The top 10 contaminants:
+Escherichia coli        28
+Laccaria bicolor        4
+Zymoseptoria tritici    3
+Coprinopsis cinerea     3
+Magnaporthe oryzae      2
+Ustilago maydis 2
+Pyrenophora teres       2
+Cryptococcus gattii     2
+Pyrenophora tritici-repentis    2
+Mycobacterium kansasii  1
+
+DB:     /path/to/file/combined_genes_blast6out_ppf.out
+Number of queries with an informative hit:      13723
+Number of queries with an uninformative hit:    10857
+Number of contaminants: 0
+Number of queries with no hit:  5205
+The top 10 hits by species:
+uninformative:  10857
+PREDICTED: putative ribonuclease H protein At1g65750-like:      85
+ATP binding protein, putative:  62
+DNA binding protein, putative:  48
+PREDICTED: TMV resistance protein N-like:       45
+transcription factor, putative: 40
+protein binding protein, putative:      38
+pentatricopeptide repeat-containing protein, putative:  29
+PREDICTED: UPF0481 protein At3g47200-like:      29
+zinc finger family protein:     28
+The top 10 contaminants by species:
+No contaminants present
+
+DB:     /path/to/file/combined_genes_blast6out_rsp.out
+Number of queries with an informative hit:      16103
+Number of queries with an uninformative hit:    9196
+Number of contaminants: 58
+Number of queries with no hit:  4428
+The top 10 hits by species:
+uninformative:  9196
+PREDICTED: putative ribonuclease H protein At1g65750-like:      85
+ATP binding protein, putative:  78
+DNA binding protein, putative:  64
+transcription factor, putative: 60
+membrane protein:       59
+protein binding protein, putative:      45
+PREDICTED: TMV resistance protein N-like:       44
+zinc finger protein, putative:  41
+transcriptional regulator:      35
+The top 10 contaminants by species:
+Escherichia coli:       28
+Laccaria bicolor:       4
+Zymoseptoria tritici:   3
+Coprinopsis cinerea:    3
+Magnaporthe oryzae:     2
+Ustilago maydis:        2
+Pyrenophora teres:      2
+Cryptococcus gattii:    2
+Pyrenophora tritici-repentis:   2
+Mycobacterium kansasii:         1
+
+Interpro File:  /path/to/file/interpro.raw
+Blast2GO File:  /path/to/file/blast2go_walnut_transcriptome.txt
+Number of sequences with Domain Identification:         25587
+Number of sequences without Domain Identification:      0
+Blast2GO Gene Ontology Stats
+Number of Components:   4552
+Number of Functions:    326
+Number of Processes:    4986
+Number of Transcripts with at least 1 Component:        4552
+Number of Transcripts with at least 1 Function:         4986
+Number of Transcripts with at least 1 Process:  326
+Interpro Gene Ontology Stats (Totals)
+Component:      2859
+Function:       8690
+Process:        13303
+Number of Transcripts with at least 1 Component:        2421
+Number of Transcripts with at least 1 Function:         7622
+Number of Transcripts with at least 1 Process:  6826
+```
+
 
 There will be a text file of the name: nohits_[date of execution goes here].txt
-
+The file will be of the form:
+```
+c54972_g2_i2|m.50780
+c54259_g1_i5|m.2219
+c37958_g2_i1|m.6596
+c55455_g2_i1|m.35545
+c51509_g3_i1|m.34497
+c54913_g5_i1|m.11269
+c29778_g1_i1|m.6050
+c970_g1_i1|m.12443
+c53384_g7_i1|m.30991
+```
 This file will contain the log of all of the nohits found while searching for matches to the search queries in the search results from the databases.
 
 There will be a series of XML files of the name: blastxml_[db number OR combined_db]_[date of execution goes here].xml 
@@ -309,6 +480,20 @@ There will be a file of the name: default_output_annotation_2015-03-22 13:07:41.
 
 This file will contain all of the search queries from the query fasta that had a hit, along with their best hit and description.
 
+This file will be of the form:
+```
+Query Subject_id Identity(%) Alignment_length Mismatches Number of gap opens Query_start Query_end Subject_start Subject_end E-value Bit_score Origin Database Subject Description Species
+c48227_g1_i1|m.33460 gi|255540671|ref|XP_002511400.1| 66.2 542 168 7 1 1605 1 534 1.4e-198 699.5 /group/nealedata3/Walnut_Transcriptome/large_set/combined/combined_genes_blast6out_rsp.out uninformative Ricinus communis
+```
+
 There will be a file of the name: combined_annotation_[date of execution goes here].tsv
+
+This file will be of the form:
+```
+Query Subject_id Identity(%) Alignment_length Mismatches Number of gap opens Query_start Query_end Subject_start Subject_end E-value Bit_score Origin Database Subject Description Species Signature Description InterPro accession number InterPro description blast2go_process blast2go_function blast2go_component
+c48227_g1_i1|m.33460 gi|255540671|ref|XP_002511400.1| 66.2 542 168 7 1 1605 1 534 1.4e-198 699.5 /group/nealedata3/Walnut_Transcriptome/large_set/combined/combined_genes_blast6out_rsp.out uninformative Ricinus communis Pex14_N IPR006785 Peroxisome membrane anchor protein Pex14p, N-terminal
+c55482_g1_i1|m.33976 gi|449513131|ref|XP_004164240.1| 50.1 814 367 16 28 2406 8 803 2.5e-207 729.2 /group/nealedata3/Walnut_Transcriptome/large_set/combined/combined_genes_blast6out_rsp.out PREDICTED: probable receptor-like protein kinase At2g23200-like Cucumis sativus Pkinase_Tyr, Malectin_like IPR001245, IPR024788 Serine-threonine/tyrosine-protein kinase catalytic domain, Malectin-like carbohydrate-binding domain Molecular Function:protein kinase activity (GO:0004672), Biological Process:protein phosphorylation (GO:0006468)  F:protein serine/threonine kinase activity
+```
+
 
 This file will contain all of the search queries from the query fasta that had a hit, their respective best hits, descriptions, and InterProScan and Blast2GO results.
