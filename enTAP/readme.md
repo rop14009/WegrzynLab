@@ -80,27 +80,27 @@ interproscan.sh -i $input -o $output -f xml -appl pfam, Panther -goterms -iprloo
 
 ```
 Path to query FASTA:
-Source Databases:
-Sequence Search Application:
+Source Databases: (1, 2, 3)
+Sequence Search Application: (usearch)
 Query Organism:
-Database 1 score:
-Path to FASTA-version of database1: 
-Path to search results from database1: 
-Database 2 score:
-Path to FASTA-version of database 2: 
-Path to search results from database 2: 
-Database 3 score:
+Database 1 score: (1, 2, 3)
+Path to FASTA-version of database1:
+Path to search results from database1:
+Database 2 score: (1, 2, 3)
+Path to FASTA-version of database2:
+Path to search results from database2:
+Database 3 score: (1, 2, 3)
 Path to FASTA-version of database3:
 Path to search results from database3:
-Full-length coverage requirement: 0.7
-Minimum Evalue:1e-5
-Generate XML for Blast2GO:
+Full-length coverage requirement: (0 - 1)
+Minimum Evalue: (decimal form: 0.00001 or scientific notation form: 1e-5)
+Generate XML for Blast2GO: (yes / no)
 Path to InterProScan Results:
 Path to Blast2GO Results:
 Contaminant Detection Options
-Insects:
-Fungi:
-Bacteria:
+Insects: (yes / no)
+Fungi: (yes / no)
+Bacteria: (yes / no)
 Contaminant Database File Paths
 Insects:
 Fungi:
@@ -182,28 +182,36 @@ python combine_annotations.py --log [log name] --input [annotation filename] --i
 ##Configuration File
 In the configuration file, your option is always placed after the ":". If there is no ":" on that line, then it is not an option.
 
-The configuration file is line sensitive, it must always be of the form above, deleting any of the lines in the configuration file will lead to errors
+The configuration file is line sensitive, it must always be of the form above, deleting any of the lines in the configuration file will lead to errors or unintended behavior.
 
-The first line is where you will place the path to your query fasta file.
-
-The second line is where you will enter the number of databases (1, 2, 3), make sure that this number is accurate, otherwise some of your databases may not be included in the final results.
-
-The third line is where you will place your sequence search application (currently the only option is the usearch format, NOTE: If you generated your output via vsearch, enter usearch anyways as the formats are identical)
-
-The fourth line serves no function in the current version of the script other than to name the folder in which the results will be placed. Future versions of the script may include more features for this setting.
-
-The next several lines (lines 5-13) are where the file paths to the results from your usearch runs, and the FASTA-versions of those databases as well go. Make sure that the search and FASTA versions go together under the same database number. In addition to this, the databases must be filled out sequentially, which means that the first database you include will go under 1, the next under 2, etc. You must also include the database scores for each database as well. The database scores indicate the priorty in which the best hits between databases will be selected. Setting all of the databases to the same number will select between them equally. A higher score indicates a higher priority in best hit selection. (Example: A database with a score of 2 will always have the hit from it selected over the hit from a database with a score of 1, assumming that the minimum e-value and minimum coverage requirements are met for that hit)
-
-Line 15 will be where you include your minimum e-value, which is used in calculating best hits. An example e-value would be 1e-5.
-
-Line 16 will be where you specify whether or not you want XML output to input into Blast2GO.
-
-Lines 17 and 18 are where you include InterProScan and Blast2GO output if you wish to append that to the log file.
-
-Lines 20-22 and 24-26 specify which contaminant databases you want included in the run, and their respective file paths. By default the update.py script will download the databases from the NCBI servers, and place them into a directory called "contaminant_databases". 
-
-Note on the configuration file, the file must be exactly of the form shown above in the getting started guide, otherwise the script will not function correctly, or potentially function with unintended behavior.
-
+```
+Path to query FASTA: This is the location in which you will place the path to your query fasta file
+Source Databases: (1, 2, 3) Here you will enter the number of databases you wish to run your query fasta file against
+Sequence Search Application: (usearch) Here you will specify the format of the search results from your databases. vsearch (if used correctly, as specified above) will output in the same format as usearch.
+Query Organism: This setting is optional, and in the current version of the script only affects the name of the folder in which the results are placed, ex: if "walnut" was entered here the output folder would be "walnut_output_[date]"
+Database 1 score: (1, 2, 3) Here you will enter the score of database 1, higher values indicate a higher preference in best hit selection
+Path to FASTA-version of database1: Here you will enter the path to the fasta version of this database
+Path to search results from database1: Here you will enter the path to the search results on this database
+Database 2 score: (1, 2, 3) Here you will enter the score of database 1, higher values indicate a higher preference in best hit selection
+Path to FASTA-version of database2: Here you will enter the path to the fasta version of this database
+Path to search results from database2: Here you will enter the path to the search results on this database
+Database 3 score: (1, 2, 3) Here you will enter the score of database 1, higher values indicate a higher preference in best hit selection
+Path to FASTA-version of database3: Here you will enter the path to the fasta version of this database
+Path to search results from database3: Here you will enter the path to the search results on this database
+Full-length coverage requirement: (0 - 1) Here you will enter the full length coverage requirement (recommended starting value = 0.7)
+Minimum Evalue: (decimal form: 0.00001 or scientific notation form: 1e-5) Here you will enter the minimum e-value to be used in best hit selection (recommended starting value = 1e-5)
+Generate XML for Blast2GO: (yes / no)
+Path to InterProScan Results: Here you will enter the path to your InterProScan results (if you have them), these results can also be appended later via the combine_annotations.py script.
+Path to Blast2GO Results: Here you will enter the path to your Blast2GO results (if you have them), these results can also be appended later via the combine_annotations.py script.
+Contaminant Detection Options // Select yes to include these hits when running the script, and no to not include them.
+Insects: (yes / no)
+Fungi: (yes / no)
+Bacteria: (yes / no)
+Contaminant Database File Paths // These databases can be downloaded using the update.py script
+Insects: Path to the insects contaminant database
+Fungi: Path to the fungi contaminant database
+Bacteria: Path to the bacteria contaminant database
+```
 
 #### Query Fasta
 
