@@ -538,13 +538,11 @@ def usearch_format_db_parse(file_name):
 				
 				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(line[0]) is None:
 					usearch_db[line[0]] = find_best_query_result(usearch_db[line[0]], line)
+					if usearch_db[line[0]][len(usearch_db[line[0]]) - 1] != file_name:
+						usearch_db[line[0]].append(file_name)
 				elif not fasta_no_gi.get(line[0]) is None:
 					usearch_db[line[0]] = line
-				
-				#print (usearch_db)
-
-				#length = int(line[7]) - int(line[6])
-				#length = float(line[3])
+					usearch_db[line[0]].append(file_name)
 			else:
 				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
 				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
@@ -1458,7 +1456,7 @@ if __name__ == '__main__':
 		#The first row
 		if db_type == "usearch":
 			row = ["Query","Subject_id","Identity(%)","Alignment_length","Mismatches","Number of gap opens","Query_start","Query_end" \
-			,"Subject_start","Subject_end","E-value","Bit_score","Subject Description","Species"]
+			,"Subject_start","Subject_end","E-value","Bit_score","Origin Database","Subject Description","Species"]
 			
 			#for x in range(0, (number_db - 1)):
 			#	row += ["Subject_description","Species","Subject_id","Alignment_length", \
