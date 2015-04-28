@@ -26,6 +26,8 @@ python -V
 
 Python can be downloaded for free at: https://www.python.org/downloads/
 
+This script requires the "filter_list.txt" file to be placed in the same directory as report_generator.py in order to function correctly. This script is included in the git repository.
+
 ### External Applications
 
 1)  USEARCH performs seqeunce comparions and prepares BLAST-style output but runs in a fraction of the time as a typical NCBI searches. USEARCH is free for 32-bit systems but for large databases, the 64-bit system is required.
