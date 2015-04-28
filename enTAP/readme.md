@@ -48,7 +48,7 @@ InterProScan Download: https://www.ebi.ac.uk/interpro/download.html;jsessionid=B
 
 ### Transcriptome Annotation Overview
 
-![Diagram of script execution](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/diagram.png)
+![Diagram of script execution](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/diagram.png)
 
 The diagram above shows the order in which the seperate operations must be performed in order to generate a complete annotation report.
 
@@ -122,31 +122,31 @@ GUI Version:
 
 You begin by importing your query fasta file containing your sequence information.
 
-![Import Sequences](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/load_sequences.png)
+![Import Sequences](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/load_sequences.png)
 
-![Import Sequences Part 2](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/load_sequences_2.png)
+![Import Sequences Part 2](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/load_sequences_2.png)
 
 After loading your sequences you must import your Blast2GO XML file containing your sequeunce descriptions.
 
-![Import XML File](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/load_xml.png)
+![Import XML File](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/load_xml.png)
 
-![Import XML File Part 2](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/load_xml_2.png)
+![Import XML File Part 2](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/load_xml_2.png)
 
-![Import XML File Part 3](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/load_xml_3.png)
+![Import XML File Part 3](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/load_xml_3.png)
 
 After importing the sequences and the XML files (in that order), you must run the GO mapping step
 
-![Mapping Step](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/mapping.png)
+![Mapping Step](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/mapping.png)
 
-![Mapping Step](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/mapping_2.png)
+![Mapping Step](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/mapping_2.png)
 
 After completing these steps, you have successfully mapped the GO terms, and are ready to export the Blast2GO file containing the GO terms.
 
-![Exporting the files](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/export_blast2go.png)
+![Exporting the files](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/export_blast2go.png)
 
 After exporting the text file, you should get a file that looks like this:
 
-![Example File](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/Annotation_Report_Generator/map_go_terms_instructions_images/blast2go_file.png)
+![Example File](https://raw.githubusercontent.com/SamGinzburg/WegrzynLab/master/enTAP/map_go_terms_instructions_images/blast2go_file.png)
 
 This file can then be entered back into combine_annotations.py or report_generator.py to generate a combined annotation file.
 
