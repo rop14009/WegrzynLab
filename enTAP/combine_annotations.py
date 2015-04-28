@@ -172,9 +172,9 @@ def make_walnut_interpro_dict(file_name):
 def print_usage():
 	print("To run this script use at least one of the following flags:")
 	print("--blast2go --interpro")
-	print("EX: py combine_annotations.py --blast2go --interpro annotation.tsv blast2go.txt interpro.raw output_file_name.tsv")
-	print("EX: py combine_annotations.py --interpro annotation.tsv interpro.raw")
-	print("EX: py combine_annotations.py --blast2go annotation.tsv blast2go.txt output_file_name.tsv")
+	print("EX: python combine_annotations.py --blast2go --interpro annotation.tsv blast2go.txt interpro.raw output_file_name.tsv")
+	print("EX: python combine_annotations.py --interpro annotation.tsv interpro.raw")
+	print("EX: python combine_annotations.py --blast2go annotation.tsv blast2go.txt output_file_name.tsv")
 	sys.exit(-1)
 	
 
@@ -445,7 +445,7 @@ def main(args):
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
-			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
+			combined_row = row + ["Signature Description", "InterPro accession number", "InterPro description", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
 				id = str(row[0]).split("|")[0]
@@ -498,7 +498,7 @@ def main(args):
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
-			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
+			combined_row = row + ["Signature Description", "InterPro accession number", "InterPro description", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
 				#print (row)
@@ -548,7 +548,7 @@ def main(args):
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
-			combined_row = row + ["walnut 5", "walnut 11", "walnut 12", "blast2go_process","blast2go_function","blast2go_component"]
+			combined_row = row + ["Signature Description", "InterPro accession number", "InterPro description", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
 				id = combined_anno_id_parser(row[0])
