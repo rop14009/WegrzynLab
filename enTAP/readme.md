@@ -17,7 +17,7 @@ The scripts in this package enable the following:
 ## Install
 ### Downloading the required files
 
-enTAP can be downloaded with the following terminal commands:
+enTAP can be downloaded with the following terminal command (Note: git is required to successfuly clone the repository):
 
 ```
 git clone https://github.com/SamGinzburg/WegrzynLab.git
