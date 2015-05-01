@@ -15,6 +15,17 @@ The scripts in this package enable the following:
  
 
 ## Install
+### Downloading the required files
+
+enTAP can be downloaded with the following terminal commands:
+
+```
+git clone https://github.com/SamGinzburg/WegrzynLab.git
+```
+
+The files will be placed into the "WegrzynLab/enTAP" folder.
+
+The contaminant databases can be donwloaded/updated by utilizing the update.py script (usage demonstrated below)
 
 ### Dependencies
 
