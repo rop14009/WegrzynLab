@@ -93,27 +93,27 @@ interproscan.sh -i $input -o $output -f xml -appl pfam, Panther -goterms -iprloo
 
 ```
 Path to query FASTA:
-Source Databases: (1, 2, 3)
+Source Databases (1, 2, 3): 
 Sequence Search Application: (usearch)
 Query Organism:
-Database 1 score: (1, 2, 3)
+Database 1 score (1, 2, 3): 
 Path to FASTA-version of database1:
 Path to search results from database1:
-Database 2 score: (1, 2, 3)
+Database 2 score (1, 2, 3):
 Path to FASTA-version of database2:
 Path to search results from database2:
-Database 3 score: (1, 2, 3)
+Database 3 score (1, 2, 3):
 Path to FASTA-version of database3:
 Path to search results from database3:
-Full-length coverage requirement: (0 - 1)
-Minimum Evalue: (decimal form: 0.00001 or scientific notation form: 1e-5)
-Generate XML for Blast2GO: (yes / no)
+Full-length coverage requirement (0 - 1):
+Minimum Evalue (decimal form: 0.00001 or scientific notation form: 1e-5): 
+Generate XML for Blast2GO (yes / no): 
 Path to InterProScan Results:
 Path to Blast2GO Results:
 Contaminant Detection Options
-Insects: (yes / no)
-Fungi: (yes / no)
-Bacteria: (yes / no)
+Insects (yes / no): 
+Fungi (yes / no): 
+Bacteria (yes / no): 
 Contaminant Database File Paths
 Insects:
 Fungi:
