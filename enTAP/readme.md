@@ -319,6 +319,12 @@ The update.py script will automatically download all of the contaminant files re
 
 The files will be deposited into a folder titled "contaminant_databases".
 
+correct update.py usage:
+```
+python update.py
+```
+
+Note: An internet connection is required to run update.py.
 
 ## Output
 
