@@ -1446,9 +1446,9 @@ if __name__ == '__main__':
 	global db2_score
 	global db3_score
 
-	db_score = int(settings[4])
-	db2_score = int(settings[7])
-	db3_score = int(settings[10])
+	db_score = 0
+	db2_score = 0
+	db3_score = 0
 
 
 	with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
@@ -1475,6 +1475,7 @@ if __name__ == '__main__':
 		
 		if number_db == 1: #database/fasta pair 1
 			print("1 database/fasta pair")
+			db_score = int(settings[4])
 			#print (settings[6] != "")
 			if settings[0] != "":
 				fasta_no_gi = parse_fasta_no_gi(settings[0])
@@ -1508,7 +1509,8 @@ if __name__ == '__main__':
 		
 		elif number_db == 2: #database/fasta pair 2
 			print("2 database/fasta pair")
-						
+			db_score = int(settings[4])
+			db2_score = int(settings[7])						
 			if settings[0] != "":
 				fasta_no_gi = parse_fasta_no_gi(settings[0])
 			else:
@@ -1563,7 +1565,9 @@ if __name__ == '__main__':
 
 		elif number_db == 3: #database/fasta pair 3
 			print("3 database/fasta pair")
-
+			db_score = int(settings[4])
+			db2_score = int(settings[7])
+			db3_score = int(settings[10])
 			if settings[0] != "":
 				fasta_no_gi = parse_fasta_no_gi(settings[0])
 			else:
