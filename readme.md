@@ -106,7 +106,7 @@ Database 3 score (1, 2, 3):
 Path to FASTA-version of database3:
 Path to search results from database3:
 Full-length coverage requirement (0 - 1):
-Minimum Evalue (decimal form: 0.00001 or scientific notation form 1e-5): 
+Minimum Evalue (decimal form 0.00001 or scientific notation form 1e-5): 
 Generate XML for Blast2GO (yes / no): 
 Path to InterProScan Results:
 Path to Blast2GO Results:
@@ -227,7 +227,7 @@ Path to search results from database3: Here you will enter the path to the searc
 
 Full-length coverage requirement: (0 - 1, not including 0) Here you will enter the full length coverage requirement (recommended starting value = 0.7)
 
-Minimum Evalue: (decimal form: 0.00001 or scientific notation form 1e-5) Here you will enter the minimum e-value to be used in best hit selection (recommended starting value = 1e-5)
+Minimum Evalue: (decimal form 0.00001 or scientific notation form 1e-5) Here you will enter the minimum e-value to be used in best hit selection (recommended starting value = 1e-5)
 
 Generate XML for Blast2GO: (yes / no)
 
