@@ -5,9 +5,10 @@ import sys
 import csv
 import string
 import subprocess
+import re
 
 import combine_annotations
-
+import sync_repair
 
 def isfloat(value):
 	try:
@@ -43,7 +44,7 @@ def config_sanity_check(config_list):
 					print ("Either the score for database 1/2 was entered incorrectly or the file paths for databases 1/2 are invalid -- aborting execution")
 					exit()
 		if num_db == 3: # ensure that the data for all three databases has been entered correctly
-			if (not os.path.exists(config_list[4]) or not config_list[4].isdigit()) or not os.path.exists(config_list[5]) or not os.path.exists(config_list[6]) \
+			if (not config_list[4].isdigit()) or not os.path.exists(config_list[5]) or not os.path.exists(config_list[6]) \
 				or (not config_list[7].isdigit()) or not os.path.exists(config_list[8]) or not os.path.exists(config_list[9]) \
 				or (not config_list[10].isdigit()) or not os.path.exists(config_list[11]) or not os.path.exists(config_list[12]):
 					print ("Either the score for database 1/2/3 was entered incorrectly or the file paths for databases 1/2/3 are invalid -- aborting execution")
@@ -150,6 +151,18 @@ def get_nth_index(n, element, l):
 		print ("Error: there is no occurance of " + str(element) + " in list: " + str(l))
 		return -1 
 
+
+def chunk_line(line):
+	temp_list = re.findall('(.*?)\]',line)
+	return_list = list()
+
+	for item in temp_list:
+		new_item = item + ']'
+		return_list.append(new_item)
+
+	return return_list
+
+
 	
 # this method creates hashtable used for looking up fasta seq based off of gi
 def multi_fasta_parse(file_name):
@@ -160,56 +173,59 @@ def multi_fasta_parse(file_name):
 		print ("The specified file path to a multi-fasta file:\t"+file_name+" does not exist, please recheck file paths and names -- aborting execution")
 		exit()
 
+	gi_list = list()
 	
 	fasta_db = dict()
 	fasta_db_description = dict()
 	fasta_db_species = dict()
+	
+	gi_results_list = list()
+	species_results_list = list()
+	description_results_list = list()
+	
 	current_gi = ""
 	current_protein_seq = ""
 	current_desc = ""
 	current_species = ""
-	last_gi = ""
+	
 	with open(file_name,'r') as file:
 		for line in file:
-			if line[:1] == ">": # line contains description of sequence
+			if ">" in line: # line contains description of sequence
 				if current_protein_seq != "":
-					last_gi = current_gi
-					fasta_db[current_gi] = current_protein_seq
-					fasta_db_description[current_gi] = current_desc
-					fasta_db_species[current_gi] = current_species
-					current_protein_seq = ""
-					current_desc = ""
-					current_species = ""
+					for gi,species,desc in zip(gi_results_list, species_results_list, description_results_list):
+						fasta_db[gi] = current_protein_seq
+						fasta_db_description[gi] = desc
+						fasta_db_species[gi] = species				
 				
-				#print (line[1:3])
-				if line[1:3] == "AT":
-					
-					if not is_tair:
-						is_tair = True
+					gi_results_list = list()
+					species_results_list = list()
+					description_results_list = list()
 
-					#print (line)
-					modified_line = get_nth_index(2,"|",line)
-					current_gi = line[1:line.find(" ")] 
-					current_desc = modified_line[1:modified_line.find("|")]
-					#print (current_desc)
-					current_species = "Arabidopsis Thaliana"
-					#print (current_species)
-				else:	# genebank
-					current_gi =  get_gi_num_from_string(get_gi_string(line))
-					current_desc = line[line.find(" "):line.find("[")].strip()
-					current_species = line[line.find("[")+1:line.find("]")]
-					
+					current_protein_seq = ""
+				
+				gi_list = chunk_line(line)
+				#print (gi_list)
+				for item in gi_list:
+					gi_results_list.extend(re.findall('gi\|(\d*)\|',item))
+					species_results_list.extend(re.findall('\[(.*?)\]',item))
+					description_results_list.extend(re.findall('\|\s(.*?)\s\[',item))
+				#print (zip(gi_results_list, species_results_list, description_results_list))
 			else:
-				current_protein_seq += line
+				current_protein_seq += line.strip().replace("\n","")
 
 	#print (last_gi)
 	#print (current_gi)
 
-	fasta_db[current_gi] = current_protein_seq
-	fasta_db_description[current_gi] = current_desc
-	fasta_db_species[current_gi] = current_species
+	#fasta_db[current_gi] = current_protein_seq
+	#fasta_db_description[current_gi] = current_desc
+	#fasta_db_species[current_gi] = current_species
 	
-	#print ("test:  " + str(fasta_db["224126497"]))
+	for gi,species,desc in zip(gi_results_list, species_results_list, description_results_list):
+		fasta_db[gi] = current_protein_seq
+		fasta_db_description[gi] = desc
+		fasta_db_species[gi] = species
+
+	#print ("test:  " + str(fasta_db.get("")))
 	#print (fasta_db)
 	print ("Finished building fasta db:\t" + str(file_name))
 	print ("Fasta db contains: " + str(len(fasta_db)) + " elements")
@@ -546,7 +562,29 @@ def usearch_format_db_parse(file_name):
 			else:
 				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
 				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
-				sys.exit()
+				print ("Attempting to continue by downloading transcript data from NCBI...")
+				try:
+					gi_data = sync_repair.sync_repair(get_gi_num_from_string(line[1]))
+					
+					fasta_db[get_gi_num_from_string(line[1])] = gi_data[0]
+					fasta_db_species[get_gi_num_from_string(line[1])] = gi_data[2]
+					fasta_db_description[get_gi_num_from_string(line[1])] = gi_data[1]
+					print ("Success - Managed to download missing transcript from NCBI and add them to FASTA Database, continuing normally")
+				except:
+					sys.exit()
+
+				line[0] = str(line[0].split(" ")[0])
+
+				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(line[0]) is None:
+					usearch_db[line[0]] = find_best_query_result(usearch_db[line[0]], line)
+					if usearch_db[line[0]][len(usearch_db[line[0]]) - 1] != file_name:
+						usearch_db[line[0]].append(file_name)
+				elif not fasta_no_gi.get(line[0]) is None:
+					usearch_db[line[0]] = line
+					usearch_db[line[0]].append(file_name)
+
+
+
 		#print (len(get_current_db()))
 		#print (len(usearch_db))
 		#print ("db complete parsing")
@@ -895,7 +933,7 @@ def write_xml(filename, results_db):
 					file.write("\t\t\t\t<Hit>\n")
 					file.write("\t\t\t\t\t<Hit_num>" + str(count) + "</Hit_num>\n")
 					file.write("\t\t\t\t\t<Hit_id>" + result[1] + "</Hit_id>\n")
-					file.write("\t\t\t\t\t<Hit_def>" + result[12] + " [" + str(fasta_db_species.get(get_gi_num_from_string(result[1]))) + "]" + "</Hit_def>\n")
+					file.write("\t\t\t\t\t<Hit_def>" + result[13] + " [" + result[14] + "]" + "</Hit_def>\n")
 					file.write("\t\t\t\t\t<Hit_accession>" + get_gi_num_from_string(result[1]) + "</Hit_accession>\n")
 					file.write("\t\t\t\t\t<Hit_len>" + result[3] + "</Hit_len>\n")
 					file.write("\t\t\t\t\t<Hit_hsps>\n")
@@ -1002,10 +1040,10 @@ def calc_stats(results):
 			else:
 				num_queries_informative_hit += 1
 			
-			if not top_ten_hits.get(str(temp[13])) is None:
-				top_ten_hits[str(temp[13])] += 1
+			if not top_ten_hits.get(str(temp[14])) is None:
+				top_ten_hits[str(temp[14])] += 1
 			else:
-				top_ten_hits[str(temp[13])] = 1
+				top_ten_hits[str(temp[14])] = 1
 			# only include non-contaminant hits in statistics calc
 			median_query_length.append(query_length)
 			avg_length_query_sequences = float((avg_length_query_sequences * (num_queries_no_contamaints-1) + query_length) / num_queries_no_contamaints)
