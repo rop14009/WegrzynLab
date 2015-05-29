@@ -22,16 +22,17 @@ def download(url_info):
 		response_gen_pep = response_genpept.read()
 		
 		#print (response_gen_pep)
+
 		description = re.compile('title\s"(.*?)\"', re.DOTALL)
 		species = re.compile('taxname\s"(.*?)\"', re.DOTALL)
-		description_text = description.search(response_gen_pep).group()#[7:-1]
+		description_text = description.search(response_gen_pep).group()[7:-1]
 		species_text = species.search(response_gen_pep).group()[9:-1]
 		
 		
 		#print (response_genpept.read())
 	except:
 		print ("unable to get response -- net error")
-	
+	#print ([str(nucleotides),description_text,species_text])	
 	return [str(nucleotides),description_text,species_text]
 
 def get_ncbi_protein_query_data(query):

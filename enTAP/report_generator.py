@@ -10,6 +10,7 @@ import re
 import combine_annotations
 import sync_repair
 
+
 def isfloat(value):
 	try:
 		float(value)
@@ -112,10 +113,10 @@ def parse_config_file(file_path):
 	return config_file_settings
 	
 def get_gi_num_from_string(line):
-	global is_tair
-	if is_tair:
+	#global is_tair
+	#if is_tair:
 		#print (line)
-		return line
+	#	return line
 
 	line = line[3:] # we know the first 3 characters are "gi|" so they can be removed
 	return_string = ""
@@ -308,14 +309,14 @@ def find_best_query_result(query1, query2):
 	#print ("query2 coverage: " + str(query2_coverage))
 
 	if is_uninformative(fasta_db_description[query1_gi]):
-		if fasta_db_description[query2_gi] != "uninformative":
-			debug_uninformative_list[fasta_db_description[query1_gi]] = fasta_db_description[query1_gi]
+		#if fasta_db_description[query2_gi] != "uninformative":
+		#	debug_uninformative_list[fasta_db_description[query1_gi]] = fasta_db_description[query1_gi]
 		
 		fasta_db_description[query1_gi] = "uninformative"					
 	if is_uninformative(fasta_db_description[query2_gi]):
 		
-		if fasta_db_description[query2_gi] != "uninformative":
-			debug_uninformative_list[fasta_db_description[query2_gi]] = fasta_db_description[query2_gi]
+		#if fasta_db_description[query2_gi] != "uninformative":
+		#	debug_uninformative_list[fasta_db_description[query2_gi]] = fasta_db_description[query2_gi]
 		
 		fasta_db_description[query2_gi] = "uninformative"
 
@@ -323,10 +324,14 @@ def find_best_query_result(query1, query2):
 	# because of naming a double contradiction occurs here,
 	# not uninformative = informative hit
 
+	
+	#print (fasta_db_description[query1_gi])
+	#print (fasta_db_description[query2_gi])
+	
 	if not fasta_db_description[query1_gi] is "uninformative" and fasta_db_description[query2_gi] is "uninformative":
 		return query1
 
-	if not fasta_db_description[query1_gi] is "uninformative" and fasta_db_description[query2_gi] is "uninformative":
+	if fasta_db_description[query1_gi] is "uninformative" and not fasta_db_description[query2_gi] is "uninformative":
 		return query2
 
 
