@@ -1,39 +1,58 @@
 import urllib2
 import re
 
-def download(url_info):
+# download fasta format attempt
+def download_nucleotides(url_info):
         base_url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein"
         final_url = base_url + "&WebEnv=" + url_info[0] + "&query_key=" + str(url_info[1]) + "&rettype=fasta&retmode=text"
-	
-	description_text = "null"
-	species_text = "null"
+
 	nucleotides = "null"
 
 
 	try:
-		response = urllib2.urlopen(final_url)
+		response = urllib2.urlopen(final_url, timeout=15)
 		nucleotides = response.read()
+		#print (nucleotides)
+
 		nucleotides = nucleotides.split("\n")
+		#print (nucleotides[0])
+		header = str(nucleotides[0])
 		del nucleotides[0]
 		nucleotides = ''.join(nucleotides)
-		
 
-		response_genpept = urllib2.urlopen(base_url +  "&WebEnv=" + url_info[0] + "&query_key=" + str(url_info[1]) + "&rettype=genpept&retmode=text")
-		response_gen_pep = response_genpept.read()
-		
-		#print (response_gen_pep)
-
-		description = re.compile('title\s"(.*?)\"', re.DOTALL)
-		species = re.compile('taxname\s"(.*?)\"', re.DOTALL)
-		description_text = description.search(response_gen_pep).group()[7:-1]
-		species_text = species.search(response_gen_pep).group()[9:-1]
-		
-		
-		#print (response_genpept.read())
 	except:
 		print ("unable to get response -- net error")
 	#print ([str(nucleotides),description_text,species_text])	
-	return [str(nucleotides),description_text,species_text]
+	return str(nucleotides)
+
+
+def download(gi):
+        description_text = "null"
+        species_text = "null"
+        nucleotides = "null"
+
+
+        try:
+                response = urllib2.urlopen("http://www.ncbi.nlm.nih.gov/protein/"+gi+"?report=genpept", timeout=15)
+                r = response.read()
+		header = re.compile('<div class="rprtheader">\s\s\s\<h1\>(.*?)\<\/', re.DOTALL)
+		header_text = header.search(r).group()[31:-2]
+		#print (header_text)
+	
+		species = re.compile('\s\[(.*?)\]')
+		species_text = species.search(header_text).group()[2:-1]
+	
+		description = re.compile('(.*?)\s\[')
+		description_text = description.search(header_text).group()[:-2]
+
+
+	except:
+                print ("unable to get response -- net error")
+        #print ([str(nucleotides),description_text,species_text])
+        return [description_text,species_text]
+
+
+
 
 def get_ncbi_protein_query_data(query):
         base_url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
@@ -65,8 +84,15 @@ def sync_repair(gi_id):
 	#print (gi_id)
 	data = get_ncbi_protein_query_data(gi_id)
 	#print (data)
-	return download(data)
 
-#sync_repair("228412")
-#print (sync_repair("255546175"))
+	nucleotides = download_nucleotides(data)
+	[desc, species] = download(gi_id)
 
+	return [nucleotides, desc, species]
+
+print (sync_repair("228412"))
+print (sync_repair("12321310"))
+print (sync_repair("15892919"))
+print (sync_repair("116492625"))
+print (sync_repair("356517118"))
+print (sync_repair("334187585"))
