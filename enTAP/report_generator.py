@@ -564,19 +564,16 @@ def usearch_format_db_parse(file_name):
 				elif not fasta_no_gi.get(line[0]) is None:
 					usearch_db[line[0]] = line
 					usearch_db[line[0]].append(file_name)
-			else:
+			elif not fasta_no_gi.get(line[0]) is None:
 				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
 				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
 				print ("Attempting to continue by downloading transcript data from NCBI...")
-				try:
-					gi_data = sync_repair.sync_repair(get_gi_num_from_string(line[1]))
-					
-					fasta_db[get_gi_num_from_string(line[1])] = gi_data[0]
-					fasta_db_species[get_gi_num_from_string(line[1])] = gi_data[2]
-					fasta_db_description[get_gi_num_from_string(line[1])] = gi_data[1]
-					print ("Success - Managed to download missing transcript from NCBI and add them to FASTA Database, continuing normally")
-				except:
-					sys.exit()
+				gi_data = sync_repair.sync_repair(get_gi_num_from_string(line[1]))
+				
+				fasta_db[get_gi_num_from_string(line[1])] = gi_data[0]
+				fasta_db_species[get_gi_num_from_string(line[1])] = gi_data[2]
+				fasta_db_description[get_gi_num_from_string(line[1])] = gi_data[1]
+				print ("Success - Managed to download missing transcript from NCBI and add them to FASTA Database, continuing normally")
 
 				line[0] = str(line[0].split(" ")[0])
 
