@@ -38,11 +38,10 @@ def combined_anno_id_parser(id):
     return_string = ""
     delimiter = "|"
     length = 0
-    while current_char != delimiter:
+    while current_char != delimiter and current_char != "":
         return_string += current_char
         current_char = id[length:length+1]
         length+=1
-   
     return return_string
 
 def parse_column(row, file_type):
@@ -65,8 +64,6 @@ def parse_column(row, file_type):
 	
 	return_string = ""
 
-	#print (row)
-	#print (len(row))
 	
 	if file_type == "blast":
 		row_num = 7	
@@ -114,6 +111,7 @@ def parse_column(row, file_type):
 			else:
 				num_component_interpro += 1
 			'''
+		#print ([" ".join(process), " ".join(function), " ".join(component)])
 		return [" ".join(process), " ".join(function), " ".join(component)]
 
 def make_blast2go_walnut_combined_dict(file_name):
@@ -123,6 +121,7 @@ def make_blast2go_walnut_combined_dict(file_name):
 		for row in csv.reader(tsv_old, delimiter='\t'):
 			#print (row)
 			id = row[0].split("|")[0] #oombined_anno_id_parser(row[0]) #get the key
+			#print (id)
 			blast2go_data[id] = parse_column(row,"blast")
 	print (len(blast2go_data))
 	return blast2go_data
@@ -526,16 +525,16 @@ def main(args):
 		
 		if params == "blast2go_custom_output":
 			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[2]
-			file_path_blast2go_walnut = arguments_list[4]
+			file_path_combined_anno = arguments_list[1]
+			file_path_blast2go_walnut = arguments_list[3]
 			if output == file_path_blast2go_walnut or output == file_path_combined_anno:
 				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
 				#print_usage()
 				sys.exit(-1)
 		else:
 			output = "combine_annotations.tsv"
-			file_path_combined_anno = arguments_list[2]
-			file_path_blast2go_walnut = arguments_list[4]
+			file_path_combined_anno = arguments_list[1]
+			file_path_blast2go_walnut = arguments_list[3]
 		
 	
 		file_path_walnut_interpro = ""
@@ -551,12 +550,13 @@ def main(args):
 			combined_row = row + ["Signature Description", "InterPro accession number", "InterPro description", "blast2go_process","blast2go_function","blast2go_component"]
 			tsv_new.writerow(combined_row) # copy the header
 			for row in tsv_old:
-				id = combined_anno_id_parser(row[0])
-				
+				#id = combined_anno_id_parser(row[0])
+				id = row[0]
+				print (id)
 				walnut_results_interpro = ["N/A","N/A","N/A"]
 					
 				walnut_results_blast2go = blast2go_hastable.get(id)
-				
+				print (walnut_results_blast2go)	
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
 					walnut_results_blast2go = ["N/A"]
 					
