@@ -115,12 +115,17 @@ def get_ncbi_protein_query_data(query):
 		print ("error -- unable to obtain get ncbi protein query data")
 		return query_retry_loop(query)
 
-	web_env_re = re.compile('<WebEnv>(\S+)<\/WebEnv>')
-	web_env = web_env_re.search(search_result).group()[8:-9]
-	#print ("web_env\t"+web_env)
-	key_re = re.compile('<QueryKey>(\S+)<\/QueryKey>')
-	key = int(key_re.search(search_result).group()[10:-11])
-	#print ("key:\t"+str(key))
+	try:
+		web_env_re = re.compile('<WebEnv>(\S+)<\/WebEnv>')
+		web_env = web_env_re.search(search_result).group()[8:-9]
+		#print ("web_env\t"+web_env)
+		key_re = re.compile('<QueryKey>(\S+)<\/QueryKey>')
+		key = int(key_re.search(search_result).group()[10:-11])
+		#print ("key:\t"+str(key))
+	except:
+		print ("error in regex")
+		print (search_result)
+		return query_retry_loop(query)		
 
         return [web_env, key]
 
@@ -135,7 +140,7 @@ def sync_repair(gi_id):
 
 	return [nucleotides, desc, species]
 
-
+"""
 print (sync_repair("228412"))
 print (sync_repair("12321310"))
 print (sync_repair("15892919"))
@@ -145,3 +150,5 @@ print (sync_repair("74745129"))
 print (sync_repair("364506258"))
 print (sync_repair("675969702"))
 print (sync_repair("491668487"))
+"""
+
