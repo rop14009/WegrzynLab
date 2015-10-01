@@ -455,9 +455,9 @@ def main(args):
 			for row in tsv_old:
 				id = str(row[0]).split("|")[0]
 				#id = combined_anno_id_parser(row[1])
-				print (id)
+				#print (id)
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
-				print (walnut_results_interpro)	
+				#print (walnut_results_interpro)	
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
 					#count_sequences_identification[1] += 1
