@@ -11,7 +11,7 @@ import time
 import sys
 import os
 import csv
-
+import argparse
 
 
 def get_go_counts():
@@ -84,35 +84,34 @@ def parse_column(row, file_type):
 
 	#print("splitstring: " + str(split_string))
 
-
 	for string in split_string:
 		string = string.strip()
 		if "P:" in string or "Biological Process:" in string:
 			process.append(string)
-			'''	
+				
 			if file_type == "blast":
 				num_process += 1
 			else:
 				num_process_interpro += 1
-			'''
+			
 		if "F:" in string or "Molecular Function:" in string:
 			function.append(string)
-			'''
+			
 			if file_type == "blast":
 				num_function += 1
 			else:
 				num_function_interpro += 1
-			'''
+			
 		if "C:" in string or "Cellular Component:" in string:
 			component.append(string)
-			'''
+			
 			if file_type == "blast":
 				num_component += 1
 			else:
 				num_component_interpro += 1
-			'''
-		#print ([" ".join(process), " ".join(function), " ".join(component)])
-		return [" ".join(process), " ".join(function), " ".join(component)]
+		
+	#print ([" ".join(process), " ".join(function), " ".join(component)])
+	return [" ".join(process), " ".join(function), " ".join(component)]
 
 def make_blast2go_walnut_combined_dict(file_name):
 	blast2go_data = dict()
@@ -120,9 +119,12 @@ def make_blast2go_walnut_combined_dict(file_name):
 		row = next(tsv_old) #skip the first header line
 		for row in csv.reader(tsv_old, delimiter='\t'):
 			#print (row)
-			id = row[0].split("|")[0] #oombined_anno_id_parser(row[0]) #get the key
+			id = row[0].split("|")[0] #combined_anno_id_parser(row[0]) #get the key
 			#print (id)
 			blast2go_data[id] = parse_column(row,"blast")
+			#print (blast2go_data[id])
+
+	
 	print (len(blast2go_data))
 	return blast2go_data
 
@@ -130,7 +132,9 @@ def make_walnut_interpro_dict(file_name):
 	walnut_interpro_data = dict()
 	value_list = list()
 	with open(file_name,'r') as tsv_old:
-		for row in csv.reader(tsv_old, delimiter='\t'):
+		csv_reader = csv.reader(tsv_old, delimiter='\t')
+		csv_reader.next()
+		for row in csv_reader:
 			#print (row)
 			#print (len(row))
 			#id = row[1][8:] #get the key
@@ -305,44 +309,25 @@ def check_cpf(l, t):
 	global num_process
 	global num_function
 
-	
 	c = False
 	p = False
 	f = False
-
-
-	if ";" in l:
-		l = l.split(";") # splits the column by ;
-	elif "," in l:
-		l = l.split(",") # splits the column by ;
-	elif " " in l:
-		l = l.split(" ") # splits the column by " "
-
-	#if t == "interpro":	
-	#	print ("interpro GO:")
-	#	print (l)
-
+	print (type(l))
+	
+	if t == "interpro":	
+		print ("interpro GO:")
+		print (l)
+	print (l)
+	exit()
 	for element in l:
 		if "C:" in element or "Cellular Component:" in element:		
 			c = True
-			if t == "blast2go":
-				num_component += 1
-			else:
-				num_component_interpro += 1
-
+		
 		if "P:" in element or "Biological Process:" in element:
 			p = True
-			if t == "blast2go":
-				num_process += 1
-			else:
-				num_process_interpro += 1
-
+			
 		if "F:" in element or "Molecular Function:" in element:
 			f = True
-			if t == "blast2go":
-				num_function += 1
-			else:
-				num_function_interpro += 1
 
 	if t == "blast2go":
 		if c:
@@ -388,6 +373,8 @@ def main(args):
 	global interpro_path
 	global blast2go_path
 
+	interpro_path = ""
+	blast2go_path = ""
 
 	at_least_1_c = 0
 	at_least_1_p = 0
@@ -412,35 +399,54 @@ def main(args):
 	count_sequences_identification = [0, 0]
 	
 	start_time = time.clock()
-	arguments_list = args
-	print (arguments_list)
-	params = parse_flags(arguments_list)
-	print (params)
-	if params == "all_params" or params == "all_params_custom_output":
-		if params == "all_params_custom_output":
-			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[1]
-			file_path_blast2go_walnut = arguments_list[3]
-			file_path_walnut_interpro = arguments_list[5]
-			
-			if output == file_path_walnut_interpro or output == file_path_combined_anno or output == file_path_blast2go_walnut:
-				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
-				#print_usage()
-				sys.exit(-1)
-		else:
-			output = "combine_annotations.tsv"
-			file_path_combined_anno = arguments_list[2]
-			file_path_blast2go_walnut = arguments_list[4]
-			file_path_walnut_interpro = arguments_list[6]
-		
+	
 
-		
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--log', nargs='?')
+	parser.add_argument('--input', nargs=1)
+	parser.add_argument('--interpro', nargs='*')
+	parser.add_argument('--blast2go', nargs='?')
+	parser.add_argument('--output', nargs='?')
+
+	args = parser.parse_args()
+	print (args)
+	#print (args.log)
+	#exit()
+
+	#arguments_list = args
+	#print (arguments_list)
+	#params = parse_flags(arguments_list)
+	#print (params)
+
+	params = ""
+	if args.blast2go and args.interpro:
+		if args.output:
+			params = "all_params_custom_output"
+		else:
+			params = "all_params"	
+	elif args.blast2go:
+		if args.output:
+			params = "blast2go_custom_output"
+		else:
+			params = "blast2go"
+	elif args.interpro:
+		if args.output:
+			params = "interpro_custom_output"
+		else:
+			params = "interpro"
+
+	#print (params)
+	if params == "all_params" or params == "all_params_custom_output":
 		#first make dicts for walnut interpro and blast2go for easier searching based off of IDs
-		walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
-		blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_blast2go_walnut)
-		
-		with open(file_path_combined_anno,'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		if len(args.interpro) == 1:
+			walnut_interpro_hashtable = make_walnut_interpro_dict(str(args.interpro[0]))
+		else:
+			walnut_interpro_hashtable = make_walnut_interpro_dict(str(args.interpro[0]))
+			walnut_interpro_hashtable.update(make_walnut_interpro_dict(str(args.interpro[1])))
+
+		blast2go_hastable = make_blast2go_walnut_combined_dict(str(args.blast2go))
+		with open(args.input[0] ,'r') as tsv_old, \
+		open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
@@ -449,8 +455,9 @@ def main(args):
 			for row in tsv_old:
 				id = str(row[0]).split("|")[0]
 				#id = combined_anno_id_parser(row[1])
+				print (id)
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
-				
+				print (walnut_results_interpro)	
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
 					#count_sequences_identification[1] += 1
@@ -469,29 +476,17 @@ def main(args):
 				tsv_new.writerow(combined_row)	
 	
 	elif params == "interpro" or params == "interpro_custom_output":
-		#print("interpro custom output")
-		if params == "interpro_custom_output":
-			output = arguments_list[len(arguments_list) - 1]
-			#print (output)
-			file_path_combined_anno = arguments_list[1]
-			#print (file_path_combined_anno)
-			file_path_walnut_interpro = arguments_list[3]# changed to 3 from 4
-			#print (file_path_walnut_interpro)
-			if output == file_path_walnut_interpro or output == file_path_combined_anno:
-				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
-				#print_usage()
-				sys.exit(-1)
-			
-		else:
-			output = "combine_annotations.tsv"
-			file_path_combined_anno = arguments_list[1]
-			file_path_walnut_interpro = arguments_list[4]
 		
-		file_path_blast2go_walnut = "None"
-		#first make dicts for walnut interpro and blast2go for easier searching based off of IDs
-		walnut_interpro_hashtable = make_walnut_interpro_dict(file_path_walnut_interpro)
-		blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_walnut_interpro)
-		with open(file_path_combined_anno,'r') as tsv_old, \
+		if len(args.interpro) == 1:
+			#first make dicts for walnut interpro and blast2go for easier searching based off of IDs
+			walnut_interpro_hashtable = make_walnut_interpro_dict(str(args.interpro[0]))
+		else:
+			walnut_interpro_hashtable = make_walnut_interpro_dict(str(args.interpro[0]))
+			walnut_interpro_hashtable.update(make_walnut_interpro_dict(str(args.interpro[1])))
+
+		#blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_walnut_interpro)
+		
+		with open(args.input[0],'r') as tsv_old, \
 		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
 			#print(os.path.realpath(__file__) + "//" + output)
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
@@ -512,37 +507,20 @@ def main(args):
 					count_sequences_identification[0] += 1
 					if len(walnut_results_interpro) > 3:
 						check_cpf(walnut_results_interpro[3],"interpro")	
-				walnut_results_blast2go = blast2go_hastable.get(id)
+				
+				walnut_results_blast2go = None
 
 				if not walnut_results_blast2go:
 					walnut_results_blast2go = ["N/A","N/A","N/A"]
-				else:
-					check_cpf(walnut_results_blast2go,"blast2go")		
+		
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)		
 		
 	elif params == "blast2go" or params == "blast2go_custom_output":
-		
-		if params == "blast2go_custom_output":
-			output = arguments_list[len(arguments_list) - 1]
-			file_path_combined_anno = arguments_list[1]
-			file_path_blast2go_walnut = arguments_list[3]
-			if output == file_path_blast2go_walnut or output == file_path_combined_anno:
-				print ("WARNING user entered option for custom file name and entered name of existing file (would cause overwrite) -- aborting")
-				#print_usage()
-				sys.exit(-1)
-		else:
-			output = "combine_annotations.tsv"
-			file_path_combined_anno = arguments_list[1]
-			file_path_blast2go_walnut = arguments_list[3]
-		
-	
-		file_path_walnut_interpro = ""
-		
 		#first make dicts for walnut interpro and blast2go for easier searching based off of IDs
-		blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_blast2go_walnut)
+		blast2go_hastable = make_blast2go_walnut_combined_dict(str(args.blast2go))
 		
-		with open(file_path_combined_anno,'r') as tsv_old, \
+		with open(args.input[0],'r') as tsv_old, \
 		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
@@ -552,31 +530,44 @@ def main(args):
 			for row in tsv_old:
 				#id = combined_anno_id_parser(row[0])
 				id = row[0]
-				print (id)
+				id = str(row[0]).split("|")[0]
+				
 				walnut_results_interpro = ["N/A","N/A","N/A"]
-					
+				"""
+				if not walnut_results_interpro:
+					walnut_results_interpro = ["N/A","N/A","N/A"]
+					count_sequences_identification[1] += 1
+				else:
+					count_sequences_identification[0] += 1
+					if len(walnut_results_interpro) > 3:
+						check_cpf(walnut_results_interpro[3],"interpro")	
+				"""
+
 				walnut_results_blast2go = blast2go_hastable.get(id)
-				print (walnut_results_blast2go)	
+				#print (walnut_results_blast2go)	
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
-					walnut_results_blast2go = ["N/A"]
-					
+					walnut_results_blast2go = ["N/A","N/A","N/A"]
+				else:
+					check_cpf(walnut_results_blast2go,"blast2go")
+	
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
 
 
-		
-	if not append_log is None:	
+	#print (args.log)
+	if args.log:	
 		domain_ids = get_num_sequences_identification()
 		at_least_1 = get_at_least_1() # C, P, F
 		go_counts = get_go_counts()
 		go_interpro_counts = get_go_interpro_counts()
 		at_least_1_interpro = get_at_least_1_interpro()
  
-		print ("appending to:\t" + append_log)
+		print ("appending to:\t" + args.log)
 		if True:#os.path.exists(append_log + ".txt"):
-			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + append_log, 'a') as log:
+			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.log, 'a') as log:
 				tsv_log = csv.writer(log, delimiter='\t')
-				tsv_log.writerow(["Interpro File: "] + [str(interpro_path)]) # TODO put an if statement here to check for multiple interpro files and
+				if not interpro_path is None:
+					tsv_log.writerow(["Interpro File: "] + [str(interpro_path)]) # TODO put an if statement here to check for multiple interpro files and
 				tsv_log.writerow(["Blast2GO File: "] + [str(blast2go_path)])
 				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
 				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
@@ -587,13 +578,14 @@ def main(args):
 				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1[0])])
 				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1[2])])
 				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1[1])])
-				tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
-				tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
-				tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
-				tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
+				if not interpro_path is None:
+					tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
+					tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
+					tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
+					tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
+					tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
+					tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
+					tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
 
 
 
