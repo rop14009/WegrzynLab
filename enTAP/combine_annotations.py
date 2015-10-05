@@ -312,13 +312,7 @@ def check_cpf(l, t):
 	c = False
 	p = False
 	f = False
-	print (type(l))
-	
-	if t == "interpro":	
-		print ("interpro GO:")
-		print (l)
-	print (l)
-	exit()
+
 	for element in l:
 		if "C:" in element or "Cellular Component:" in element:		
 			c = True
@@ -521,7 +515,7 @@ def main(args):
 		blast2go_hastable = make_blast2go_walnut_combined_dict(str(args.blast2go))
 		
 		with open(args.input[0],'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
