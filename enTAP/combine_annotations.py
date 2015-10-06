@@ -133,17 +133,21 @@ def make_walnut_interpro_dict(file_name):
 	value_list = list()
 	with open(file_name,'r') as tsv_old:
 		csv_reader = csv.reader(tsv_old, delimiter='\t')
-		csv_reader.next()
+		
+		# TODO Check to see if header line is in interproscan file, if it is remove it, else continue
+		#csv_reader.next()
+		
 		for row in csv_reader:
 			#print (row)
 			#print (len(row))
 			#id = row[1][8:] #get the key
 			id = str(row[0])
 			
-			if "." in id:
-				id = id[8:]
-			id = id.split("|")[0]
+			#if "." in id:
+			#	id = id[8:]
 
+			id = id.split("|")[0]
+			#print ("id:\t"+id)
 
 			parse_column(row, "interpro") # this is done to calc interpro GO terms
 			#print (id)
@@ -181,6 +185,7 @@ def print_usage():
 	sys.exit(-1)
 	
 
+#depreciated code
 #helper method for parse_flags
 def parse_input_params(param_list):
 	global interpro_path
@@ -202,6 +207,7 @@ def parse_input_params(param_list):
 				interpro_path = param
 	return input
 	
+#depreciated code
 #helper method for parse_flags
 def parse_output_param(param_list):
 	output = []
@@ -215,6 +221,7 @@ def parse_output_param(param_list):
 			return output
 	return ""
 	
+#depreciated code
 #helper method for parse_flags
 def determine_blast_or_interpro_input(input):
 	for param in input:
@@ -225,6 +232,8 @@ def determine_blast_or_interpro_input(input):
 	return ""
 	
 
+
+# depreicated code
 def parse_flags(param_list):
 	global append_log
 	#parse input paramters first
@@ -454,17 +463,16 @@ def main(args):
 				#print (walnut_results_interpro)	
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
-					#count_sequences_identification[1] += 1
+					count_sequences_identification[1] += 1
 				else:
+					count_sequences_identification[0] += 1
 					if len(walnut_results_interpro) > 3:
 						check_cpf(walnut_results_interpro[3],"interpro")	
 				walnut_results_blast2go = blast2go_hastable.get(id)
 				
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
 					walnut_results_blast2go = ["N/A","N/A","N/A"]
-					count_sequences_identification[1] += 1
 				else:
-					count_sequences_identification[0] += 1	
 					check_cpf(walnut_results_blast2go,"blast2go")
 				combined_row = row + walnut_results_interpro + walnut_results_blast2go
 				tsv_new.writerow(combined_row)	
@@ -494,6 +502,7 @@ def main(args):
 				id = str(row[0]).split("|")[0]
 				walnut_results_interpro = walnut_interpro_hashtable.get(id)
 				#print (walnut_results_interpro)	
+				#print (id)
 				if not walnut_results_interpro: #this is to create the blank spaces if there are no interpro results for corresponding IDs
 					walnut_results_interpro = ["N/A","N/A","N/A"]
 					count_sequences_identification[1] += 1
@@ -527,16 +536,7 @@ def main(args):
 				id = str(row[0]).split("|")[0]
 				
 				walnut_results_interpro = ["N/A","N/A","N/A"]
-				"""
-				if not walnut_results_interpro:
-					walnut_results_interpro = ["N/A","N/A","N/A"]
-					count_sequences_identification[1] += 1
-				else:
-					count_sequences_identification[0] += 1
-					if len(walnut_results_interpro) > 3:
-						check_cpf(walnut_results_interpro[3],"interpro")	
-				"""
-
+				count_sequences_identification[1] += 1
 				walnut_results_blast2go = blast2go_hastable.get(id)
 				#print (walnut_results_blast2go)	
 				if not walnut_results_blast2go: # if there is no match from blast2go use as filler
@@ -561,8 +561,8 @@ def main(args):
 			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.log, 'a') as log:
 				tsv_log = csv.writer(log, delimiter='\t')
 				if not interpro_path is None:
-					tsv_log.writerow(["Interpro File: "] + [str(interpro_path)]) # TODO put an if statement here to check for multiple interpro files and
-				tsv_log.writerow(["Blast2GO File: "] + [str(blast2go_path)])
+					tsv_log.writerow(["Interpro File: "] + [str(args.interpro)]) # TODO put an if statement here to check for multiple interpro files and
+				tsv_log.writerow(["Blast2GO File: "] + [str(args.blast2go)])
 				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
 				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
 				tsv_log.writerow(["Blast2GO Gene Ontology Stats"])
