@@ -416,6 +416,13 @@ def main(args):
 	#print (args.log)
 	#exit()
 
+
+	if args.output is None:
+		[head, tail] = os.path.split(args.input[0])
+		args.output = "combined_" + tail
+	else:
+		args.output = args.output[0]
+
 	#arguments_list = args
 	#print (arguments_list)
 	#params = parse_flags(arguments_list)

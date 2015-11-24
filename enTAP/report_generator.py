@@ -770,7 +770,7 @@ def match_fasta(db):
 
 				if db_count == 999 and fasta_db_species.get(get_gi_num_from_string(query[1])) in contaminants:
 					contaminants_found[element] = element
-					f_contaminants.write(str(query)+"\n")
+					f_contaminants.write(str(query + [fasta_db_description[key]] + [fasta_db_species[key]]) + "\n")
 	
 				if annotation_log_entries.get(key) is None:
 					annotation_log_entries[element] = db[element] + [fasta_db_description[key]] + [fasta_db_species[key]]
