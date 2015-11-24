@@ -582,8 +582,8 @@ def main(args):
 				if not interpro_path is None:
 					tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
 					tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
-					tsv_log.writerow(["Function: "] + [str(go_interpro_counts[1])])
-					tsv_log.writerow(["Process: "] + [str(go_interpro_counts[2])])
+					tsv_log.writerow(["Function: "] + [str(go_interpro_counts[2])])
+					tsv_log.writerow(["Process: "] + [str(go_interpro_counts[1])])
 					tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
 					tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
 					tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
