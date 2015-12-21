@@ -411,7 +411,7 @@ def main(args):
 	parser.add_argument('--blast2go', nargs='?')
 	parser.add_argument('--output', nargs='?')
 
-	args = parser.parse_args()
+	args = parser.parse_args(args)
 	print (args)
 	#print (args.log)
 	#exit()
@@ -496,7 +496,7 @@ def main(args):
 		#blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_walnut_interpro)
 		
 		with open(args.input[0],'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
+		open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.output, 'w') as tsv_new:
 			#print(os.path.realpath(__file__) + "//" + output)
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
