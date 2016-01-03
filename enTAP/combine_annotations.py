@@ -419,9 +419,9 @@ def main(args):
 
 	if args.output is None:
 		[head, tail] = os.path.split(args.input[0])
-		args.output = "combined_" + tail
+		args.output = os.path.abspath("combined_" + tail)
 	else:
-		args.output = args.output[0]
+		args.output = os.path.abspath(args.output)
 
 	#arguments_list = args
 	#print (arguments_list)
@@ -456,7 +456,7 @@ def main(args):
 
 		blast2go_hastable = make_blast2go_walnut_combined_dict(str(args.blast2go))
 		with open(args.input[0] ,'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.output, 'w') as tsv_new:
+		open(args.output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
@@ -496,7 +496,7 @@ def main(args):
 		#blast2go_hastable = make_blast2go_walnut_combined_dict(file_path_walnut_interpro)
 		
 		with open(args.input[0],'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.output, 'w') as tsv_new:
+		open(args.output, 'w') as tsv_new:
 			#print(os.path.realpath(__file__) + "//" + output)
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
@@ -531,7 +531,7 @@ def main(args):
 		blast2go_hastable = make_blast2go_walnut_combined_dict(str(args.blast2go))
 		
 		with open(args.input[0],'r') as tsv_old, \
-		open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.output, 'w') as tsv_new:
+		open(args.output, 'w') as tsv_new:
 			tsv_new = csv.writer(tsv_new, delimiter='\t')
 			tsv_old = csv.reader(tsv_old, delimiter='\t')		
 			row = next(tsv_old) # the purpose of this line is to skip the header in the csv file, so there is no need to iterate another 10K plus times through blast2go_table_walnut/walnut_interpro
@@ -562,31 +562,30 @@ def main(args):
 		go_counts = get_go_counts()
 		go_interpro_counts = get_go_interpro_counts()
 		at_least_1_interpro = get_at_least_1_interpro()
- 
+ 		args.log = os.path.abspath(args.log)
 		print ("appending to:\t" + args.log)
-		if True:#os.path.exists(append_log + ".txt"):
-			with open(os.path.dirname(os.path.realpath(__file__)) + "//" + args.log, 'a') as log:
-				tsv_log = csv.writer(log, delimiter='\t')
-				if not interpro_path is None:
-					tsv_log.writerow(["Interpro File: "] + [str(args.interpro)]) # TODO put an if statement here to check for multiple interpro files and
-				tsv_log.writerow(["Blast2GO File: "] + [str(args.blast2go)])
-				tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
-				tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
-				tsv_log.writerow(["Blast2GO Gene Ontology Stats"])
-				tsv_log.writerow(["Number of Components: "] + [str(go_counts[0])])
-				tsv_log.writerow(["Number of Functions: "] + [str(go_counts[2])])
-				tsv_log.writerow(["Number of Processes: "] + [str(go_counts[1])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1[0])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1[2])])
-				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1[1])])
-				if not interpro_path is None:
-					tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
-					tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
-					tsv_log.writerow(["Function: "] + [str(go_interpro_counts[2])])
-					tsv_log.writerow(["Process: "] + [str(go_interpro_counts[1])])
-					tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
-					tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
-					tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
+		with open(args.log, 'a') as log:
+			tsv_log = csv.writer(log, delimiter='\t')
+			if not interpro_path is None:
+				tsv_log.writerow(["Interpro File: "] + [str(args.interpro)]) # TODO put an if statement here to check for multiple interpro files and
+			tsv_log.writerow(["Blast2GO File: "] + [str(args.blast2go)])
+			tsv_log.writerow(["Number of sequences with Domain Identification: "] + [str(domain_ids[0])])
+			tsv_log.writerow(["Number of sequences without Domain Identification: "] + [str(domain_ids[1])])
+			tsv_log.writerow(["Blast2GO Gene Ontology Stats"])
+			tsv_log.writerow(["Number of Components: "] + [str(go_counts[0])])
+			tsv_log.writerow(["Number of Functions: "] + [str(go_counts[2])])
+			tsv_log.writerow(["Number of Processes: "] + [str(go_counts[1])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1[0])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1[2])])
+			tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1[1])])
+			if not interpro_path is None:
+				tsv_log.writerow(["Interpro Gene Ontology Stats (Totals)"])
+				tsv_log.writerow(["Component: "] + [str(go_interpro_counts[0])])
+				tsv_log.writerow(["Function: "] + [str(go_interpro_counts[2])])
+				tsv_log.writerow(["Process: "] + [str(go_interpro_counts[1])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Component: "] + [str(at_least_1_interpro[0])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Function: "] + [str(at_least_1_interpro[2])])
+				tsv_log.writerow(["Number of Transcripts with at least 1 Process: "] + [str(at_least_1_interpro[1])])
 
 
 
