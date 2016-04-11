@@ -482,7 +482,7 @@ def ncbi_format_db_parse(file_name):
 	
 
 
-# This is a helper method to usearch format db parse to ensure that the best mach for each query is made
+# This is a helper method to diamond format db parse to ensure that the best mach for each query is made
 def is_query_present(query):
 	global query_gi_association_db_0
 	global query_gi_association_db_1
@@ -510,11 +510,11 @@ def get_current_db():
 
 
 '''
-usearch_db format
+diamond_db format
 find later
 '''	
-def usearch_format_db_parse(file_name):
-	usearch_db = dict()
+def diamond_format_db_parse(file_name):
+	diamond_db = dict()
 	temp_query_group = dict()
 	current_query = ""
 	first_row = 1
@@ -538,32 +538,32 @@ def usearch_format_db_parse(file_name):
 	global query_gi_association_db_2
 
 	if not os.path.exists(file_name):
-		print ("The usearch results file:\t"+file_name+" does not exist, please recheck name and filepath -- aborting execution")
+		print ("The diamond results file:\t"+file_name+" does not exist, please recheck name and filepath -- aborting execution")
 		exit()
 
 
 	with open(file_name, "r") as file:
 		file_tsv = csv.reader(file, delimiter='\t')
-		print ("Now parsing usearch DB:\t" + str(file_name))
+		print ("Now parsing diamond DB:\t" + str(file_name))
 		for line in file_tsv:
 			line_count += 1
 			if not fasta_db.get(str(get_gi_num_from_string(line[1]))) is None:
 				#num_queries += 1
 				#print (get_gi_num_from_string(line[1]))
-				#[key, in_db] = is_query_in_db(line[0], usearch_db)		
+				#[key, in_db] = is_query_in_db(line[0], diamond_db)		
 				#print (fasta_db_description)
 
 				#print (line)
 				
 				line[0] = str(line[0].split(" ")[0])
 				
-				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(line[0]) is None:
-					usearch_db[line[0]] = find_best_query_result(usearch_db[line[0]], line)
-					if usearch_db[line[0]][len(usearch_db[line[0]]) - 1] != file_name:
-						usearch_db[line[0]].append(file_name)
+				if not fasta_no_gi.get(line[0]) is None and not diamond_db.get(line[0]) is None:
+					diamond_db[line[0]] = find_best_query_result(diamond_db[line[0]], line)
+					if diamond_db[line[0]][len(diamond_db[line[0]]) - 1] != file_name:
+						diamond_db[line[0]].append(file_name)
 				elif not fasta_no_gi.get(line[0]) is None:
-					usearch_db[line[0]] = line
-					usearch_db[line[0]].append(file_name)
+					diamond_db[line[0]] = line
+					diamond_db[line[0]].append(file_name)
 			elif not fasta_no_gi.get(line[0]) is None:
 				print ("A mismatch between the file: " + str(file_name) + " and its corresponding fasta db has occurred\n")
 				print ("The ID: " + str(get_gi_num_from_string(line[1])) + " is present within the DB and not the fasta file, indicating that the files may potentially be out of sync")
@@ -577,24 +577,24 @@ def usearch_format_db_parse(file_name):
 
 				line[0] = str(line[0].split(" ")[0])
 
-				if not fasta_no_gi.get(line[0]) is None and not usearch_db.get(line[0]) is None:
-					usearch_db[line[0]] = find_best_query_result(usearch_db[line[0]], line)
-					if usearch_db[line[0]][len(usearch_db[line[0]]) - 1] != file_name:
-						usearch_db[line[0]].append(file_name)
+				if not fasta_no_gi.get(line[0]) is None and not diamond_db.get(line[0]) is None:
+					diamond_db[line[0]] = find_best_query_result(diamond_db[line[0]], line)
+					if diamond_db[line[0]][len(diamond_db[line[0]]) - 1] != file_name:
+						diamond_db[line[0]].append(file_name)
 				elif not fasta_no_gi.get(line[0]) is None:
-					usearch_db[line[0]] = line
-					usearch_db[line[0]].append(file_name)
+					diamond_db[line[0]] = line
+					diamond_db[line[0]].append(file_name)
 
 
 
 		#print (len(get_current_db()))
-		#print (len(usearch_db))
+		#print (len(diamond_db))
 		#print ("db complete parsing")
 		#print (get_current_db())
 		#print (query_gi_association_db_0)
 		db_count += 1
-		#print ("usearch db #" + str(db_count) + " contains: " + str(len(usearch_db)) + " unique best hits and " + str(line_count) + " total elements")
-		return usearch_db
+		#print ("diamond db #" + str(db_count) + " contains: " + str(len(diamond_db)) + " unique best hits and " + str(line_count) + " total elements")
+		return diamond_db
 
 
 
@@ -1361,7 +1361,7 @@ if __name__ == '__main__':
 	debug_uninformative_list = dict()
 	arguments_list = sys.argv
 	global date	
-	date = str(datetime.datetime.now())
+	date = str(datetime.datetime.now()).replace(" ","_")
 	print(date)
 	
 	global output_folder
@@ -1494,7 +1494,7 @@ if __name__ == '__main__':
 	with open(os.path.dirname(os.path.realpath(__file__)) + "//" + output, 'w') as tsv_new:
 		tsv_new = csv.writer(tsv_new, delimiter='\t')
 		#The first row
-		if db_type == "usearch":
+		if (db_type == "diamond") or (db_type == "blastx"):
 			row = ["Query","Subject_id","Identity(%)","Alignment_length","Mismatches","Number of gap opens","Query_start","Query_end" \
 			,"Subject_start","Subject_end","E-value","Bit_score","Origin Database","Subject Description","Species"]
 			
@@ -1528,7 +1528,7 @@ if __name__ == '__main__':
 			if db_type == "ncbi":
 				db = ncbi_format_db_parse(settings[6])
 			else:
-				db = usearch_format_db_parse(settings[6])
+				db = diamond_format_db_parse(settings[6])
 			print ("db complete -- now matching")
 			print (str(time.clock() - start_time) + " ::  time to complete db")
 			db_count = 0
@@ -1573,8 +1573,8 @@ if __name__ == '__main__':
 				db = ncbi_format_db_parse(settings[6])
 				db2 = ncbi_format_db_parse(settings[9])
 			else:
-				db = usearch_format_db_parse(settings[6])
-				db2 = usearch_format_db_parse(settings[9])
+				db = diamond_format_db_parse(settings[6])
+				db2 = diamond_format_db_parse(settings[9])
 		
 			#print (len(db))
 			#print (len(db2))
@@ -1631,9 +1631,9 @@ if __name__ == '__main__':
 				db2 = ncbi_format_db_parse(settings[9])
 				db3 = ncbi_format_db_parse(settings[12])
 			else:
-				db = usearch_format_db_parse(settings[6])
-				db2 = usearch_format_db_parse(settings[9])
-				db3 = usearch_format_db_parse(settings[12])
+				db = diamond_format_db_parse(settings[6])
+				db2 = diamond_format_db_parse(settings[9])
+				db3 = diamond_format_db_parse(settings[12])
 			
 			print("db, db2, db3 complete -- now matching")
 			print(str(time.clock() - start_time) + " ::  time to complete db, db2, db3")
