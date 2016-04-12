@@ -41,13 +41,15 @@ This script requires the "filter_list.txt" file to be placed in the same directo
 
 ### External Applications
 
-1)  USEARCH performs seqeunce comparions and prepares BLAST-style output but runs in a fraction of the time as a typical NCBI searches. USEARCH is free for 32-bit systems but for large databases, the 64-bit system is required.
+1) Diamond is a really fast sequence-search algorithm which can compare nucleotides sequences to protein sequences for very large datasets. Alternatively blastx can also be used for small datasets. 
 
-USEARCH download: http://www.drive5.com/usearch/download.html
+Diamond download:
 
-VSEARCH is a fully open-source alternative to USEARCH:
+http://github.com/bbuchfink/diamond/releases/download/v0.7.12/diamond-linux64.tar.gz
 
-VSEARCH download: https://github.com/torognes/vsearch
+Alternatively, blastx can be used for smaller datasets where diamond is slower than blastx:
+
+ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
 
 2)  Blast2GO provides a full-featured GUI experience for sequence annotation.  Here, we circumvent some of the limited search options and slow network speeds by limiting its use to Gene Ontology aquisition.  Blast2GO will be run as an indepedent application during the workflow to generate a single output file.  
 
@@ -67,19 +69,41 @@ The diagram above shows the order in which the seperate operations must be perfo
 
 Steps:
 
-1) Run your preferred search application (usearch or vsearch) to obtain a correctly formatted set of search results from your database.  A total of three database runs can be integrated in the current software version.  The Blast6out tab-delimited text output option is required as is the original FASTA database used (the one formatted into udb format).
+1) Run your preferred search application (diamond or blastx) to obtain a correctly formatted set of search results from your database.  A total of three database runs can be integrated in the current software version.  The Blast6out tab-delimited text output option is required as is the original FASTA database used.
 
-Execution example for usearch:
+Execution example for diamond:
+
+For making diamond database file:
+```
+diamond makedb --in fastadatabase.fasta -d databasename
+```
+
+For running diamond, use the following syntax:
 
 ```
-usearch -ublast query.fasta -db /path_to_udb_database/refseq_protein.udb -threads 12 -evalue 1e-9 -weak_evalue 0.0001 -blast6out results
+diamond blastx -d /path_to_diamond_database/databasename -q query.fasta -p no_of_threads -a diamond_alignment_archive.daa -t /directory_for_temp_files --sensitive --evalue evalue_score
 ```
+For obtaining results in blast6 format, use the following command:
 
-Execution example for vsearch:
+'''
+diamond view -a diamond_alignment_archive.daa -o outputfilename.txt -f tab
+'''
 
-```
-vsearch query.fasta --db /path_to_udb_database/refseq_protein.udb --threads 12 --id 1e-9 --weak_id 0.0001 --blast6out results
-```
+Execution example for blastx:
+
+For making the blastx database file, use the following command:
+
+'''
+makeblastdb -in fastadatabase.fasta -out fastadatabase.db -dbtype prot
+'''
+
+For running blastx, use the following command:
+
+'''
+blastx -query query.fasta -db fastadatabase.db -out outputfilename.txt -outfmt 6 -num_threads no_of_threads -evalue evalue_score
+'''
+
+
 2) Run InterProScan to generate your InterProScan results file.  This can be run for up to 2 databases (specified by the appl flag).
 
 Execution example for InterProScan:
@@ -94,7 +118,7 @@ interproscan.sh -i $input -o $output -f xml -appl pfam, Panther -goterms -iprloo
 ```
 Path to query FASTA:
 Source Databases (1, 2, 3): 
-Sequence Search Application: (usearch)
+Sequence Search Application: (diamond)
 Query Organism:
 Database 1 score (1, 2, 3): 
 Path to FASTA-version of database1:
@@ -119,7 +143,7 @@ Insects:
 Fungi:
 Bacteria:
 ```
-4) Run the Report Generator script in the same directory with output files from the usearch/vsearch runs and with the configuration file as the only parameter.
+4) Run the Report Generator script in the same directory with output files from the diamond/blastx runs and with the configuration file as the only parameter.
 
 ```
 cd /path/to/directory/containing/script/directory_containing_script/
@@ -202,8 +226,7 @@ Path to query FASTA: This is the location in which you will place the path to yo
 
 Source Databases: (1, 2, 3) Here you will enter the number of databases you wish to run your query fasta file against
 
-Sequence Search Application: (usearch) Here you will specify the format of the search results from your databases. vsearch
-(if used correctly, as specified above) will output in the same format as usearch.
+Sequence Search Application:(diamond/blastx) Here you will specify the format of the search results from your databases.
 
 Query Organism: This setting is optional, and in the current version of the script only affects the name of the folder in which the results are placed, ex: if "walnut" was entered here the output folder would be "walnut_output_[date]"
 
@@ -267,9 +290,7 @@ This option contains the number of databases to be parsed by the script, and can
 
 #### Sequence Search Application
 
-This script currently supports 2 different sequence search applications, namely usearch and vsearch.
-
-When running these applications, it is important to use the "-blast6out" command line option for both usearch and vsearch, to ensure that the correct format is generated.
+This script currently supports 2 different sequence search applications, namely diamond and blastx.
 
 The correct format looks like this:
 
