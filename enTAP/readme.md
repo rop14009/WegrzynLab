@@ -85,23 +85,23 @@ diamond blastx -d /path_to_diamond_database/databasename -q query.fasta -p no_of
 ```
 For obtaining results in blast6 format, use the following command:
 
-'''
+```
 diamond view -a diamond_alignment_archive.daa -o outputfilename.txt -f tab
-'''
+```
 
 Execution example for blastx:
 
 For making the blastx database file, use the following command:
 
-'''
+```
 makeblastdb -in fastadatabase.fasta -out fastadatabase.db -dbtype prot
-'''
+```
 
 For running blastx, use the following command:
 
-'''
+```
 blastx -query query.fasta -db fastadatabase.db -out outputfilename.txt -outfmt 6 -num_threads no_of_threads -evalue evalue_score
-'''
+```
 
 
 2) Run InterProScan to generate your InterProScan results file.  This can be run for up to 2 databases (specified by the appl flag).
